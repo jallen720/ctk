@@ -1,0 +1,10 @@
+obj
+{
+    field 0
+    empty_field ""
+    string "This is a sentence."
+    nested_obj { field 2 }
+    empty_obj {}
+    nested_arr [ {field 4} 2 {field 3} [1 2 {field 5}]14 125125 "test" ]
+    empty_arr []
+}

@@ -1,0 +1,154 @@
+render_pass
+{
+    clear_color [ 0.04 0.04 0.04 1.0 ]
+}
+textures
+[
+    {
+        name cube_mapping
+        path ../../textures/cube_mapping.png
+    }
+]
+meshes
+[
+    {
+        name cube
+        path ../../models/cube.obj
+    }
+    {
+        name quad
+        path ../../models/quad.obj
+    }
+]
+gfx_pipelines
+[
+    {
+        name unlit_color
+        depth_testing VK_TRUE
+        primitive_topology VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
+        descriptor_sets
+        [
+            # set 0
+            [
+                {
+                    type VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC
+                    shader_stages [ VK_SHADER_STAGE_VERTEX_BIT ]
+                    count 1
+                    ubo_buffer entity
+                }
+                {
+                    type VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC
+                    shader_stages [ VK_SHADER_STAGE_FRAGMENT_BIT ]
+                    count 1
+                    ubo_buffer color
+                }
+            ]
+        ]
+        shaders
+        [
+            {
+                path ../../shaders/sbx_unlit_color.vert.spv
+                stage VK_SHADER_STAGE_VERTEX_BIT
+            }
+            {
+                path ../../shaders/sbx_unlit_color.frag.spv
+                stage VK_SHADER_STAGE_FRAGMENT_BIT
+            }
+        ]
+        vertex_inputs
+        [
+            { location 0 attribute position }
+        ]
+    }
+    {
+        name unlit_texture
+        depth_testing VK_TRUE
+        primitive_topology VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
+        descriptor_sets
+        [
+            # set 0
+            [
+                {
+                    type VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC
+                    shader_stages [ VK_SHADER_STAGE_VERTEX_BIT ]
+                    count 1
+                    ubo_buffer entity
+                }
+            ]
+            # set 1
+            [
+                {
+                    type VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
+                    shader_stages [ VK_SHADER_STAGE_FRAGMENT_BIT ]
+                    count 1
+                    texture_img cube_mapping
+                }
+            ]
+        ]
+        shaders
+        [
+            {
+                path ../../shaders/sbx_unlit_texture.vert.spv
+                stage VK_SHADER_STAGE_VERTEX_BIT
+            }
+            {
+                path ../../shaders/sbx_unlit_texture.frag.spv
+                stage VK_SHADER_STAGE_FRAGMENT_BIT
+            }
+        ]
+        vertex_inputs
+        [
+            { location 0 attribute position }
+            { location 1 attribute uv }
+        ]
+    }
+    {
+        name texture
+        depth_testing VK_TRUE
+        primitive_topology VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
+        descriptor_sets
+        [
+            # set 0
+            [
+                {
+                    type VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC
+                    shader_stages [ VK_SHADER_STAGE_VERTEX_BIT ]
+                    count 1
+                    ubo_buffer entity
+                }
+                {
+                    type VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+                    shader_stages [ VK_SHADER_STAGE_FRAGMENT_BIT ]
+                    count 1
+                    ubo_buffer light
+                }
+            ]
+            # set 1
+            [
+                {
+                    type VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
+                    shader_stages [ VK_SHADER_STAGE_FRAGMENT_BIT ]
+                    count 1
+                    texture_img cube_mapping
+                }
+            ]
+        ]
+        shaders
+        [
+            {
+                path ../../shaders/sbx_texture.vert.spv
+                stage VK_SHADER_STAGE_VERTEX_BIT
+            }
+            {
+                path ../../shaders/sbx_texture.frag.spv
+                stage VK_SHADER_STAGE_FRAGMENT_BIT
+            }
+        ]
+        vertex_inputs
+        [
+            { location 0 attribute position }
+            { location 1 attribute normal }
+            { location 2 attribute uv }
+        ]
+    }
+]
