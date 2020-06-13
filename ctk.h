@@ -68,8 +68,7 @@ using b32 = bool;
 #define CTK_LOOP while(1)
 #define CTK_REPEAT(COUNT) for(u32 ___ = 0; ___ < COUNT; ___++)
 
-namespace ctk
-{
+namespace ctk {
 
 ////////////////////////////////////////////////////////////
 /// Declarations

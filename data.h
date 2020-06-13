@@ -4,8 +4,7 @@
 #include <cstdlib>
 #include "ctk/ctk.h"
 
-namespace ctk
-{
+namespace ctk {
 
 ////////////////////////////////////////////////////////////
 /// Data
