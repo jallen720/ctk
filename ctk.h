@@ -88,6 +88,15 @@ struct array
     type &operator[](u32 Index);
 };
 
+template<typename type, u32 size>
+struct static_array
+{
+    type Data[size];
+    u32 Size = size;
+    u32 Count;
+    type &operator[](u32 Index);
+};
+
 using map_key = char[64];
 
 template<typename type>
@@ -182,6 +191,15 @@ Error(cstr Message, args... Args)
 
 template<typename ...args>
 static void
+Error(u32 TabCount, cstr Message, args... Args)
+{
+    Print(CTK_ERROR_TAG);
+    PrintTabs(TabCount);
+    PrintLine(Message, Args...);
+}
+
+template<typename ...args>
+static void
 Info(cstr Message, args... Args)
 {
     Print(CTK_ANSI_HIGHLIGHT("INFO", GREEN) ": ");
@@ -190,9 +208,27 @@ Info(cstr Message, args... Args)
 
 template<typename ...args>
 static void
+Info(u32 TabCount, cstr Message, args... Args)
+{
+    Print(CTK_ANSI_HIGHLIGHT("INFO", GREEN) ": ");
+    PrintTabs(TabCount);
+    PrintLine(Message, Args...);
+}
+
+template<typename ...args>
+static void
 Warning(cstr Message, args... Args)
 {
     Print(CTK_ANSI_HIGHLIGHT("WARNING", MAGENTA) ": ");
+    PrintLine(Message, Args...);
+}
+
+template<typename ...args>
+static void
+Warning(u32 TabCount, cstr Message, args... Args)
+{
+    Print(CTK_ANSI_HIGHLIGHT("WARNING", MAGENTA) ": ");
+    PrintTabs(TabCount);
     PrintLine(Message, Args...);
 }
 
@@ -218,15 +254,12 @@ AllocArray(array<type> *Array, u32 Size)
     Array->Size = Size;
 }
 
-#define _CTK_CREATE_ARRAY \
-    array<type> Array = {}; \
-    AllocArray(&Array, Size);
-
 template<typename type>
 static array<type>
 CreateArray(u32 Size, type InitValue)
 {
-    _CTK_CREATE_ARRAY
+    array<type> Array = {};
+    AllocArray(&Array, Size);
     Array.Count = Size;
     for(u32 Index = 0; Index < Array.Count; Index++)
     {
@@ -246,7 +279,8 @@ template<typename type>
 static array<type>
 CreateArray(type *Data, u32 Size)
 {
-    _CTK_CREATE_ARRAY
+    array<type> Array = {};
+    AllocArray(&Array, Size);
     Array.Count = Size;
     memcpy(Array.Data, Data, Size * sizeof(type));
     return Array;
@@ -254,9 +288,21 @@ CreateArray(type *Data, u32 Size)
 
 template<typename type>
 static array<type>
+CreateArray(array<type> *CopyArray)
+{
+    array<type> Array = {};
+    AllocArray(&Array, CopyArray->Size);
+    Array.Count = CopyArray->Count;
+    memcpy(Array.Data, CopyArray->Data, ByteCount(CopyArray));
+    return Array;
+}
+
+template<typename type>
+static array<type>
 CreateArrayEmpty(u32 Size)
 {
-    _CTK_CREATE_ARRAY
+    array<type> Array = {};
+    AllocArray(&Array, Size);
     Array.Count = 0;
     return Array;
 }
@@ -350,6 +396,84 @@ operator+(array<type> &Array, u32 Index)
 {
     CTK_ASSERT(Index < Array.Size)
     return Array.Data + Index;
+}
+
+////////////////////////////////////////////////////////////
+/// Static Array
+////////////////////////////////////////////////////////////
+template<typename type, u32 size>
+static type *
+Push(static_array<type, size> *StaticArray, type Element)
+{
+    if(StaticArray->Count + 1 > StaticArray->Size)
+    {
+        CTK_FATAL("static array (size=%u count=%u) cannot hold any more elements", StaticArray->Size, StaticArray->Count)
+    }
+    type *NewElement = At(StaticArray, StaticArray->Count++);
+    *NewElement = Element;
+    return NewElement;
+}
+
+template<typename type, u32 size>
+static type *
+Push(static_array<type, size> *StaticArray)
+{
+    return Push(StaticArray, {});
+}
+
+template<typename type, u32 size>
+static void
+Push(static_array<type, size> *StaticArray, type *Elements, u32 ElementCount)
+{
+    if(ElementCount == 0)
+    {
+        return;
+    }
+
+    if(StaticArray->Count + ElementCount > StaticArray->Size)
+    {
+        CTK_FATAL("static array (size=%u count=%u) cannot hold %u more elements", StaticArray->Size, StaticArray->Count, ElementCount)
+    }
+    memcpy(At(StaticArray, StaticArray->Count), Elements, sizeof(type) * ElementCount);
+    StaticArray->Count += ElementCount;
+}
+
+template<typename type, u32 size>
+static u32
+ByteSize(static_array<type, size> *StaticArray)
+{
+    return StaticArray->Size * sizeof(type);
+}
+
+template<typename type, u32 size>
+static u32
+ByteCount(static_array<type, size> *StaticArray)
+{
+    return StaticArray->Count * sizeof(type);
+}
+
+template<typename type, u32 size>
+static type *
+At(static_array<type, size> *StaticArray, u32 Index)
+{
+    CTK_ASSERT(Index < StaticArray->Size)
+    return StaticArray->Data + Index;
+}
+
+template<typename type, u32 size>
+type &
+static_array<type, size>::operator[](u32 Index)
+{
+    CTK_ASSERT(Index < Size)
+    return Data[Index];
+}
+
+template<typename type, u32 size>
+static type *
+operator+(static_array<type, size> &StaticArray, u32 Index)
+{
+    CTK_ASSERT(Index < StaticArray.Size)
+    return StaticArray.Data + Index;
 }
 
 ////////////////////////////////////////////////////////////

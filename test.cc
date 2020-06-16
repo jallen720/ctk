@@ -139,9 +139,47 @@ MatrixTest()
     // PrintMat4(&CustomRotationMatrix, 1, 1);
 }
 
+template<typename type, u32 size>
+static void
+PrintStaticArray(ctk::static_array<type, size> *StaticArray)
+{
+    ctk::Print("static array (size=%u count=%u): ", StaticArray->Size, StaticArray->Count);
+    for(u32 Index = 0; Index < StaticArray->Count; ++Index)
+    {
+        ctk::Print("%u ", *At(StaticArray, Index));
+    }
+    ctk::PrintLine();
+}
+
+static void
+StaticArrayTest()
+{
+    ctk::static_array<u32, 8> StaticArray = {};
+    PrintStaticArray(&StaticArray);
+    ctk::Push(&StaticArray, 1u);
+    PrintStaticArray(&StaticArray);
+    ctk::Push(&StaticArray);
+    PrintStaticArray(&StaticArray);
+}
+
+static void
+CopyArrayTest()
+{
+    auto CopyArray = ctk::CreateArrayEmpty<u32>(3);
+    ctk::Push(&CopyArray, 2u);
+    ctk::Push(&CopyArray, 1u);
+    auto Array = ctk::CreateArray(&CopyArray);
+    ctk::Print("array (size=%u count=%u)", Array.Size, Array.Count);
+    for(u32 i = 0; i < Array.Count; ++i)
+    {
+        ctk::Print(" %u", Array[i]);
+    }
+    ctk::PrintLine();
+}
+
 int
 main()
 {
-    MatrixTest();
+    CopyArrayTest();
     return 0;
 }
