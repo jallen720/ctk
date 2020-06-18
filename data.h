@@ -77,7 +77,7 @@ SkipToEndOfScope(array<token> *Tokens, u32 *TokenIndex, token::type CloseTokenTy
     // SkipToEndOfScope() called on open token; cache then start on next token.
     token::type OpenTokenType = At(Tokens, (*TokenIndex)++)->Type;
 
-    CTK_LOOP
+    while(1)
     {
         token *Token = At(Tokens, *TokenIndex);
         if(Token->Type == OpenTokenType)
@@ -106,7 +106,7 @@ ParseChildren(array<data> *Children, array<token> *Tokens, u32 *TokenIndex, toke
 
     // Count children.
     u32 ChildCount = 0;
-    CTK_LOOP
+    while(1)
     {
         token *ChildToken = At(Tokens, ChildTokenIndex);
         if(ChildToken->Type == CloseTokenType)
@@ -362,7 +362,7 @@ At(data *Data, cstr Search)
 
     u32 KeySize = 0;
     const char *CurrentChar = Search;
-    CTK_LOOP
+    while(1)
     {
         // If end of search is reached then search itself represents the key for the child to lookup.
         if(CurrentChar == SearchEnd)

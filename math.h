@@ -43,7 +43,7 @@ struct vec2
 ////////////////////////////////////////////////////////////
 template<typename type>
 static vec3<type>
-operator+(vec3<type> Left, vec3<type> Right)
+operator +(vec3<type> Left, vec3<type> Right)
 {
     return
     {
@@ -55,7 +55,7 @@ operator+(vec3<type> Left, vec3<type> Right)
 
 template<typename type>
 static vec3<type>
-operator-(vec3<type> Left, vec3<type> Right)
+operator -(vec3<type> Left, vec3<type> Right)
 {
     return
     {
@@ -67,7 +67,7 @@ operator-(vec3<type> Left, vec3<type> Right)
 
 template<typename type>
 static vec2<type>
-operator-(vec2<type> Left, vec2<type> Right)
+operator -(vec2<type> Left, vec2<type> Right)
 {
     return
     {
@@ -78,7 +78,7 @@ operator-(vec2<type> Left, vec2<type> Right)
 
 template<typename type>
 static vec3<type>
-operator*(vec3<type> Left, type Right)
+operator *(vec3<type> Left, type Right)
 {
     return
     {
@@ -90,7 +90,7 @@ operator*(vec3<type> Left, type Right)
 
 template<typename type>
 static vec3<type>
-operator*(vec3<type> Left, vec3<type> Right)
+operator *(vec3<type> Left, vec3<type> Right)
 {
     return
     {
@@ -102,7 +102,7 @@ operator*(vec3<type> Left, vec3<type> Right)
 
 template<typename type>
 static vec4<type>
-operator*(vec4<type> Left, type Right)
+operator *(vec4<type> Left, type Right)
 {
     return
     {
@@ -115,7 +115,7 @@ operator*(vec4<type> Left, type Right)
 
 template<typename type>
 static vec3<type>
-operator/(vec3<type> Left, type Right)
+operator /(vec3<type> Left, type Right)
 {
     return
     {
@@ -127,14 +127,14 @@ operator/(vec3<type> Left, type Right)
 
 template<typename type>
 static b32
-operator==(vec2<type> Left, vec2<type> Right)
+operator ==(vec2<type> Left, vec2<type> Right)
 {
     return Left.X == Right.X && Left.Y == Right.Y;
 }
 
 template<typename type>
 static b32
-operator!=(vec2<type> Left, vec2<type> Right)
+operator !=(vec2<type> Left, vec2<type> Right)
 {
     return Left.X != Right.X || Left.Y != Right.Y;
 }
