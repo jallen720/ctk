@@ -177,9 +177,20 @@ CopyArrayTest()
     ctk::PrintLine();
 }
 
+static void
+OptionalTest()
+{
+    ctk::optional<int> X = {};
+    ctk::PrintLine("X.Set? %s X.Value %i", X.Set ? "true" : "false", X.Value);
+    X = 1;
+    ctk::PrintLine("X.Set? %s X.Value %i", X.Set ? "true" : "false", X.Value);
+    X = 2;
+    ctk::PrintLine("X.Set? %s X.Value %i", X.Set ? "true" : "false", X.Value);
+}
+
 int
 main()
 {
-    CopyArrayTest();
+    OptionalTest();
     return 0;
 }

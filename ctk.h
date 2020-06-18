@@ -135,6 +135,15 @@ struct pair
     value Value;
 };
 
+template<typename type>
+struct optional
+{
+    bool Set;
+    type Value;
+    operator b32();
+    optional<type> &operator =(type Value);
+};
+
 ////////////////////////////////////////////////////////////
 /// Interface
 ////////////////////////////////////////////////////////////
@@ -728,6 +737,24 @@ FindPair(pair<cstr, value> *Pairs, u32 PairCount, cstr Key)
         }
     }
     return NULL;
+}
+
+////////////////////////////////////////////////////////////
+/// Optional
+////////////////////////////////////////////////////////////
+template<typename type>
+optional<type>::operator b32()
+{
+    return Set;
+}
+
+template<typename type>
+optional<type> &
+optional<type>::operator =(type Value)
+{
+    this->Value = Value;
+    Set = true;
+    return *this;
 }
 
 ////////////////////////////////////////////////////////////
