@@ -141,7 +141,7 @@ MatrixTest()
 
 template<typename type, u32 size>
 static void
-PrintStaticArray(ctk::static_array<type, size> *StaticArray)
+PrintStaticArray(ctk::sarray<type, size> *StaticArray)
 {
     ctk::Print("static array (size=%u count=%u): ", StaticArray->Size, StaticArray->Count);
     for(u32 Index = 0; Index < StaticArray->Count; ++Index)
@@ -154,7 +154,7 @@ PrintStaticArray(ctk::static_array<type, size> *StaticArray)
 static void
 StaticArrayTest()
 {
-    ctk::static_array<u32, 8> StaticArray = {};
+    ctk::sarray<u32, 8> StaticArray = {};
     PrintStaticArray(&StaticArray);
     ctk::Push(&StaticArray, 1u);
     PrintStaticArray(&StaticArray);

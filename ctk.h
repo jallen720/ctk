@@ -88,7 +88,7 @@ struct array
 };
 
 template<typename type, u32 size>
-struct static_array
+struct sarray
 {
     type Data[size];
     u32  Size = size;
@@ -420,7 +420,7 @@ operator +(array<type> &Array, u32 Index)
 ////////////////////////////////////////////////////////////
 template<typename type, u32 size>
 static type *
-Push(static_array<type, size> *Array, type Element)
+Push(sarray<type, size> *Array, type Element)
 {
     if(Array->Count + 1 > Array->Size)
     {
@@ -433,14 +433,14 @@ Push(static_array<type, size> *Array, type Element)
 
 template<typename type, u32 size>
 static type *
-Push(static_array<type, size> *Array)
+Push(sarray<type, size> *Array)
 {
     return Push(Array, {});
 }
 
 template<typename type, u32 size>
 static void
-Push(static_array<type, size> *Array, type *Elements, u32 ElementCount)
+Push(sarray<type, size> *Array, type *Elements, u32 ElementCount)
 {
     if(ElementCount == 0)
     {
@@ -457,21 +457,21 @@ Push(static_array<type, size> *Array, type *Elements, u32 ElementCount)
 
 template<typename type, u32 size>
 static u32
-ByteSize(static_array<type, size> *Array)
+ByteSize(sarray<type, size> *Array)
 {
     return Array->Size * sizeof(type);
 }
 
 template<typename type, u32 size>
 static u32
-ByteCount(static_array<type, size> *Array)
+ByteCount(sarray<type, size> *Array)
 {
     return Array->Count * sizeof(type);
 }
 
 template<typename type, u32 size>
 static type *
-At(static_array<type, size> *Array, u32 Index)
+At(sarray<type, size> *Array, u32 Index)
 {
     CTK_ASSERT(Index < Array->Size)
     return Array->Data + Index;
@@ -479,7 +479,7 @@ At(static_array<type, size> *Array, u32 Index)
 
 template<typename type, u32 size>
 type &
-static_array<type, size>::operator [](u32 Index)
+sarray<type, size>::operator [](u32 Index)
 {
     CTK_ASSERT(Index < Size)
     return Data[Index];
@@ -487,7 +487,7 @@ static_array<type, size>::operator [](u32 Index)
 
 template<typename type, u32 size>
 static type *
-operator +(static_array<type, size> &Array, u32 Index)
+operator +(sarray<type, size> &Array, u32 Index)
 {
     CTK_ASSERT(Index < Array.Size)
     return Array.Data + Index;
