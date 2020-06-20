@@ -177,9 +177,9 @@ Min(type A, type B)
 
 template<typename type>
 static type
-Clamp(type Value, type Min, type Max)
+Clamp(type Value, type MinValue, type MaxValue)
 {
-    return Min(Max(Value, Min), Max);
+    return Min(Max(Value, MinValue), MaxValue);
 }
 
 static s32
