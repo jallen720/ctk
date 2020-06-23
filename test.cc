@@ -37,7 +37,7 @@ PrintMat4(glm::mat4 *Matrix, u32 Precision, u32 TabCount = 0)
     for(u32 row = 0; row < 4; row++)
     {
         ctk::PrintTabs(TabCount);
-        if     (row == 0) ctk::Print("R");
+        if (row == 0)     ctk::Print("R");
         else if(row == 1) ctk::Print("U");
         else if(row == 2) ctk::Print("F");
         else              ctk::Print(" ");

@@ -82,8 +82,8 @@ template<typename type>
 struct array
 {
     type *Data;
-    u32  Size;
-    u32  Count;
+    u32 Size;
+    u32 Count;
     type &operator [](u32 Index);
 };
 
@@ -91,8 +91,8 @@ template<typename type, u32 size>
 struct sarray
 {
     type Data[size];
-    u32  Size = size;
-    u32  Count;
+    u32 Size = size;
+    u32 Count;
     type &operator [](u32 Index);
 };
 
@@ -102,18 +102,18 @@ template<typename type>
 struct map
 {
     map_key *Keys;
-    type    *Values;
-    u32     Size;
-    u32     Count;
+    type *Values;
+    u32 Size;
+    u32 Count;
 };
 
 template<typename type, u32 size>
 struct static_map
 {
     map_key Keys[size];
-    type    Values[size];
-    u32     Size = size;
-    u32     Count;
+    type Values[size];
+    u32 Size = size;
+    u32 Count;
 };
 
 using string = array<char>;
@@ -125,13 +125,13 @@ template<typename return_type, typename ...args>
 struct functor
 {
     fn<return_type, void *, args...> Fn;
-    void                             *Data;
+    void *Data;
 };
 
 template<typename key, typename value>
 struct pair
 {
-    key   Key;
+    key Key;
     value Value;
 };
 
