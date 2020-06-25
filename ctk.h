@@ -40,25 +40,25 @@ using b32 = bool;
 #define CTK_ANSI_COLOR_RED "\x1b[31m"
 #define CTK_ANSI_COLOR_GREEN "\x1b[32m"
 #define CTK_ANSI_COLOR_MAGENTA "\x1b[35m"
-#define CTK_ANSI_COLOR_CYAN "\u001b[36m"
+#define CTK_ANSI_COLOR_BLUE "\u001b[36m"
 #define CTK_ANSI_HIGHLIGHT(STR, COLOR) CTK_ANSI_COLOR_ ## COLOR STR CTK_ANSI_RESET
 #define CTK_ARRAY_COUNT(ARRAY) sizeof(ARRAY) / sizeof(ARRAY[0])
 #define CTK_ERROR_TAG CTK_ANSI_HIGHLIGHT("ERROR", RED) ": "
 
 #ifdef __GNUC__
     #define CTK_FATAL(MESSAGE, ...) \
-        ctk::PrintLine(CTK_ERROR_TAG CTK_ANSI_HIGHLIGHT("file", CYAN) ": %s", __FILE__); \
-        ctk::PrintLine("       " CTK_ANSI_HIGHLIGHT("line", CYAN) ": %i", __LINE__); \
-        ctk::PrintLine("       " CTK_ANSI_HIGHLIGHT("func", CYAN) ": %s()", __FUNCTION__); \
-        ctk::Print("       " CTK_ANSI_HIGHLIGHT("msg", CYAN) ": "); \
+        ctk::PrintLine(CTK_ERROR_TAG CTK_ANSI_HIGHLIGHT("file", BLUE) ": %s", __FILE__); \
+        ctk::PrintLine("       " CTK_ANSI_HIGHLIGHT("line", BLUE) ": %i", __LINE__); \
+        ctk::PrintLine("       " CTK_ANSI_HIGHLIGHT("func", BLUE) ": %s()", __FUNCTION__); \
+        ctk::Print("       " CTK_ANSI_HIGHLIGHT("msg", BLUE) ": "); \
         ctk::PrintLine(MESSAGE, ## __VA_ARGS__); \
         throw 0;
 #else
     #define CTK_FATAL(MESSAGE, ...) \
-        ctk::PrintLine(CTK_ERROR_TAG CTK_ANSI_HIGHLIGHT("file", CYAN) ": %s", __FILE__); \
-        ctk::PrintLine("       " CTK_ANSI_HIGHLIGHT("line", CYAN) ": %i", __LINE__); \
-        ctk::PrintLine("       " CTK_ANSI_HIGHLIGHT("func", CYAN) ": %s()", __FUNCTION__); \
-        ctk::Print("       " CTK_ANSI_HIGHLIGHT("msg", CYAN) ": "); \
+        ctk::PrintLine(CTK_ERROR_TAG CTK_ANSI_HIGHLIGHT("file", BLUE) ": %s", __FILE__); \
+        ctk::PrintLine("       " CTK_ANSI_HIGHLIGHT("line", BLUE) ": %i", __LINE__); \
+        ctk::PrintLine("       " CTK_ANSI_HIGHLIGHT("func", BLUE) ": %s()", __FUNCTION__); \
+        ctk::Print("       " CTK_ANSI_HIGHLIGHT("msg", BLUE) ": "); \
         ctk::PrintLine(MESSAGE, __VA_ARGS__); \
         throw 0;
 #endif
@@ -245,6 +245,23 @@ static void
 Warning(u32 TabCount, cstr Message, args... Args)
 {
     Print(CTK_ANSI_HIGHLIGHT("WARNING", MAGENTA) ": ");
+    PrintTabs(TabCount);
+    PrintLine(Message, Args...);
+}
+
+template<typename ...args>
+static void
+Todo(cstr Message, args... Args)
+{
+    Print(CTK_ANSI_HIGHLIGHT("REMINDER", BLUE) ": ");
+    PrintLine(Message, Args...);
+}
+
+template<typename ...args>
+static void
+Todo(u32 TabCount, cstr Message, args... Args)
+{
+    Print(CTK_ANSI_HIGHLIGHT("REMINDER", BLUE) ": ");
     PrintTabs(TabCount);
     PrintLine(Message, Args...);
 }

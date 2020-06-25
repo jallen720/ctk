@@ -34,17 +34,17 @@ static void
 PrintMat4(glm::mat4 *Matrix, u32 Precision, u32 TabCount = 0)
 {
     Precision = 6;
-    for(u32 row = 0; row < 4; row++)
+    for(u32 Row = 0; Row < 4; ++Row)
     {
         ctk::PrintTabs(TabCount);
-        if (row == 0)     ctk::Print("R");
-        else if(row == 1) ctk::Print("U");
-        else if(row == 2) ctk::Print("F");
+        if (Row == 0)     ctk::Print("R");
+        else if(Row == 1) ctk::Print("U");
+        else if(Row == 2) ctk::Print("F");
         else              ctk::Print(" ");
         ctk::Print(" [ ");
-        for(u32 column = 0; column < 4; column++)
+        for(u32 Column = 0; Column < 4; ++Column)
         {
-            PrintF32((*Matrix)[column][row], Precision);
+            PrintF32((*Matrix)[Column][Row], Precision);
             ctk::Print(" ");
         }
         ctk::PrintLine(" ]");
@@ -71,9 +71,9 @@ PerformanceTest()
         Matrix = glm::rotate(Matrix, glm::radians(Rotation.z), { 0.0f, 0.0f, 1.0f });
         Matrix = glm::scale(Matrix, { Scale.x, Scale.y, Scale.z });
         Matrixes[MatrixIndex] = Matrix;
-        Position.x++;
-        Rotation.y--;
-        Scale.z++;
+        ++Position.x;
+        --Rotation.y;
+        ++Scale.z;
     }
     clock_t Elapsed = clock() - Start;
     double ElapsedMS = ((double)Elapsed) / (double)CLOCKS_PER_SEC * 1000.0; // in seconds
