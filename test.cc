@@ -188,9 +188,19 @@ OptionalTest()
     ctk::PrintLine("X.Set? %s X.Value %i", X.Set ? "true" : "false", X.Value);
 }
 
+static void
+AllocTest()
+{
+    auto Allocation = ctk::Alloc<u32>(4);
+    for(u32 Index = 0; Index < 4; Index++)
+    {
+        ctk::PrintLine("%u", Allocation[Index]);
+    }
+}
+
 int
 main()
 {
-    OptionalTest();
+    AllocTest();
     return 0;
 }
