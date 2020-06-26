@@ -274,10 +274,7 @@ static type *
 Alloc(u32 Size = 1)
 {
     CTK_ASSERT(Size > 0)
-    u32 AllocationSize = Size * sizeof(type);
-    auto Allocation = (type *)malloc(AllocationSize);
-    memset(Allocation, 0, AllocationSize);
-    return Allocation;
+    return (type *)malloc(Size * sizeof(type));
 }
 
 ////////////////////////////////////////////////////////////
@@ -293,16 +290,6 @@ AllocArray(array<type> *Array, u32 Size)
 
 template<typename type>
 static array<type>
-CreateArray(u32 Size)
-{
-    array<type> Array = {};
-    AllocArray(&Array, Size);
-    Array.Count = Size;
-    return Array;
-}
-
-template<typename type>
-static array<type>
 CreateArray(u32 Size, type InitValue)
 {
     array<type> Array = {};
@@ -313,6 +300,13 @@ CreateArray(u32 Size, type InitValue)
         Array[Index] = InitValue;
     }
     return Array;
+}
+
+template<typename type>
+static array<type>
+CreateArray(u32 Size)
+{
+    return CreateArray<type>(Size, {});
 }
 
 template<typename type>
