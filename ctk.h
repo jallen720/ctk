@@ -108,7 +108,7 @@ struct map
 };
 
 template<typename type, u32 size>
-struct static_map
+struct smap
 {
     map_key Keys[size];
     type Values[size];
@@ -604,6 +604,70 @@ At(map<type> *Map, cstr Key)
 }
 
 ////////////////////////////////////////////////////////////
+/// Static Map
+////////////////////////////////////////////////////////////
+template<typename type, u32 size>
+static type *
+Push(smap<type, size> *Map, cstr Key, type Value)
+{
+    if(Map->Count + 1 > Map->Size)
+    {
+        CTK_FATAL("static map (size=%u count=%u) cannot hold any more elements", Map->Size, Map->Count)
+    }
+
+    if(strlen(Key) >= sizeof(map_key))
+    {
+        CTK_FATAL("pushing key \"%s\" (size=%u) which is longer than max key size of %u",
+                  Key, strlen(Key),
+                  sizeof(map_key) - 1) // Must have room for null-terminator.
+    }
+
+    // Check if duplicate key.
+    if(Find(Map, Key) != NULL)
+    {
+        CTK_FATAL("attempting to push key \"%s\" to static map that already has that key", Key);
+    }
+
+    strcpy(Map->Keys[Map->Count], Key);
+    Map->Values[Map->Count] = Value;
+    Map->Count++;
+    return Map->Values + Map->Count - 1;
+}
+
+template<typename type, u32 size>
+static type *
+Push(smap<type, size> *Map, cstr Key)
+{
+    return Push(Map, Key, {});
+}
+
+template<typename type, u32 size>
+static type *
+Find(smap<type, size> *Map, cstr Key)
+{
+    for(u32 Index = 0; Index < Map->Count; Index++)
+    {
+        if(StringEqual(Key, (cstr)(Map->Keys + Index)))
+        {
+            return Map->Values + Index;
+        }
+    }
+    return NULL;
+}
+
+template<typename type, u32 size>
+static type *
+At(smap<type, size> *Map, cstr Key)
+{
+    type *Value = Find(Map, Key);
+    if(Value == NULL)
+    {
+        CTK_FATAL("failed to find entry for key \"%s\" in static map", Key);
+    }
+    return Value;
+}
+
+////////////////////////////////////////////////////////////
 /// Functor
 ////////////////////////////////////////////////////////////
 template<typename return_type, typename ...args>
@@ -741,14 +805,29 @@ StringToB32(string *String)
 ////////////////////////////////////////////////////////////
 /// Pair
 ////////////////////////////////////////////////////////////
-template<typename value>
-static pair<cstr, value> *
-FindPair(pair<cstr, value> *Pairs, u32 PairCount, cstr Key)
+template<typename key, typename value>
+static pair<key, value> *
+FindPair(pair<key, value> *Pairs, u32 PairCount, key Key)
 {
     for(u32 PairIndex = 0; PairIndex < PairCount; PairIndex++)
     {
         auto Pair = Pairs + PairIndex;
-        if(StringEqual(Pair->Key, Key))
+        if(Pair->Key == Key)
+        {
+            return Pair;
+        }
+    }
+    return NULL;
+}
+
+template<typename key, typename value, typename comparator>
+static pair<key, value> *
+FindPair(pair<key, value> *Pairs, u32 PairCount, comparator Comparator, key Key)
+{
+    for(u32 PairIndex = 0; PairIndex < PairCount; PairIndex++)
+    {
+        auto Pair = Pairs + PairIndex;
+        if(Comparator(Pair->Key, Key))
         {
             return Pair;
         }
