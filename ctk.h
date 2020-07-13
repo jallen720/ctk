@@ -65,7 +65,7 @@ using b32 = bool;
 
 #define CTK_ASSERT(STATEMENT) if(!(STATEMENT)) { CTK_FATAL("assertion \"%s\" failed", #STATEMENT) }
 #define CTK_VALUE_NAME_PAIR(VALUE) { #VALUE, VALUE }
-#define CTK_REPEAT(COUNT) for(u32 ___ = 0; ___ < COUNT; ___++)
+#define CTK_REPEAT(COUNT) for(u32 _ = 0; _ < COUNT; _++)
 
 namespace ctk {
 
@@ -253,7 +253,7 @@ template<typename ...args>
 static void
 Todo(cstr Message, args... Args)
 {
-    Print(CTK_ANSI_HIGHLIGHT("REMINDER", BLUE) ": ");
+    Print(CTK_ANSI_HIGHLIGHT("TODO", BLUE) ": ");
     PrintLine(Message, Args...);
 }
 
@@ -261,7 +261,7 @@ template<typename ...args>
 static void
 Todo(u32 TabCount, cstr Message, args... Args)
 {
-    Print(CTK_ANSI_HIGHLIGHT("REMINDER", BLUE) ": ");
+    Print(CTK_ANSI_HIGHLIGHT("TODO", BLUE) ": ");
     PrintTabs(TabCount);
     PrintLine(Message, Args...);
 }
