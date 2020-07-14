@@ -820,9 +820,9 @@ FindPair(pair<key, value> *Pairs, u32 PairCount, key Key)
     return NULL;
 }
 
-template<typename key, typename value, typename comparator>
+template<typename key, typename value>
 static pair<key, value> *
-FindPair(pair<key, value> *Pairs, u32 PairCount, comparator Comparator, key Key)
+FindPair(pair<key, value> *Pairs, u32 PairCount, key Key, fn<b32, key, key> Comparator)
 {
     for(u32 PairIndex = 0; PairIndex < PairCount; PairIndex++)
     {
