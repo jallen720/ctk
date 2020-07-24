@@ -46,10 +46,16 @@ struct data
 /// Declarations
 ////////////////////////////////////////////////////////////
 static void
-ParseChildren(array<data> *Children, array<token> *Tokens, u32 *TokenIndex, token::type CloseTokenType);
+parse_children(array<data> *Children, array<token> *Tokens, u32 *TokenIndex, token::type CloseTokenType);
 
 static data
-ParseData(array<token> *Tokens, u32 *ParseTokenIndex, b32 ParseKey);
+parse_data(array<token> *Tokens, u32 *ParseTokenIndex, b32 ParseKey);
+
+static data *
+at(data *Data, cstr Search);
+
+static data *
+at(data *Data, u32 Index);
 
 ////////////////////////////////////////////////////////////
 /// Internal
@@ -57,7 +63,7 @@ ParseData(array<token> *Tokens, u32 *ParseTokenIndex, b32 ParseKey);
 #include "ctk/_data_debug.h"
 
 static cstr
-TokenTypeName(token::type Type)
+token_type_name(token::type Type)
 {
     switch(Type)
     {
@@ -72,18 +78,18 @@ TokenTypeName(token::type Type)
 }
 
 static void
-SkipToEndOfScope(array<token> *Tokens, u32 *TokenIndex, token::type CloseTokenType)
+skip_to_end_of_scope(array<token> *Tokens, u32 *TokenIndex, token::type CloseTokenType)
 {
-    // SkipToEndOfScope() called on open token; cache then start on next token.
-    token::type OpenTokenType = At(Tokens, (*TokenIndex)++)->Type;
+    // skip_to_end_of_scope() called on open token; cache then start on next token.
+    token::type OpenTokenType = at(Tokens, (*TokenIndex)++)->Type;
 
     while(1)
     {
-        token *Token = At(Tokens, *TokenIndex);
+        token *Token = at(Tokens, *TokenIndex);
         if(Token->Type == OpenTokenType)
         {
-            // SkipToEndOfScope() leaves token index on token after closing bracket, so don't increment further.
-            SkipToEndOfScope(Tokens, TokenIndex, CloseTokenType);
+            // skip_to_end_of_scope() leaves token index on token after closing bracket, so don't increment further.
+            skip_to_end_of_scope(Tokens, TokenIndex, CloseTokenType);
         }
         else
         {
@@ -99,16 +105,16 @@ SkipToEndOfScope(array<token> *Tokens, u32 *TokenIndex, token::type CloseTokenTy
 }
 
 static void
-ParseChildren(array<data> *Children, array<token> *Tokens, u32 *TokenIndex, token::type CloseTokenType)
+parse_children(array<data> *Children, array<token> *Tokens, u32 *TokenIndex, token::type CloseTokenType)
 {
-    // ParseChildren() is called on an array/object open token so increment TokenIndex to first token in array/object.
+    // parse_children() is called on an array/object open token so increment TokenIndex to first token in array/object.
     u32 ChildTokenIndex = ++(*TokenIndex);
 
     // Count children.
     u32 ChildCount = 0;
     while(1)
     {
-        token *ChildToken = At(Tokens, ChildTokenIndex);
+        token *ChildToken = at(Tokens, ChildTokenIndex);
         if(ChildToken->Type == CloseTokenType)
         {
             break;
@@ -120,7 +126,7 @@ ParseChildren(array<data> *Children, array<token> *Tokens, u32 *TokenIndex, toke
         // If object, skip key token.
         if(CloseTokenType == token::type::OBJECT_CLOSE)
         {
-            ChildToken = At(Tokens, ++ChildTokenIndex);
+            ChildToken = at(Tokens, ++ChildTokenIndex);
         }
 
         // Skip to next child.
@@ -134,12 +140,12 @@ ParseChildren(array<data> *Children, array<token> *Tokens, u32 *TokenIndex, toke
             }
             case token::type::ARRAY_OPEN:
             {
-                SkipToEndOfScope(Tokens, &ChildTokenIndex, token::type::ARRAY_CLOSE);
+                skip_to_end_of_scope(Tokens, &ChildTokenIndex, token::type::ARRAY_CLOSE);
                 break;
             }
             case token::type::OBJECT_OPEN:
             {
-                SkipToEndOfScope(Tokens, &ChildTokenIndex, token::type::OBJECT_CLOSE);
+                skip_to_end_of_scope(Tokens, &ChildTokenIndex, token::type::OBJECT_CLOSE);
                 break;
             }
         }
@@ -148,13 +154,13 @@ ParseChildren(array<data> *Children, array<token> *Tokens, u32 *TokenIndex, toke
     // Parse child data if any.
     if(ChildCount > 0)
     {
-        *Children = CreateArrayEmpty<data>(ChildCount);
-        while(At(Tokens, *TokenIndex)->Type != CloseTokenType)
+        *Children = create_array_empty<data>(ChildCount);
+        while(at(Tokens, *TokenIndex)->Type != CloseTokenType)
         {
             // Only object children have keys.
             b32 ParseKey = CloseTokenType == token::type::OBJECT_CLOSE;
 
-            Push(Children, ParseData(Tokens, TokenIndex, ParseKey));
+            push(Children, parse_data(Tokens, TokenIndex, ParseKey));
             if(*TokenIndex >= Tokens->Count)
             {
                 CTK_FATAL("reached end of file parsing children")
@@ -164,7 +170,7 @@ ParseChildren(array<data> *Children, array<token> *Tokens, u32 *TokenIndex, toke
 }
 
 static data
-ParseData(array<token> *Tokens, u32 *ParseTokenIndex, b32 ParseKey)
+parse_data(array<token> *Tokens, u32 *ParseTokenIndex, b32 ParseKey)
 {
     data Data = {};
     u32 TokenIndex = *ParseTokenIndex;
@@ -172,39 +178,39 @@ ParseData(array<token> *Tokens, u32 *ParseTokenIndex, b32 ParseKey)
     // Parse key and move token index to next token which will represent the data's value.
     if(ParseKey)
     {
-        token *KeyToken = At(Tokens, TokenIndex++);
+        token *KeyToken = at(Tokens, TokenIndex++);
         if(KeyToken->Type != token::type::TEXT)
         {
-            CTK_FATAL("expected TEXT token for data key; found %s token instead", TokenTypeName(KeyToken->Type))
+            CTK_FATAL("expected TEXT token for data key; found %s token instead", token_type_name(KeyToken->Type))
         }
-        Data.Key = CreateString(KeyToken->Data, KeyToken->Size);
+        Data.Key = create_string(KeyToken->Data, KeyToken->Size);
     }
 
-    token *ValueToken = At(Tokens, TokenIndex);
+    token *ValueToken = at(Tokens, TokenIndex);
     switch(ValueToken->Type)
     {
         case token::type::TEXT:
         {
             Data.Type = data::type::STRING;
-            Data.Value = CreateString(ValueToken->Data, ValueToken->Size);
+            Data.Value = create_string(ValueToken->Data, ValueToken->Size);
             break;
         }
         case token::type::STRING:
         {
             Data.Type = data::type::STRING;
-            Data.Value = CreateString(ValueToken->Data + 1, ValueToken->Size - 2);
+            Data.Value = create_string(ValueToken->Data + 1, ValueToken->Size - 2);
             break;
         }
         case token::type::ARRAY_OPEN:
         {
             Data.Type = data::type::ARRAY;
-            ParseChildren(&Data.Children, Tokens, &TokenIndex, token::type::ARRAY_CLOSE);
+            parse_children(&Data.Children, Tokens, &TokenIndex, token::type::ARRAY_CLOSE);
             break;
         }
         case token::type::OBJECT_OPEN:
         {
             Data.Type = data::type::OBJECT;
-            ParseChildren(&Data.Children, Tokens, &TokenIndex, token::type::OBJECT_CLOSE);
+            parse_children(&Data.Children, Tokens, &TokenIndex, token::type::OBJECT_CLOSE);
             break;
         }
     }
@@ -216,25 +222,25 @@ ParseData(array<token> *Tokens, u32 *ParseTokenIndex, b32 ParseKey)
 /// Interface
 ////////////////////////////////////////////////////////////
 static data
-LoadData(cstr path)
+load_data(cstr path)
 {
     #define _CTK_CREATE_TOKEN(TYPE) \
-        token *Token = Push(&Tokens); \
+        token *Token = push(&Tokens); \
         Token->Type = token::type::TYPE; \
         Token->Data = DataString + DataCharIndex; \
         Token->Size = 1;
 
     // Wrap data from file in dummy "root" object to make it work better with parser.
-    string DataFile = ReadTextFile(path);
-    auto DataString = CreateStringEmpty(DataFile.Count + 7);
-    Push(&DataString, "root{");
-    Push(&DataString, &DataFile);
-    Push(&DataString, "\n}");
+    string DataFile = read_text_file(path);
+    auto DataString = create_string_empty(DataFile.Count + 7);
+    push(&DataString, "root{");
+    push(&DataString, &DataFile);
+    push(&DataString, "\n}");
 
     ////////////////////////////////////////////////////////////
     /// Token Parsing
     ////////////////////////////////////////////////////////////
-    auto Tokens = CreateArrayEmpty<token>(DataString.Size / 2);
+    auto Tokens = create_array_empty<token>(DataString.Size / 2);
     for(u32 DataCharIndex = 0; DataCharIndex < DataString.Size; DataCharIndex++)
     {
         char DataChar = DataString[DataCharIndex];
@@ -324,25 +330,18 @@ LoadData(cstr path)
     /// Data Parsing
     ////////////////////////////////////////////////////////////
     u32 TokenIndex = 0;
-    data Data = ParseData(&Tokens, &TokenIndex, true);
+    data Data = parse_data(&Tokens, &TokenIndex, true);
 
     // Cleanup
-    Free(&DataFile);
-    Free(&DataString);
-    Free(&Tokens);
+    _free(&DataFile);
+    _free(&DataString);
+    _free(&Tokens);
 
     return Data;
 }
 
 static data *
-At(data *Data, u32 Index)
-{
-    CTK_ASSERT(Index < Data->Children.Count)
-    return Data->Children + Index;
-}
-
-static data *
-At(data *Data, cstr Search)
+find(data *Data, cstr Search)
 {
     static const u32 MAX_KEY_SIZE = 64;
     char Key[MAX_KEY_SIZE + 1] = {}; // Ensure last char is null-terminator.
@@ -405,7 +404,7 @@ At(data *Data, cstr Search)
         for(u32 ChildIndex = 0; ChildIndex < Data->Children.Count; ChildIndex++)
         {
             data *CurrentChild = Data->Children + ChildIndex;
-            if(StringEqual(&CurrentChild->Key, Key))
+            if(equal(&CurrentChild->Key, Key))
             {
                 Child = CurrentChild;
                 break;
@@ -414,153 +413,201 @@ At(data *Data, cstr Search)
     }
     else
     {
-        Child = At(Data, StringToU32(Key));
+        Child = at(Data, to_u32(Key));
     }
 
     if(!Child)
     {
-        CTK_FATAL("failed to find child \"%s\"", Key)
+        return NULL;
     }
 
     // Return child if search has been completely processed, else search child starting at end of this search.
-    return CurrentChar == SearchEnd ? Child : At(Child, CurrentChar);
+    return CurrentChar == SearchEnd ? Child : at(Child, CurrentChar);
+}
+
+static data *
+at(data *Data, cstr Search)
+{
+    data *Child = find(Data, Search);
+    if(!Child)
+    {
+        CTK_FATAL("failed to find child from search \"%s\"", Search)
+    }
+    return Child;
+}
+
+static data *
+at(data *Data, u32 Index)
+{
+    CTK_ASSERT(Index < Data->Children.Count)
+    return Data->Children + Index;
 }
 
 template<typename ...args>
 static data *
-At(data *Data, cstr Search, args... Args)
+at(data *Data, cstr Search, args... Args)
 {
     char FormattedSearch[128] = {};
     sprintf(FormattedSearch, Search, Args...);
-    return At(Data, FormattedSearch);
+    return at(Data, FormattedSearch);
 }
 
 template<typename ...args>
 static string *
-Value(data *Data, cstr Search, args... Args)
+value(data *Data, cstr Search, args... Args)
 {
-    return &At(Data, Search, Args...)->Value;
+    return &at(Data, Search, Args...)->Value;
 }
 
 static string *
-Value(data *Data, cstr Search)
+value(data *Data, cstr Search)
 {
-    return &At(Data, Search)->Value;
+    return &at(Data, Search)->Value;
 }
 
 static string *
-Value(data *Data, u32 Index)
+value(data *Data, u32 Index)
 {
-    return &At(Data, Index)->Value;
+    return &at(Data, Index)->Value;
 }
 
 template<typename ...args>
 static cstr
-CStr(data *Data, cstr Search, args... Args)
+to_cstr(data *Data, cstr Search, args... Args)
 {
-    return Value(Data, Search, Args...)->Data;
+    return value(Data, Search, Args...)->Data;
 }
 
 static cstr
-CStr(data *Data, cstr Search)
+to_cstr(data *Data, cstr Search)
 {
-    return Value(Data, Search)->Data;
+    return value(Data, Search)->Data;
 }
 
 static cstr
-CStr(data *Data, u32 Index)
+to_cstr(data *Data, u32 Index)
 {
-    return Value(Data, Index)->Data;
+    return value(Data, Index)->Data;
+}
+
+static cstr
+to_cstr(data *Data)
+{
+    return Data->Value.Data;
 }
 
 template<typename ...args>
 static f32
-F32(data *Data, cstr Search, args... Args)
+to_f32(data *Data, cstr Search, args... Args)
 {
-    return StringToF32(Value(Data, Search, Args...));
+    return to_f32(value(Data, Search, Args...));
 }
 
 static f32
-F32(data *Data, cstr Search)
+to_f32(data *Data, cstr Search)
 {
-    return StringToF32(Value(Data, Search));
+    return to_f32(value(Data, Search));
 }
 
 static f32
-F32(data *Data, u32 Index)
+to_f32(data *Data, u32 Index)
 {
-    return StringToF32(Value(Data, Index));
+    return to_f32(value(Data, Index));
+}
+
+static f32
+to_f32(data *Data)
+{
+    return to_f32(&Data->Value);
 }
 
 template<typename ...args>
 static u32
-U32(data *Data, cstr Search, args... Args)
+to_u32(data *Data, cstr Search, args... Args)
 {
-    return StringToU32(Value(Data, Search, Args...));
+    return to_u32(value(Data, Search, Args...));
 }
 
 static u32
-U32(data *Data, cstr Search)
+to_u32(data *Data, cstr Search)
 {
-    return StringToU32(Value(Data, Search));
+    return to_u32(value(Data, Search));
 }
 
 static u32
-U32(data *Data, u32 Index)
+to_u32(data *Data, u32 Index)
 {
-    return StringToU32(Value(Data, Index));
+    return to_u32(value(Data, Index));
+}
+
+static u32
+to_u32(data *Data)
+{
+    return to_u32(&Data->Value);
 }
 
 template<typename ...args>
 static s32
-S32(data *Data, cstr Search, args... Args)
+to_s32(data *Data, cstr Search, args... Args)
 {
-    return StringToS32(Value(Data, Search, Args...));
+    return to_s32(value(Data, Search, Args...));
 }
 
 static s32
-S32(data *Data, cstr Search)
+to_s32(data *Data, cstr Search)
 {
-    return StringToS32(Value(Data, Search));
+    return to_s32(value(Data, Search));
 }
 
 static s32
-S32(data *Data, u32 Index)
+to_s32(data *Data, u32 Index)
 {
-    return StringToS32(Value(Data, Index));
+    return to_s32(value(Data, Index));
+}
+
+static s32
+to_s32(data *Data)
+{
+    return to_s32(&Data->Value);
 }
 
 template<typename ...args>
 static b32
-B32(data *Data, cstr Search, args... Args)
+to_b32(data *Data, cstr Search, args... Args)
 {
-    return StringToB32(Value(Data, Search, Args...));
+    return to_b32(value(Data, Search, Args...));
 }
 
 static b32
-B32(data *Data, cstr Search)
+to_b32(data *Data, cstr Search)
 {
-    return StringToB32(Value(Data, Search));
+    return to_b32(value(Data, Search));
 }
 
 static b32
-B32(data *Data, u32 Index)
+to_b32(data *Data, u32 Index)
 {
-    return StringToB32(Value(Data, Index));
+    return to_b32(value(Data, Index));
+}
+
+static b32
+to_b32(data *Data)
+{
+    return to_b32(&Data->Value);
 }
 
 static void
-Free(data *Data)
+_free(data *Data)
 {
     if(Data->Key.Count > 0)
     {
-        Free(&Data->Key);
+        _free(&Data->Key);
     }
     switch(Data->Type)
     {
         case data::type::STRING:
         {
-            Free(&Data->Value);
+            _free(&Data->Value);
             break;
         }
         case data::type::ARRAY:
@@ -570,9 +617,9 @@ Free(data *Data)
             {
                 for(u32 ChildIndex = 0; ChildIndex < Data->Children.Count; ChildIndex++)
                 {
-                    Free(Data->Children + ChildIndex);
+                    _free(Data->Children + ChildIndex);
                 }
-                Free(&Data->Children);
+                _free(&Data->Children);
             }
             break;
         }

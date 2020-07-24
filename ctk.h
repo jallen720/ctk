@@ -47,19 +47,19 @@ using b32 = bool;
 
 #ifdef __GNUC__
     #define CTK_FATAL(MESSAGE, ...) \
-        ctk::PrintLine(CTK_ERROR_TAG CTK_ANSI_HIGHLIGHT("file", BLUE) ": %s", __FILE__); \
-        ctk::PrintLine("       " CTK_ANSI_HIGHLIGHT("line", BLUE) ": %i", __LINE__); \
-        ctk::PrintLine("       " CTK_ANSI_HIGHLIGHT("func", BLUE) ": %s()", __FUNCTION__); \
-        ctk::Print("       " CTK_ANSI_HIGHLIGHT("msg", BLUE) ": "); \
-        ctk::PrintLine(MESSAGE, ## __VA_ARGS__); \
+        ctk::print_line(CTK_ERROR_TAG CTK_ANSI_HIGHLIGHT("file", BLUE) ": %s", __FILE__); \
+        ctk::print_line("       " CTK_ANSI_HIGHLIGHT("line", BLUE) ": %i", __LINE__); \
+        ctk::print_line("       " CTK_ANSI_HIGHLIGHT("func", BLUE) ": %s()", __FUNCTION__); \
+        ctk::print("       " CTK_ANSI_HIGHLIGHT("msg", BLUE) ": "); \
+        ctk::print_line(MESSAGE, ## __VA_ARGS__); \
         throw 0;
 #else
     #define CTK_FATAL(MESSAGE, ...) \
-        ctk::PrintLine(CTK_ERROR_TAG CTK_ANSI_HIGHLIGHT("file", BLUE) ": %s", __FILE__); \
-        ctk::PrintLine("       " CTK_ANSI_HIGHLIGHT("line", BLUE) ": %i", __LINE__); \
-        ctk::PrintLine("       " CTK_ANSI_HIGHLIGHT("func", BLUE) ": %s()", __FUNCTION__); \
-        ctk::Print("       " CTK_ANSI_HIGHLIGHT("msg", BLUE) ": "); \
-        ctk::PrintLine(MESSAGE, __VA_ARGS__); \
+        ctk::print_line(CTK_ERROR_TAG CTK_ANSI_HIGHLIGHT("file", BLUE) ": %s", __FILE__); \
+        ctk::print_line("       " CTK_ANSI_HIGHLIGHT("line", BLUE) ": %i", __LINE__); \
+        ctk::print_line("       " CTK_ANSI_HIGHLIGHT("func", BLUE) ": %s()", __FUNCTION__); \
+        ctk::print("       " CTK_ANSI_HIGHLIGHT("msg", BLUE) ": "); \
+        ctk::print_line(MESSAGE, __VA_ARGS__); \
         throw 0;
 #endif
 
@@ -76,7 +76,7 @@ namespace ctk {
 /// Declarations
 ////////////////////////////////////////////////////////////
 static b32
-StringEqual(cstr A, cstr B);
+equal(cstr A, cstr B);
 
 ////////////////////////////////////////////////////////////
 /// Data
@@ -124,13 +124,6 @@ using string = array<char>;
 template<typename return_type, typename ...args>
 using fn = return_type (*)(args...);
 
-template<typename return_type, typename ...args>
-struct functor
-{
-    fn<return_type, void *, args...> Fn;
-    void *Data;
-};
-
 template<typename key, typename value>
 struct pair
 {
@@ -156,117 +149,117 @@ struct optional
 ////////////////////////////////////////////////////////////
 template<typename ...args>
 static void
-Print(cstr Message, args... Args)
+print(cstr Message, args... Args)
 {
     printf(Message, Args...);
 }
 
 template<typename ...args>
 static void
-PrintLine()
+print_line()
 {
-    Print("\n");
+    print("\n");
 }
 
 template<typename ...args>
 static void
-PrintLine(cstr Message, args... Args)
+print_line(cstr Message, args... Args)
 {
-    Print(Message, Args...);
-    PrintLine();
+    print(Message, Args...);
+    print_line();
 }
 
 static void
-PrintTabs(u32 TabCount)
+print_tabs(u32 TabCount)
 {
     CTK_REPEAT(TabCount)
     {
-        Print("    ");
+        print("    ");
     }
 }
 
 template<typename ...args>
 static void
-Print(u32 TabCount, cstr Message, args... Args)
+print(u32 TabCount, cstr Message, args... Args)
 {
-    PrintTabs(TabCount);
-    Print(Message, Args...);
+    print_tabs(TabCount);
+    print(Message, Args...);
 }
 
 template<typename ...args>
 static void
-PrintLine(u32 TabCount, cstr Message, args... Args)
+print_line(u32 TabCount, cstr Message, args... Args)
 {
-    PrintTabs(TabCount);
-    PrintLine(Message, Args...);
+    print_tabs(TabCount);
+    print_line(Message, Args...);
 }
 
 template<typename ...args>
 static void
-Error(cstr Message, args... Args)
+error(cstr Message, args... Args)
 {
-    Print(CTK_ERROR_TAG);
-    PrintLine(Message, Args...);
+    print(CTK_ERROR_TAG);
+    print_line(Message, Args...);
 }
 
 template<typename ...args>
 static void
-Error(u32 TabCount, cstr Message, args... Args)
+error(u32 TabCount, cstr Message, args... Args)
 {
-    Print(CTK_ERROR_TAG);
-    PrintTabs(TabCount);
-    PrintLine(Message, Args...);
+    print(CTK_ERROR_TAG);
+    print_tabs(TabCount);
+    print_line(Message, Args...);
 }
 
 template<typename ...args>
 static void
-Info(cstr Message, args... Args)
+info(cstr Message, args... Args)
 {
-    Print(CTK_ANSI_HIGHLIGHT("INFO", GREEN) ": ");
-    PrintLine(Message, Args...);
+    print(CTK_ANSI_HIGHLIGHT("INFO", GREEN) ": ");
+    print_line(Message, Args...);
 }
 
 template<typename ...args>
 static void
-Info(u32 TabCount, cstr Message, args... Args)
+info(u32 TabCount, cstr Message, args... Args)
 {
-    Print(CTK_ANSI_HIGHLIGHT("INFO", GREEN) ": ");
-    PrintTabs(TabCount);
-    PrintLine(Message, Args...);
+    print(CTK_ANSI_HIGHLIGHT("INFO", GREEN) ": ");
+    print_tabs(TabCount);
+    print_line(Message, Args...);
 }
 
 template<typename ...args>
 static void
-Warning(cstr Message, args... Args)
+warning(cstr Message, args... Args)
 {
-    Print(CTK_ANSI_HIGHLIGHT("WARNING", MAGENTA) ": ");
-    PrintLine(Message, Args...);
+    print(CTK_ANSI_HIGHLIGHT("WARNING", MAGENTA) ": ");
+    print_line(Message, Args...);
 }
 
 template<typename ...args>
 static void
-Warning(u32 TabCount, cstr Message, args... Args)
+warning(u32 TabCount, cstr Message, args... Args)
 {
-    Print(CTK_ANSI_HIGHLIGHT("WARNING", MAGENTA) ": ");
-    PrintTabs(TabCount);
-    PrintLine(Message, Args...);
+    print(CTK_ANSI_HIGHLIGHT("WARNING", MAGENTA) ": ");
+    print_tabs(TabCount);
+    print_line(Message, Args...);
 }
 
 template<typename ...args>
 static void
-Todo(cstr Message, args... Args)
+todo(cstr Message, args... Args)
 {
-    Print(CTK_ANSI_HIGHLIGHT("TODO", BLUE) ": ");
-    PrintLine(Message, Args...);
+    print(CTK_ANSI_HIGHLIGHT("TODO", BLUE) ": ");
+    print_line(Message, Args...);
 }
 
 template<typename ...args>
 static void
-Todo(u32 TabCount, cstr Message, args... Args)
+todo(u32 TabCount, cstr Message, args... Args)
 {
-    Print(CTK_ANSI_HIGHLIGHT("TODO", BLUE) ": ");
-    PrintTabs(TabCount);
-    PrintLine(Message, Args...);
+    print(CTK_ANSI_HIGHLIGHT("TODO", BLUE) ": ");
+    print_tabs(TabCount);
+    print_line(Message, Args...);
 }
 
 ////////////////////////////////////////////////////////////
@@ -274,7 +267,7 @@ Todo(u32 TabCount, cstr Message, args... Args)
 ////////////////////////////////////////////////////////////
 template<typename type>
 static type *
-Alloc(u32 Size = 1)
+allocate(u32 Size = 1)
 {
     CTK_ASSERT(Size > 0)
     return (type *)malloc(Size * sizeof(type));
@@ -285,18 +278,18 @@ Alloc(u32 Size = 1)
 ////////////////////////////////////////////////////////////
 template<typename type>
 static void
-AllocArray(array<type> *Array, u32 Size)
+allocate_array(array<type> *Array, u32 Size)
 {
-    Array->Data = Alloc<type>(Size);
+    Array->Data = allocate<type>(Size);
     Array->Size = Size;
 }
 
 template<typename type>
 static array<type>
-CreateArray(u32 Size, type InitValue)
+create_array(u32 Size, type InitValue)
 {
     array<type> Array = {};
-    AllocArray(&Array, Size);
+    allocate_array(&Array, Size);
     Array.Count = Size;
     for(u32 Index = 0; Index < Array.Count; Index++)
     {
@@ -307,17 +300,17 @@ CreateArray(u32 Size, type InitValue)
 
 template<typename type>
 static array<type>
-CreateArray(u32 Size)
+create_array(u32 Size)
 {
-    return CreateArray<type>(Size, {});
+    return create_array<type>(Size, {});
 }
 
 template<typename type>
 static array<type>
-CreateArray(type *Data, u32 Size)
+create_array(type *Data, u32 Size)
 {
     array<type> Array = {};
-    AllocArray(&Array, Size);
+    allocate_array(&Array, Size);
     Array.Count = Size;
     memcpy(Array.Data, Data, Size * sizeof(type));
     return Array;
@@ -325,28 +318,28 @@ CreateArray(type *Data, u32 Size)
 
 template<typename type>
 static array<type>
-CreateArray(array<type> *CopyArray)
+create_array(array<type> *CopyArray)
 {
     array<type> Array = {};
-    AllocArray(&Array, CopyArray->Size);
+    allocate_array(&Array, CopyArray->Size);
     Array.Count = CopyArray->Count;
-    memcpy(Array.Data, CopyArray->Data, ByteCount(CopyArray));
+    memcpy(Array.Data, CopyArray->Data, byte_count(CopyArray));
     return Array;
 }
 
 template<typename type>
 static array<type>
-CreateArrayEmpty(u32 Size)
+create_array_empty(u32 Size)
 {
     array<type> Array = {};
-    AllocArray(&Array, Size);
+    allocate_array(&Array, Size);
     Array.Count = 0;
     return Array;
 }
 
 template<typename type>
 static void
-Free(array<type> *Array)
+_free(array<type> *Array)
 {
     if(Array->Data != NULL)
     {
@@ -357,27 +350,27 @@ Free(array<type> *Array)
 
 template<typename type>
 static type *
-Push(array<type> *Array, type Element)
+push(array<type> *Array, type Element)
 {
     if(Array->Count + 1 > Array->Size)
     {
         CTK_FATAL("array (size=%u count=%u) cannot hold any more elements", Array->Size, Array->Count)
     }
-    type *NewElement = At(Array, Array->Count++);
+    type *NewElement = at(Array, Array->Count++);
     *NewElement = Element;
     return NewElement;
 }
 
 template<typename type>
 static type *
-Push(array<type> *Array)
+push(array<type> *Array)
 {
-    return Push(Array, {});
+    return push(Array, {});
 }
 
 template<typename type>
 static void
-Push(array<type> *Array, type *Elements, u32 ElementCount)
+push(array<type> *Array, type *Elements, u32 ElementCount)
 {
     if(ElementCount == 0)
     {
@@ -393,27 +386,27 @@ Push(array<type> *Array, type *Elements, u32 ElementCount)
     {
         CTK_FATAL("array (size=%u count=%u) cannot hold %u more elements", Array->Size, Array->Count, ElementCount)
     }
-    memcpy(At(Array, Array->Count), Elements, sizeof(type) * ElementCount);
+    memcpy(at(Array, Array->Count), Elements, sizeof(type) * ElementCount);
     Array->Count += ElementCount;
 }
 
 template<typename type>
 static u32
-ByteSize(array<type> *Array)
+byte_size(array<type> *Array)
 {
     return Array->Size * sizeof(type);
 }
 
 template<typename type>
 static u32
-ByteCount(array<type> *Array)
+byte_count(array<type> *Array)
 {
     return Array->Count * sizeof(type);
 }
 
 template<typename type>
 static type *
-At(array<type> *Array, u32 Index)
+at(array<type> *Array, u32 Index)
 {
     CTK_ASSERT(Index < Array->Size)
     return Array->Data + Index;
@@ -440,27 +433,27 @@ operator +(array<type> &Array, u32 Index)
 ////////////////////////////////////////////////////////////
 template<typename type, u32 size>
 static type *
-Push(sarray<type, size> *Array, type Element)
+push(sarray<type, size> *Array, type Element)
 {
     if(Array->Count + 1 > Array->Size)
     {
         CTK_FATAL("static array (size=%u count=%u) cannot hold any more elements", Array->Size, Array->Count)
     }
-    type *NewElement = At(Array, Array->Count++);
+    type *NewElement = at(Array, Array->Count++);
     *NewElement = Element;
     return NewElement;
 }
 
 template<typename type, u32 size>
 static type *
-Push(sarray<type, size> *Array)
+push(sarray<type, size> *Array)
 {
-    return Push(Array, {});
+    return push(Array, {});
 }
 
 template<typename type, u32 size>
 static void
-Push(sarray<type, size> *Array, type *Elements, u32 ElementCount)
+push(sarray<type, size> *Array, type *Elements, u32 ElementCount)
 {
     if(ElementCount == 0)
     {
@@ -471,27 +464,27 @@ Push(sarray<type, size> *Array, type *Elements, u32 ElementCount)
     {
         CTK_FATAL("static array (size=%u count=%u) cannot hold %u more elements", Array->Size, Array->Count, ElementCount)
     }
-    memcpy(At(Array, Array->Count), Elements, sizeof(type) * ElementCount);
+    memcpy(at(Array, Array->Count), Elements, sizeof(type) * ElementCount);
     Array->Count += ElementCount;
 }
 
 template<typename type, u32 size>
 static u32
-ByteSize(sarray<type, size> *Array)
+byte_size(sarray<type, size> *Array)
 {
     return Array->Size * sizeof(type);
 }
 
 template<typename type, u32 size>
 static u32
-ByteCount(sarray<type, size> *Array)
+byte_count(sarray<type, size> *Array)
 {
     return Array->Count * sizeof(type);
 }
 
 template<typename type, u32 size>
 static type *
-At(sarray<type, size> *Array, u32 Index)
+at(sarray<type, size> *Array, u32 Index)
 {
     CTK_ASSERT(Index < Array->Size)
     return Array->Data + Index;
@@ -518,11 +511,11 @@ operator +(sarray<type, size> &Array, u32 Index)
 ////////////////////////////////////////////////////////////
 template<typename type>
 static map<type>
-CreateMap(u32 Size)
+create_map(u32 Size)
 {
     map<type> Map = {};
-    Map.Keys = Alloc<map_key>(Size);
-    Map.Values = Alloc<type>(Size);
+    Map.Keys = allocate<map_key>(Size);
+    Map.Values = allocate<type>(Size);
     Map.Size = Size;
     Map.Count = 0;
     return Map;
@@ -530,7 +523,7 @@ CreateMap(u32 Size)
 
 template<typename type>
 static void
-Free(map<type> *Map)
+_free(map<type> *Map)
 {
     if(Map->Keys != NULL)
     {
@@ -542,7 +535,7 @@ Free(map<type> *Map)
 
 template<typename type>
 static type *
-Push(map<type> *Map, cstr Key, type Value)
+push(map<type> *Map, cstr Key, type Value)
 {
     if(Map->Size == 0)
     {
@@ -562,7 +555,7 @@ Push(map<type> *Map, cstr Key, type Value)
     }
 
     // Check if duplicate key.
-    if(Find(Map, Key) != NULL)
+    if(find(Map, Key) != NULL)
     {
         CTK_FATAL("attempting to push key \"%s\" to map that already has that key", Key);
     }
@@ -575,18 +568,18 @@ Push(map<type> *Map, cstr Key, type Value)
 
 template<typename type>
 static type *
-Push(map<type> *Map, cstr Key)
+push(map<type> *Map, cstr Key)
 {
-    return Push(Map, Key, {});
+    return push(Map, Key, {});
 }
 
 template<typename type>
 static type *
-Find(map<type> *Map, cstr Key)
+find(map<type> *Map, cstr Key)
 {
     for(u32 Index = 0; Index < Map->Count; Index++)
     {
-        if(StringEqual(Key, (cstr)(Map->Keys + Index)))
+        if(equal(Key, (cstr)(Map->Keys + Index)))
         {
             return Map->Values + Index;
         }
@@ -596,9 +589,9 @@ Find(map<type> *Map, cstr Key)
 
 template<typename type>
 static type *
-At(map<type> *Map, cstr Key)
+at(map<type> *Map, cstr Key)
 {
-    type *Value = Find(Map, Key);
+    type *Value = find(Map, Key);
     if(Value == NULL)
     {
         CTK_FATAL("failed to find entry for key \"%s\" in map", Key);
@@ -611,7 +604,7 @@ At(map<type> *Map, cstr Key)
 ////////////////////////////////////////////////////////////
 template<typename type, u32 size>
 static type *
-Push(smap<type, size> *Map, cstr Key, type Value)
+push(smap<type, size> *Map, cstr Key, type Value)
 {
     if(Map->Count + 1 > Map->Size)
     {
@@ -626,7 +619,7 @@ Push(smap<type, size> *Map, cstr Key, type Value)
     }
 
     // Check if duplicate key.
-    if(Find(Map, Key) != NULL)
+    if(find(Map, Key) != NULL)
     {
         CTK_FATAL("attempting to push key \"%s\" to static map that already has that key", Key);
     }
@@ -639,18 +632,18 @@ Push(smap<type, size> *Map, cstr Key, type Value)
 
 template<typename type, u32 size>
 static type *
-Push(smap<type, size> *Map, cstr Key)
+push(smap<type, size> *Map, cstr Key)
 {
-    return Push(Map, Key, {});
+    return push(Map, Key, {});
 }
 
 template<typename type, u32 size>
 static type *
-Find(smap<type, size> *Map, cstr Key)
+find(smap<type, size> *Map, cstr Key)
 {
     for(u32 Index = 0; Index < Map->Count; Index++)
     {
-        if(StringEqual(Key, (cstr)(Map->Keys + Index)))
+        if(equal(Key, (cstr)(Map->Keys + Index)))
         {
             return Map->Values + Index;
         }
@@ -660,9 +653,9 @@ Find(smap<type, size> *Map, cstr Key)
 
 template<typename type, u32 size>
 static type *
-At(smap<type, size> *Map, cstr Key)
+at(smap<type, size> *Map, cstr Key)
 {
-    type *Value = Find(Map, Key);
+    type *Value = find(Map, Key);
     if(Value == NULL)
     {
         CTK_FATAL("failed to find entry for key \"%s\" in static map", Key);
@@ -671,22 +664,12 @@ At(smap<type, size> *Map, cstr Key)
 }
 
 ////////////////////////////////////////////////////////////
-/// Functor
-////////////////////////////////////////////////////////////
-template<typename return_type, typename ...args>
-static return_type
-Call(functor<return_type, args...> *Functor, args... Args)
-{
-    return Functor->Fn(Functor->Data, Args...);
-}
-
-////////////////////////////////////////////////////////////
 /// String
 ////////////////////////////////////////////////////////////
 static string
-CreateString(cstr String, u32 StringSize)
+create_string(cstr String, u32 StringSize)
 {
-    string NewString = CreateArray<char>(StringSize + 1); // Add room for null-terminator.
+    string NewString = create_array<char>(StringSize + 1); // Add room for null-terminator.
     NewString.Count--; // Exclude null-terminator from count.
     memcpy(NewString.Data, String, StringSize);
     NewString[NewString.Size - 1] = '\0'; // Add null-terminator to last index.
@@ -694,21 +677,21 @@ CreateString(cstr String, u32 StringSize)
 }
 
 static string
-CreateString(cstr String)
+create_string(cstr String)
 {
-    return CreateString(String, strlen(String));
+    return create_string(String, strlen(String));
 }
 
 static string
-CreateStringEmpty(u32 StringSize)
+create_string_empty(u32 StringSize)
 {
-    string NewString = CreateArrayEmpty<char>(StringSize + 1);
+    string NewString = create_array_empty<char>(StringSize + 1);
     NewString[0] = '\0';
     return NewString;
 }
 
 static void
-Push(string *String, cstr Other, u32 OtherSize)
+push(string *String, cstr Other, u32 OtherSize)
 {
     if(String->Size == 0)
     {
@@ -719,80 +702,80 @@ Push(string *String, cstr Other, u32 OtherSize)
     {
         CTK_FATAL("string (size=%u count=%u) cannot hold %u more characters", String->Size, String->Count, OtherSize)
     }
-    memcpy(At(String, String->Count), Other, sizeof(char) * OtherSize);
+    memcpy(at(String, String->Count), Other, sizeof(char) * OtherSize);
     String->Count += OtherSize;
-    *At(String, String->Count) = '\0';
+    *at(String, String->Count) = '\0';
 }
 
 static void
-Push(string *String, char *Other, u32 OtherSize)
+push(string *String, char *Other, u32 OtherSize)
 {
-    Push(String, (cstr)Other, OtherSize);
+    push(String, (cstr)Other, OtherSize);
 }
 
 static void
-Push(string *String, cstr Other)
+push(string *String, cstr Other)
 {
-    Push(String, Other, strlen(Other)); // Don't push null-terminator (strlen does not include it).
+    push(String, Other, strlen(Other)); // Don't push null-terminator (strlen does not include it).
 }
 
 static void
-Push(string *String, string *Other)
+push(string *String, string *Other)
 {
-    Push(String, Other->Data, Other->Count);
+    push(String, Other->Data, Other->Count);
 }
 
 static b32
-StringEqual(cstr A, cstr B)
+equal(cstr A, cstr B)
 {
     return strcmp(A, B) == 0;
 }
 
 static b32
-StringEqual(string *A, cstr B)
+equal(string *A, cstr B)
 {
     return strcmp(A->Data, B) == 0;
 }
 
 static b32
-StringEqual(string *A, string *B)
+equal(string *A, string *B)
 {
     return strcmp(A->Data, B->Data) == 0;
 }
 
 static f32
-StringToF32(string *String)
+to_f32(string *String)
 {
     return strtof(String->Data, NULL);
 }
 
 static u32
-StringToU32(string *String)
+to_u32(string *String)
 {
     return strtoul(String->Data, NULL, 10);
 }
 
 static u32
-StringToU32(cstr String)
+to_u32(cstr String)
 {
     return strtoul(String, NULL, 10);
 }
 
 static s32
-StringToS32(string *String)
+to_s32(string *String)
 {
     return strtol(String->Data, NULL, 10);
 }
 
 static b32
-StringToB32(cstr String)
+to_b32(cstr String)
 {
-    if(StringEqual(String, "true"))
+    if(equal(String, "true"))
     {
         return true;
     }
 
-    if(StringEqual(String, "false"))
+    if(equal(String, "false"))
     {
         return false;
     }
@@ -800,9 +783,9 @@ StringToB32(cstr String)
 }
 
 static b32
-StringToB32(string *String)
+to_b32(string *String)
 {
-    return StringToB32(String->Data);
+    return to_b32(String->Data);
 }
 
 ////////////////////////////////////////////////////////////
@@ -810,7 +793,7 @@ StringToB32(string *String)
 ////////////////////////////////////////////////////////////
 template<typename key, typename value>
 static pair<key, value> *
-FindPair(pair<key, value> *Pairs, u32 PairCount, key Key)
+find_pair(pair<key, value> *Pairs, u32 PairCount, key Key)
 {
     for(u32 PairIndex = 0; PairIndex < PairCount; PairIndex++)
     {
@@ -825,7 +808,7 @@ FindPair(pair<key, value> *Pairs, u32 PairCount, key Key)
 
 template<typename key, typename value>
 static pair<key, value> *
-FindPair(pair<key, value> *Pairs, u32 PairCount, key Key, fn<b32, key, key> Comparator)
+find_pair(pair<key, value> *Pairs, u32 PairCount, key Key, fn<b32, key, key> Comparator)
 {
     for(u32 PairIndex = 0; PairIndex < PairCount; PairIndex++)
     {
@@ -861,7 +844,7 @@ optional<type>::operator =(type Value)
 ////////////////////////////////////////////////////////////
 template<typename type>
 static array<type>
-ReadFile(cstr Path)
+read_file(cstr Path)
 {
     CTK_ASSERT(Path != NULL)
     array<type> Elements = {};
@@ -875,7 +858,7 @@ ReadFile(cstr Path)
     if(FileSize > 0)
     {
         rewind(File);
-        Elements = CreateArray<type>(FileSize);
+        Elements = create_array<type>(FileSize);
         fread(Elements.Data, FileSize, 1, File);
     }
     fclose(File);
@@ -883,12 +866,12 @@ ReadFile(cstr Path)
 }
 
 static string
-ReadTextFile(cstr Path)
+read_text_file(cstr Path)
 {
     CTK_ASSERT(Path != NULL)
-    array<char> Chars = ReadFile<char>(Path);
-    string Text = CreateString(Chars.Data, Chars.Count);
-    Free(&Chars);
+    array<char> Chars = read_file<char>(Path);
+    string Text = create_string(Chars.Data, Chars.Count);
+    _free(&Chars);
     return Text;
 }
 

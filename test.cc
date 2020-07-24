@@ -15,19 +15,19 @@
 #define DATA_SIZE MIL
 
 static void
-PrintF32(f32 value, u32 precision)
+Printto_f32(f32 value, u32 precision)
 {
     CTK_ASSERT(precision <= 6);
     static const cstr FORMAT_STRINGS[] { "%.0f", "%.1f", "%.2f", "%.3f", "%.4f", "%.5f", "%.6f" };
     if(value >= 0)
     {
-        ctk::Print(" ");
+        ctk::print(" ");
         if(value == 0.0f)
         {
             value = abs(0); // Ensure negative bit is 0.
         }
     }
-    ctk::Print(FORMAT_STRINGS[precision], value);
+    ctk::print(FORMAT_STRINGS[precision], value);
 }
 
 static void
@@ -36,20 +36,20 @@ PrintMat4(glm::mat4 *Matrix, u32 Precision, u32 TabCount = 0)
     Precision = 6;
     for(u32 Row = 0; Row < 4; ++Row)
     {
-        ctk::PrintTabs(TabCount);
-        if (Row == 0)     ctk::Print("R");
-        else if(Row == 1) ctk::Print("U");
-        else if(Row == 2) ctk::Print("F");
-        else              ctk::Print(" ");
-        ctk::Print(" [ ");
+        ctk::print_tabs(TabCount);
+        if (Row == 0)     ctk::print("R");
+        else if(Row == 1) ctk::print("U");
+        else if(Row == 2) ctk::print("F");
+        else              ctk::print(" ");
+        ctk::print(" [ ");
         for(u32 Column = 0; Column < 4; ++Column)
         {
-            PrintF32((*Matrix)[Column][Row], Precision);
-            ctk::Print(" ");
+            Printto_f32((*Matrix)[Column][Row], Precision);
+            ctk::print(" ");
         }
-        ctk::PrintLine(" ]");
+        ctk::print_line(" ]");
     }
-    ctk::PrintLine();
+    ctk::print_line();
 }
 
 using mat4 = f32[16];
@@ -57,7 +57,7 @@ using mat4 = f32[16];
 static void
 PerformanceTest()
 {
-    glm::mat4 *Matrixes = ctk::Alloc<glm::mat4>(DATA_SIZE);
+    glm::mat4 *Matrixes = ctk::allocate<glm::mat4>(DATA_SIZE);
     clock_t Start = clock();
     glm::vec3 Position = { 1, 2, 3 };
     glm::vec3 Rotation = { 4, 5, 6 };
@@ -77,7 +77,7 @@ PerformanceTest()
     }
     clock_t Elapsed = clock() - Start;
     double ElapsedMS = ((double)Elapsed) / (double)CLOCKS_PER_SEC * 1000.0; // in seconds
-    ctk::PrintLine("elapsed ms: %f", ElapsedMS);
+    ctk::print_line("elapsed ms: %f", ElapsedMS);
     free(Matrixes);
 }
 
@@ -111,30 +111,30 @@ static void
 MatrixTest()
 {
     glm::mat4 Matrix(1.0f);
-    ctk::PrintLine("base:");
+    ctk::print_line("base:");
     PrintMat4(&Matrix, 1, 1);
 
     glm::vec3 Translation = { 1, 2, 3 };
     glm::mat4 TranslationMatrix = glm::translate(Matrix, Translation);
-    ctk::PrintLine("TranslationMatrix (%f, %f, %f):", Translation.x, Translation.y, Translation.z);
+    ctk::print_line("TranslationMatrix (%f, %f, %f):", Translation.x, Translation.y, Translation.z);
     PrintMat4(&TranslationMatrix, 1, 1);
 
     glm::vec3 RotationAxesVec = { 0, 1, 0 };
     f32 RotationDegrees = 45.0f;
     glm::mat4 RotationMatrix = glm::rotate(Matrix, glm::radians(RotationDegrees), RotationAxesVec);
-    ctk::PrintLine("RotationMatrix: degrees: %f axes: (%f, %f, %f):",
+    ctk::print_line("RotationMatrix: degrees: %f axes: (%f, %f, %f):",
                    RotationDegrees, RotationAxesVec.x, RotationAxesVec.y, RotationAxesVec.z);
     PrintMat4(&RotationMatrix, 1, 1);
 
     glm::mat4 RotationMatrix2 = glm::rotate(RotationMatrix, glm::radians(RotationDegrees), RotationAxesVec);
-    ctk::PrintLine("RotationMatrix2: degrees: %f axes: (%f, %f, %f):",
+    ctk::print_line("RotationMatrix2: degrees: %f axes: (%f, %f, %f):",
                    RotationDegrees, RotationAxesVec.x, RotationAxesVec.y, RotationAxesVec.z);
     PrintMat4(&RotationMatrix2, 1, 1);
 
     // u32 CustomRotationAxes = AXES_Y;
     // f32 CustomRotationDegrees = 45.0f;
     // glm::mat4 CustomRotationMatrix = Rotate(&Matrix, CustomRotationDegrees, CustomRotationAxes);
-    // ctk::PrintLine("CustomRotationMatrix: degrees: %f axes: %u:",
+    // ctk::print_line("CustomRotationMatrix: degrees: %f axes: %u:",
     //                CustomRotationDegrees, CustomRotationAxes);
     // PrintMat4(&CustomRotationMatrix, 1, 1);
 }
@@ -143,12 +143,12 @@ template<typename type, u32 size>
 static void
 PrintStaticArray(ctk::sarray<type, size> *StaticArray)
 {
-    ctk::Print("static array (size=%u count=%u): ", StaticArray->Size, StaticArray->Count);
+    ctk::print("static array (size=%u count=%u): ", StaticArray->Size, StaticArray->Count);
     for(u32 Index = 0; Index < StaticArray->Count; ++Index)
     {
-        ctk::Print("%u ", *At(StaticArray, Index));
+        ctk::print("%u ", *at(StaticArray, Index));
     }
-    ctk::PrintLine();
+    ctk::print_line();
 }
 
 static void
@@ -156,45 +156,45 @@ StaticArrayTest()
 {
     ctk::sarray<u32, 8> StaticArray = {};
     PrintStaticArray(&StaticArray);
-    ctk::Push(&StaticArray, 1u);
+    ctk::push(&StaticArray, 1u);
     PrintStaticArray(&StaticArray);
-    ctk::Push(&StaticArray);
+    ctk::push(&StaticArray);
     PrintStaticArray(&StaticArray);
 }
 
 static void
 CopyArrayTest()
 {
-    auto CopyArray = ctk::CreateArrayEmpty<u32>(3);
-    ctk::Push(&CopyArray, 2u);
-    ctk::Push(&CopyArray, 1u);
-    auto Array = ctk::CreateArray(&CopyArray);
-    ctk::Print("array (size=%u count=%u)", Array.Size, Array.Count);
+    auto CopyArray = ctk::create_array_empty<u32>(3);
+    ctk::push(&CopyArray, 2u);
+    ctk::push(&CopyArray, 1u);
+    auto Array = ctk::create_array(&CopyArray);
+    ctk::print("array (size=%u count=%u)", Array.Size, Array.Count);
     for(u32 i = 0; i < Array.Count; ++i)
     {
-        ctk::Print(" %u", Array[i]);
+        ctk::print(" %u", Array[i]);
     }
-    ctk::PrintLine();
+    ctk::print_line();
 }
 
 static void
 OptionalTest()
 {
     ctk::optional<int> X = {};
-    ctk::PrintLine("X.Set? %s X.Value %i", X.Set ? "true" : "false", X.Value);
+    ctk::print_line("X.Set? %s X.Value %i", X.Set ? "true" : "false", X.Value);
     X = 1;
-    ctk::PrintLine("X.Set? %s X.Value %i", X.Set ? "true" : "false", X.Value);
+    ctk::print_line("X.Set? %s X.Value %i", X.Set ? "true" : "false", X.Value);
     X = 2;
-    ctk::PrintLine("X.Set? %s X.Value %i", X.Set ? "true" : "false", X.Value);
+    ctk::print_line("X.Set? %s X.Value %i", X.Set ? "true" : "false", X.Value);
 }
 
 static void
 AllocTest()
 {
-    auto Allocation = ctk::Alloc<u32>(4);
+    auto Allocation = ctk::allocate<u32>(4);
     for(u32 Index = 0; Index < 4; Index++)
     {
-        ctk::PrintLine("%u", Allocation[Index]);
+        ctk::print_line("%u", Allocation[Index]);
     }
 }
 

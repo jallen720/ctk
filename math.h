@@ -144,7 +144,7 @@ operator !=(vec2<type> Left, vec2<type> Right)
 ////////////////////////////////////////////////////////////
 template<typename type_a, typename type_b>
 static vec3<type_a>
-Cast(vec3<type_b> Vec3)
+cast(vec3<type_b> Vec3)
 {
     return
     {
@@ -156,76 +156,42 @@ Cast(vec3<type_b> Vec3)
 
 template<typename type>
 static f32
-Distance(vec3<type> A, vec3<type> B)
+distance(vec3<type> A, vec3<type> B)
 {
     return sqrt(pow(B.X - A.X, 2) + pow(B.Y - A.Y, 2) + pow(B.Z - A.Z, 2));
 }
 
 template<typename type>
 static type
-Max(type A, type B)
+max(type A, type B)
 {
     return A > B ? A : B;
 }
 
 template<typename type>
 static type
-Min(type A, type B)
+min(type A, type B)
 {
     return A < B ? A : B;
 }
 
 template<typename type>
 static type
-Clamp(type Value, type MinValue, type MaxValue)
+clamp(type Value, type MinValue, type MaxValue)
 {
-    return Min(Max(Value, MinValue), MaxValue);
+    return min(max(Value, MinValue), MaxValue);
 }
 
 static s32
-RandomRange(s32 Min, s32 Max)
+random_range(s32 Min, s32 Max)
 {
     return (rand() % (Max - Min)) + Min;
 }
 
 static f32
-Lerp(f32 Start, f32 End, f32 Value)
+lerp(f32 Start, f32 End, f32 Value)
 {
     return ((1 - Value) * Start) + (Value * End);
 }
-
-////////////////////////////////////////////////////////////
-/// Debugging
-////////////////////////////////////////////////////////////
-// static void
-// PrintFloat(f32 Value, u32 Precision)
-// {
-//     CTK_ASSERT(Precision <= 6);
-//     static const cstr FORMAT_STRINGS[] { "%.0f", "%.1f", "%.2f", "%.3f", "%.4f", "%.5f", "%.6f" };
-//     if(Value >= 0)
-//     {
-//         Print(" ");
-//         if(Value == 0)
-//         {
-//             Value = 0; // Ensure negative bit is 0.
-//         }
-//     }
-//     Print(FORMAT_STRINGS[Precision], Value);
-// }
-
-// static void
-// PrintMat4(glm::mat4 * matrix, u32 Precision, u32 tab_count = 0)
-// {
-//     for(u32 Y = 0; Y < 4; Y++)
-//     {
-//         Print(tab_count, "[ ");
-//         for(u32 X = 0; X < 4; X++)
-//         {
-//             PrintFloat((*matrix)[X][Y], Precision);
-//             Print(" ");
-//         }
-//         PrintLine(" ]");
-//     }
-// }
 
 } // ctk

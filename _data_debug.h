@@ -1,5 +1,5 @@
 static cstr
-TokenTypeDebugTag(token::type Type)
+token_type_debug_tag(token::type Type)
 {
     switch(Type)
     {
@@ -14,22 +14,22 @@ TokenTypeDebugTag(token::type Type)
 }
 
 static void
-PrintTokens(array<token> *Tokens)
+print_tokens(array<token> *Tokens)
 {
     for(u32 TokenIndex = 0; TokenIndex < Tokens->Count; TokenIndex++)
     {
-        token *Token = At(Tokens, TokenIndex);
-        PrintLine("[%u] %s <%.*s>", TokenIndex, TokenTypeDebugTag(Token->Type), Token->Size, Token->Data);
+        token *Token = at(Tokens, TokenIndex);
+        print_line("[%u] %s <%.*s>", TokenIndex, token_type_debug_tag(Token->Type), Token->Size, Token->Data);
     }
 }
 
 static void
-PrintData(data *Data, u32 TabCount = 0)
+print_data(data *Data, u32 TabCount = 0)
 {
-    PrintTabs(TabCount);
+    print_tabs(TabCount);
     if(Data->Key.Count > 0)
     {
-        Print("%.*s: ", Data->Key.Count, Data->Key.Data);
+        print("%.*s: ", Data->Key.Count, Data->Key.Data);
         switch(Data->Type)
         {
             case data::type::ARRAY:
@@ -37,8 +37,8 @@ PrintData(data *Data, u32 TabCount = 0)
             {
                 if(Data->Children.Count > 0)
                 {
-                    PrintLine();
-                    PrintTabs(TabCount);
+                    print_line();
+                    print_tabs(TabCount);
                 }
             }
         }
@@ -47,24 +47,24 @@ PrintData(data *Data, u32 TabCount = 0)
     {
         case data::type::STRING:
         {
-            PrintLine("\"%.*s\"", Data->Value.Count, Data->Value.Data);
+            print_line("\"%.*s\"", Data->Value.Count, Data->Value.Data);
             break;
         }
         case data::type::ARRAY:
         {
             if(Data->Children.Count == 0)
             {
-                PrintLine("[]");
+                print_line("[]");
             }
             else
             {
-                PrintLine("[");
+                print_line("[");
                 for(u32 ChildIndex = 0; ChildIndex < Data->Children.Count; ChildIndex++)
                 {
-                    PrintData(Data->Children + ChildIndex, TabCount + 1);
+                    print_data(Data->Children + ChildIndex, TabCount + 1);
                 }
-                PrintTabs(TabCount);
-                PrintLine("]");
+                print_tabs(TabCount);
+                print_line("]");
             }
             break;
         }
@@ -72,17 +72,17 @@ PrintData(data *Data, u32 TabCount = 0)
         {
             if(Data->Children.Count == 0)
             {
-                PrintLine("{}");
+                print_line("{}");
             }
             else
             {
-                PrintLine("{");
+                print_line("{");
                 for(u32 ChildIndex = 0; ChildIndex < Data->Children.Count; ChildIndex++)
                 {
-                    PrintData(Data->Children + ChildIndex, TabCount + 1);
+                    print_data(Data->Children + ChildIndex, TabCount + 1);
                 }
-                PrintTabs(TabCount);
-                PrintLine("}");
+                print_tabs(TabCount);
+                print_line("}");
             }
             break;
         }
