@@ -65,7 +65,7 @@ using b32 = bool;
 
 #define CTK_ASSERT(STATEMENT) if(!(STATEMENT)) { CTK_FATAL("assertion \"%s\" failed", #STATEMENT) }
 #define CTK_VALUE_NAME_PAIR(VALUE) { #VALUE, VALUE }
-#define CTK_REPEAT(COUNT) for(u32 _ = 0; _ < COUNT; _++)
+#define CTK_REPEAT(COUNT) for(u32 RepeatIndex = 0; RepeatIndex < COUNT; RepeatIndex++)
 #define CTK_KILOBYTE 1000
 #define CTK_MEGABYTE 1000 * CTK_KILOBYTE
 #define CTK_GIGABYTE 1000 * CTK_MEGABYTE
@@ -824,6 +824,15 @@ find_pair(pair<key, value> *Pairs, u32 PairCount, key Key, fn<b32, key, key> Com
 ////////////////////////////////////////////////////////////
 /// Optional
 ////////////////////////////////////////////////////////////
+template<typename type>
+type *
+set(optional<type> *Optional, type Value)
+{
+    Optional->Value = Value;
+    Optional->Set = true;
+    return &Optional->Value;
+}
+
 template<typename type>
 optional<type>::operator b32()
 {
