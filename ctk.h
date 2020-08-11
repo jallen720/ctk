@@ -64,7 +64,8 @@ using b32 = bool;
 #endif
 
 #define CTK_ASSERT(STATEMENT) if(!(STATEMENT)) { CTK_FATAL("assertion \"%s\" failed", #STATEMENT) }
-#define CTK_VALUE_NAME_PAIR(VALUE) { #VALUE, VALUE }
+#define CTK_NAME_VALUE_PAIR(VALUE) { #VALUE, VALUE }
+#define CTK_VALUE_NAME_PAIR(VALUE) { VALUE, #VALUE }
 #define CTK_ITERATE(COUNT) for(u32 IterationIndex = 0; IterationIndex < COUNT; IterationIndex++)
 #define CTK_KILOBYTE 1000
 #define CTK_MEGABYTE 1000 * CTK_KILOBYTE
