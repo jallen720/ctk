@@ -479,12 +479,33 @@ static type *find(map<type> *Map, cstr Key) {
 }
 
 template<typename type>
+static type *find(map<type> *Map, cstr Key, u32 *OutIndex) {
+    for(u32 Index = 0; Index < Map->Count; Index++) {
+        if(equal(Key, (cstr)(Map->Keys + Index))) {
+            *OutIndex = Index;
+            return Map->Values + Index;
+        }
+    }
+    return NULL;
+}
+
+template<typename type>
 static type *at(map<type> *Map, cstr Key) {
     type *Value = find(Map, Key);
     if(Value == NULL) {
         CTK_FATAL("failed to find entry for key \"%s\" in map", Key);
     }
     return Value;
+}
+
+template<typename type>
+static u32 values_byte_size(map<type> *Map) {
+    return Map->Size * sizeof(type);
+}
+
+template<typename type>
+static u32 values_byte_count(map<type> *Map) {
+    return Map->Count * sizeof(type);
 }
 
 ////////////////////////////////////////////////////////////
@@ -527,12 +548,33 @@ static type *find(smap<type, size> *Map, cstr Key) {
 }
 
 template<typename type, u32 size>
+static type *find(smap<type, size> *Map, cstr Key, u32 *OutIndex) {
+    for(u32 Index = 0; Index < Map->Count; Index++) {
+        if(equal(Key, (cstr)(Map->Keys + Index))) {
+            *OutIndex = Index;
+            return Map->Values + Index;
+        }
+    }
+    return NULL;
+}
+
+template<typename type, u32 size>
 static type *at(smap<type, size> *Map, cstr Key) {
     type *Value = find(Map, Key);
     if(Value == NULL) {
         CTK_FATAL("failed to find entry for key \"%s\" in static map", Key);
     }
     return Value;
+}
+
+template<typename type, u32 size>
+static u32 values_byte_size(smap<type, size> *Map) {
+    return Map->Size * sizeof(type);
+}
+
+template<typename type, u32 size>
+static u32 values_byte_count(smap<type, size> *Map) {
+    return Map->Count * sizeof(type);
 }
 
 ////////////////////////////////////////////////////////////
