@@ -46,21 +46,23 @@ using b32 = bool;
 #define CTK_ERROR_TAG CTK_ANSI_HIGHLIGHT("ERROR", RED) ": "
 
 #ifdef __GNUC__
-    #define CTK_FATAL(MESSAGE, ...) \
+    #define CTK_FATAL(MESSAGE, ...) { \
         ctk::print_line(CTK_ERROR_TAG CTK_ANSI_HIGHLIGHT("file", BLUE) ": %s", __FILE__); \
         ctk::print_line("       " CTK_ANSI_HIGHLIGHT("line", BLUE) ": %i", __LINE__); \
         ctk::print_line("       " CTK_ANSI_HIGHLIGHT("func", BLUE) ": %s()", __FUNCTION__); \
         ctk::print("       " CTK_ANSI_HIGHLIGHT("msg", BLUE) ": "); \
         ctk::print_line(MESSAGE, ## __VA_ARGS__); \
-        throw 0;
+        throw 0; \
+    }
 #else
-    #define CTK_FATAL(MESSAGE, ...) \
+    #define CTK_FATAL(MESSAGE, ...) { \
         ctk::print_line(CTK_ERROR_TAG CTK_ANSI_HIGHLIGHT("file", BLUE) ": %s", __FILE__); \
         ctk::print_line("       " CTK_ANSI_HIGHLIGHT("line", BLUE) ": %i", __LINE__); \
         ctk::print_line("       " CTK_ANSI_HIGHLIGHT("func", BLUE) ": %s()", __FUNCTION__); \
         ctk::print("       " CTK_ANSI_HIGHLIGHT("msg", BLUE) ": "); \
         ctk::print_line(MESSAGE, __VA_ARGS__); \
-        throw 0;
+        throw 0; |
+    }
 #endif
 
 #define CTK_ASSERT(STATEMENT) if(!(STATEMENT)) { CTK_FATAL("assertion \"%s\" failed", #STATEMENT) }
@@ -384,6 +386,12 @@ static void push(sarray<type, size> *Array, type *Elements, u32 ElementCount) {
     }
     memcpy(at(Array, Array->Count), Elements, sizeof(type) * ElementCount);
     Array->Count += ElementCount;
+}
+
+template<typename type, u32 size>
+static type pop(sarray<type, size>* Array) {
+    CTK_ASSERT(Array->Count > 0);
+    return Array->Data[--Array->Count];
 }
 
 template<typename type, u32 size>
