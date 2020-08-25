@@ -5,13 +5,13 @@
 namespace ctk {
 
 struct region {
-    char* Memory;
+    u8* Memory;
     u64 Size;
     region* Next;
 };
 
 struct heap {
-    char* Memory;
+    u8* Memory;
     u64 Size;
     array<region> RegionPool;
     region* Used;
@@ -23,7 +23,7 @@ static heap _MAIN_HEAP;
 
 static void visualize_main_heap();
 
-static region* create_region(char* Memory, u64 Size, region* Next = NULL) {
+static region* create_region(u8* Memory, u64 Size, region* Next = NULL) {
     region* Region = NULL;
     if(_MAIN_HEAP.Available) {
         Region = _MAIN_HEAP.Available;
@@ -39,7 +39,7 @@ static region* create_region(char* Memory, u64 Size, region* Next = NULL) {
 
 static void allocate_main_heap(u64 Size, u32 MaxRegionCount) {
     _MAIN_HEAP = {};
-    _MAIN_HEAP.Memory = (char*)malloc(Size);
+    _MAIN_HEAP.Memory = (u8*)malloc(Size);
     CTK_ASSERT(_MAIN_HEAP.Memory != NULL);
     _MAIN_HEAP.Size = Size;
     _MAIN_HEAP.RegionPool = create_array_empty<region>(MaxRegionCount);
@@ -47,7 +47,7 @@ static void allocate_main_heap(u64 Size, u32 MaxRegionCount) {
     ctk::info("RegionPool.Count %u", _MAIN_HEAP.RegionPool.Count);
 }
 
-static char* allocate(u64 Size) {
+static u8* allocate(u64 Size) {
     // Find region that is large enough to be allocated from.
     region* SelectedRegionParent = NULL;
     region* SelectedRegion = _MAIN_HEAP.Free;
@@ -126,6 +126,22 @@ static void ctk_free(void* Memory) {
 
         FreeRegionParent = FreeRegion;
         FreeRegion = FreeRegion->Next;
+    }
+
+    // Merge adjacent regions that would form a contiguous region.
+    if(UsedRegion->Next && UsedRegion->Memory + UsedRegion->Size == UsedRegion->Next->Memory) {
+        UsedRegion->Size += UsedRegion->Next->Size;
+        region* NewNext = UsedRegion->Next->Next;
+        UsedRegion->Next->Next = _MAIN_HEAP.Available;
+        _MAIN_HEAP.Available = UsedRegion->Next;
+        UsedRegion->Next = NewNext;
+    }
+    if(FreeRegionParent && FreeRegionParent->Memory + FreeRegionParent->Size == FreeRegionParent->Next->Memory) {
+        FreeRegionParent->Size += FreeRegionParent->Next->Size;
+        region* NewNext = FreeRegionParent->Next->Next;
+        FreeRegionParent->Next->Next = _MAIN_HEAP.Available;
+        _MAIN_HEAP.Available = FreeRegionParent->Next;
+        FreeRegionParent->Next = NewNext;
     }
 }
 
