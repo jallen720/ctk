@@ -556,14 +556,13 @@ static type *find(smap<type, size> *Map, cstr Key) {
 }
 
 template<typename type, u32 size>
-static type *find(smap<type, size> *Map, cstr Key, u32 *OutIndex) {
+static u32 find_index(smap<type, size> *Map, cstr Key) {
     for(u32 Index = 0; Index < Map->Count; Index++) {
         if(equal(Key, (cstr)(Map->Keys + Index))) {
-            *OutIndex = Index;
-            return Map->Values + Index;
+            return Index;
         }
     }
-    return NULL;
+    return CTK_U32_MAX;
 }
 
 template<typename type, u32 size>
