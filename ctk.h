@@ -61,7 +61,7 @@ using b32 = bool;
         ctk::print_line("       " CTK_ANSI_HIGHLIGHT("func", BLUE) ": %s()", __FUNCTION__); \
         ctk::print("       " CTK_ANSI_HIGHLIGHT("msg", BLUE) ": "); \
         ctk::print_line(MESSAGE, __VA_ARGS__); \
-        throw 0; |
+        throw 0; \
     }
 #endif
 
