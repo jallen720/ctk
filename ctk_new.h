@@ -161,18 +161,23 @@ static void ctk_warning(u32 tab_count, cstr msg, _args... args) {
 ////////////////////////////////////////////////////////////
 /// Memory
 ////////////////////////////////////////////////////////////
-template<typename type>
-type *ctk_zalloc(u32 count = 1) {
-    u64 size = sizeof(type) * count;
-    type *a = (type *)malloc(size);
-    memset(a, 0, size);
-    return a;
+void *ctk_zalloc(u32 size) {
+    void *allocation = malloc(size);
+    CTK_ASSERT(allocation != NULL)
+    memset(allocation, 0, size);
+    return allocation;
 }
 
-void *ctk_zalloc(u32 size) {
-    void *a = malloc(size);
-    memset(a, 0, size);
-    return a;
+template<typename type>
+type *ctk_zalloc(u32 count = 1) {
+    return (type *)ctk_zalloc(sizeof(type) * count);
+}
+
+template<typename type>
+type *ctk_alloc(u32 count = 1) {
+    auto allocation = (type *)malloc(sizeof(type) * count);
+    CTK_ASSERT(allocation != NULL)
+    return allocation;
 }
 
 ////////////////////////////////////////////////////////////
@@ -185,18 +190,22 @@ static bool ctk_equal(cstr a, cstr b) {
 ////////////////////////////////////////////////////////////
 /// Array
 ////////////////////////////////////////////////////////////
-template<typename type, u32 _size>
+template<typename type, u32 size>
 struct ctk_array {
-    type data[_size];
-    u32 size = _size;
+    type data[size];
     u32 count;
     type &operator[](u32 i);
 };
 
 template<typename type, u32 size>
+static u32 ctk_size(struct ctk_array<type, size> *_) {
+    return size;
+}
+
+template<typename type, u32 size>
 static type *ctk_push(struct ctk_array<type, size> *arr, type elem) {
-    if (arr->count + 1 > arr->size)
-        CTK_FATAL("static array (size=%u count=%u) cannot hold any more elements", arr->size, arr->count)
+    if (arr->count + 1 > ctk_size(arr))
+        CTK_FATAL("static array (size=%u count=%u) cannot hold any more elements", ctk_size(arr), arr->count)
     type *new_elem = ctk_at(arr, arr->count++);
     *new_elem = elem;
     return new_elem;
@@ -211,8 +220,8 @@ template<typename type, u32 size>
 static void ctk_push(struct ctk_array<type, size> *arr, type *elems, u32 elem_count) {
     if (elem_count == 0)
         return;
-    if (arr->count + elem_count > arr->size)
-        CTK_FATAL("static array (size=%u count=%u) cannot hold %u more elements", arr->size, arr->count, elem_count)
+    if (arr->count + elem_count > ctk_size(arr))
+        CTK_FATAL("static array (size=%u count=%u) cannot hold %u more elements", ctk_size(arr), arr->count, elem_count)
     memcpy(ctk_at(arr, arr->count), elems, sizeof(type) * elem_count);
     arr->count += elem_count;
 }
@@ -225,7 +234,7 @@ static type ctk_pop(struct ctk_array<type, size>* arr) {
 
 template<typename type, u32 size>
 static u32 ctk_byte_size(struct ctk_array<type, size> *arr) {
-    return arr->size * sizeof(type);
+    return ctk_size(arr) * sizeof(type);
 }
 
 template<typename type, u32 size>
@@ -235,7 +244,7 @@ static u32 ctk_byte_count(struct ctk_array<type, size> *arr) {
 
 template<typename type, u32 size>
 static type *ctk_at(struct ctk_array<type, size> *arr, u32 i) {
-    CTK_ASSERT(i < arr->size)
+    CTK_ASSERT(i < ctk_size(arr))
     return arr->data + i;
 }
 
@@ -247,7 +256,7 @@ type &ctk_array<type, size>::operator[](u32 i) {
 
 template<typename type, u32 size>
 static type *operator+(struct ctk_array<type, size> &arr, u32 i) {
-    CTK_ASSERT(i < arr.size)
+    CTK_ASSERT(i < size)
     return arr.data + i;
 }
 
@@ -256,21 +265,24 @@ static type *operator+(struct ctk_array<type, size> &arr, u32 i) {
 ////////////////////////////////////////////////////////////
 using ctk_map_key = char[64];
 
-template<typename type, u32 _size>
+template<typename type, u32 size>
 struct ctk_map {
-    ctk_map_key keys[_size];
-    type values[_size];
-    u32 size = _size;
+    ctk_map_key keys[size];
+    type values[size];
     u32 count;
 };
 
 template<typename type, u32 size>
+static u32 ctk_size(struct ctk_map<type, size> *_) {
+    return size;
+}
+
+template<typename type, u32 size>
 static type *ctk_push(struct ctk_map<type, size> *map, cstr key, type val) {
-    if (map->count + 1 > map->size)
-        CTK_FATAL("static map (size=%u count=%u) cannot hold any more elements", map->size, map->count)
+    if (map->count + 1 > ctk_size(map))
+        CTK_FATAL("static map (size=%u count=%u) cannot hold any more elements", ctk_size(map), map->count)
     if (strlen(key) >= sizeof(ctk_map_key))
         CTK_FATAL("pushing key \"%s\" (size=%u) which is longer than max key size of %u", key, strlen(key), sizeof(ctk_map_key) - 1)
-
     // Check if duplicate key.
     if (ctk_find(map, key) != NULL)
         CTK_FATAL("attempting to push key \"%s\" to static map that already has that key", key);
@@ -312,7 +324,7 @@ static type *ctk_at(struct ctk_map<type, size> *map, cstr key) {
 
 template<typename type, u32 size>
 static u32 ctk_values_byte_size(struct ctk_map<type, size> *map) {
-    return map->size * sizeof(type);
+    return ctk_size(map) * sizeof(type);
 }
 
 template<typename type, u32 size>
@@ -451,6 +463,7 @@ struct ctk_v3 {
     f32 y;
     f32 z;
     struct ctk_v3 &operator+=(struct ctk_v3 const &r);
+    struct ctk_v3 &operator*=(f32 r);
 };
 
 struct ctk_v2 {
@@ -469,6 +482,13 @@ struct ctk_v3 &ctk_v3::operator+=(struct ctk_v3 const &r) {
     x += r.x;
     y += r.y;
     z += r.z;
+    return *this;
+}
+
+struct ctk_v3 &ctk_v3::operator*=(f32 r) {
+    x *= r;
+    y *= r;
+    z *= r;
     return *this;
 }
 
