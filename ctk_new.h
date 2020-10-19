@@ -450,108 +450,18 @@ static struct ctk_buffer<type> ctk_read_file(cstr path) {
 ////////////////////////////////////////////////////////////
 /// Math
 ////////////////////////////////////////////////////////////
+
+// v4
+template<typename type>
 struct ctk_v4 {
-    f32 x;
-    f32 y;
-    f32 z;
-    f32 w;
-    struct ctk_v4 &operator+=(struct ctk_v4 const &r);
+    type x;
+    type y;
+    type z;
+    type w;
 };
 
-struct ctk_v3 {
-    f32 x;
-    f32 y;
-    f32 z;
-    struct ctk_v3 &operator+=(struct ctk_v3 const &r);
-    struct ctk_v3 &operator*=(f32 r);
-};
-
-struct ctk_v2 {
-    f32 x;
-    f32 y;
-    struct ctk_v2 &operator+=(struct ctk_v2 const &r);
-};
-
-struct ctk_v2d {
-    f64 x;
-    f64 y;
-    struct ctk_v2d &operator+=(struct ctk_v2d const &r);
-};
-
-struct ctk_v3 &ctk_v3::operator+=(struct ctk_v3 const &r) {
-    x += r.x;
-    y += r.y;
-    z += r.z;
-    return *this;
-}
-
-struct ctk_v3 &ctk_v3::operator*=(f32 r) {
-    x *= r;
-    y *= r;
-    z *= r;
-    return *this;
-}
-
-struct ctk_v2 &ctk_v2::operator+=(struct ctk_v2 const &r) {
-    x += r.x;
-    y += r.y;
-    return *this;
-}
-
-struct ctk_v2d &ctk_v2d::operator+=(struct ctk_v2d const &r) {
-    x += r.x;
-    y += r.y;
-    return *this;
-}
-
-// Global Operators
-static struct ctk_v3 operator+(struct ctk_v3 const &l, struct ctk_v3 const &r) {
-    return {
-        l.x + r.x,
-        l.y + r.y,
-        l.z + r.z,
-    };
-}
-
-static struct ctk_v3 operator-(struct ctk_v3 const &l, struct ctk_v3 const &r) {
-    return {
-        l.x - r.x,
-        l.y - r.y,
-        l.z - r.z,
-    };
-}
-
-static struct ctk_v2 operator-(struct ctk_v2 const &l, struct ctk_v2 const &r) {
-    return {
-        l.x - r.x,
-        l.y - r.y,
-    };
-}
-
-static struct ctk_v2d operator-(struct ctk_v2d const &l, struct ctk_v2d const &r) {
-    return {
-        l.x - r.x,
-        l.y - r.y,
-    };
-}
-
-static struct ctk_v3 operator*(struct ctk_v3 const &l, f32 r) {
-    return {
-        l.x * r,
-        l.y * r,
-        l.z * r,
-    };
-}
-
-static struct ctk_v3 operator*(struct ctk_v3 const &l, struct ctk_v3 const &r) {
-    return {
-        l.x * r.x,
-        l.y * r.y,
-        l.z * r.z,
-    };
-}
-
-static struct ctk_v4 operator*(struct ctk_v4 const &l, f32 r) {
+template<typename l_type, typename r_type>
+static struct ctk_v4<l_type> operator*(struct ctk_v4<l_type> const &l, r_type r) {
     return {
         l.x * r,
         l.y * r,
@@ -560,7 +470,76 @@ static struct ctk_v4 operator*(struct ctk_v4 const &l, f32 r) {
     };
 }
 
-static struct ctk_v3 operator/(struct ctk_v3 const &l, f32 r) {
+// v3
+template<typename type>
+struct ctk_v3 {
+    type x;
+    type y;
+    type z;
+
+    template<typename r_type>
+    struct ctk_v3<type> &operator+=(struct ctk_v3<r_type> const &r);
+
+    template<typename r_type>
+    struct ctk_v3<type> &operator*=(r_type r);
+};
+
+template<typename type>
+template<typename r_type>
+struct ctk_v3<type> &ctk_v3<type>::operator+=(struct ctk_v3<r_type> const &r) {
+    x += r.x;
+    y += r.y;
+    z += r.z;
+    return *this;
+}
+
+template<typename type>
+template<typename r_type>
+struct ctk_v3<type> &ctk_v3<type>::operator*=(r_type r) {
+    x *= r;
+    y *= r;
+    z *= r;
+    return *this;
+}
+
+template<typename l_type, typename r_type>
+static struct ctk_v3<l_type> operator+(struct ctk_v3<l_type> const &l, struct ctk_v3<r_type> const &r) {
+    return {
+        l.x + r.x,
+        l.y + r.y,
+        l.z + r.z,
+    };
+}
+
+template<typename l_type, typename r_type>
+static struct ctk_v3<l_type> operator-(struct ctk_v3<l_type> const &l, struct ctk_v3<r_type> const &r) {
+    return {
+        l.x - r.x,
+        l.y - r.y,
+        l.z - r.z,
+    };
+}
+
+template<typename l_type, typename r_type>
+static struct ctk_v3<l_type> operator*(struct ctk_v3<l_type> const &l, r_type r) {
+    return {
+        l.x * r,
+        l.y * r,
+        l.z * r,
+    };
+}
+
+template<typename l_type, typename r_type>
+static struct ctk_v3<l_type> operator*(struct ctk_v3<l_type> const &l, struct ctk_v3<r_type> const &r) {
+    return {
+        l.x * r.x,
+        l.y * r.y,
+        l.z * r.z,
+    };
+}
+
+template<typename l_type, typename r_type>
+static struct ctk_v3<l_type> operator/(struct ctk_v3<l_type> const &l, r_type r) {
     return {
         l.x / r,
         l.y / r,
@@ -568,14 +547,59 @@ static struct ctk_v3 operator/(struct ctk_v3 const &l, f32 r) {
     };
 }
 
-static bool operator==(struct ctk_v2d const &l, struct ctk_v2d const &r) {
+// v2
+template<typename type>
+struct ctk_v2 {
+    type x;
+    type y;
+
+    template<typename r_type>
+    struct ctk_v2<type> &operator+=(struct ctk_v2<r_type> const &r);
+};
+
+template<typename type>
+template<typename r_type>
+struct ctk_v2<type> &ctk_v2<type>::operator+=(struct ctk_v2<r_type> const &r) {
+    x += r.x;
+    y += r.y;
+    return *this;
+}
+
+template<typename l_type, typename r_type>
+static struct ctk_v2<l_type> operator+(struct ctk_v2<l_type> const &l, struct ctk_v2<r_type> const &r) {
+    return {
+        l.x + r.x,
+        l.y + r.y,
+    };
+}
+
+template<typename l_type, typename r_type>
+static struct ctk_v2<l_type> operator-(struct ctk_v2<l_type> const &l, struct ctk_v2<r_type> const &r) {
+    return {
+        l.x - r.x,
+        l.y - r.y,
+    };
+}
+
+template<typename l_type, typename r_type>
+static struct ctk_v2<l_type> operator*(struct ctk_v2<l_type> const &l, r_type r) {
+    return {
+        l.x * r,
+        l.y * r,
+    };
+}
+
+template<typename l_type, typename r_type>
+static bool operator==(struct ctk_v2<l_type> const &l, struct ctk_v2<r_type> const &r) {
     return l.x == r.x && l.y == r.y;
 }
 
-static bool operator!=(struct ctk_v2d const &l, struct ctk_v2d const &r) {
+template<typename l_type, typename r_type>
+static bool operator!=(struct ctk_v2<l_type> const &l, struct ctk_v2<r_type> const &r) {
     return l.x != r.x || l.y != r.y;
 }
 
+// General Math Functions
 template<typename type>
 static type ctk_max(type a, type b) {
     return a > b ? a : b;
@@ -589,6 +613,11 @@ static type ctk_min(type a, type b) {
 template<typename type>
 static type ctk_clamp(type val, type min, type max) {
     return ctk_min(ctk_max(val, min), max);
+}
+
+template<typename type>
+static type ctk_random_range(type min, type max) {
+    return (max <= min) ? min : ((rand() % (max - min)) + min);
 }
 
 ////////////////////////////////////////////////////////////
