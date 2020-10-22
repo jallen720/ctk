@@ -86,18 +86,18 @@ using cstr = const char *;
 ////////////////////////////////////////////////////////////
 /// Logging
 ////////////////////////////////////////////////////////////
-template<typename ..._args>
-static void ctk_print(cstr msg, _args... args) {
+template<typename ...arg_types>
+static void ctk_print(cstr msg, arg_types... args) {
     printf(msg, args...);
 }
 
-template<typename ..._args>
+template<typename ...arg_types>
 static void ctk_print_line() {
     ctk_print("\n");
 }
 
-template<typename ..._args>
-static void ctk_print_line(cstr msg, _args... args) {
+template<typename ...arg_types>
+static void ctk_print_line(cstr msg, arg_types... args) {
     ctk_print(msg, args...);
     ctk_print_line();
 }
@@ -107,52 +107,52 @@ static void ctk_print_tabs(u32 tab_count) {
         ctk_print("    ");
 }
 
-template<typename ..._args>
-static void ctk_print(u32 tab_count, cstr msg, _args... args) {
+template<typename ...arg_types>
+static void ctk_print(u32 tab_count, cstr msg, arg_types... args) {
     ctk_print_tabs(tab_count);
     ctk_print(msg, args...);
 }
 
-template<typename ..._args>
-static void ctk_print_line(u32 tab_count, cstr msg, _args... args) {
+template<typename ...arg_types>
+static void ctk_print_line(u32 tab_count, cstr msg, arg_types... args) {
     ctk_print_tabs(tab_count);
     ctk_print_line(msg, args...);
 }
 
-template<typename ..._args>
-static void ctk_error(cstr msg, _args... args) {
+template<typename ...arg_types>
+static void ctk_error(cstr msg, arg_types... args) {
     ctk_print(CTK_ERROR_TAG);
     ctk_print_line(msg, args...);
 }
 
-template<typename ..._args>
-static void ctk_error(u32 tab_count, cstr msg, _args... args) {
+template<typename ...arg_types>
+static void ctk_error(u32 tab_count, cstr msg, arg_types... args) {
     ctk_print(CTK_ERROR_TAG);
     ctk_print_tabs(tab_count);
     ctk_print_line(msg, args...);
 }
 
-template<typename ..._args>
-static void ctk_info(cstr msg, _args... args) {
+template<typename ...arg_types>
+static void ctk_info(cstr msg, arg_types... args) {
     ctk_print(CTK_ANSI_HIGHLIGHT("INFO", GREEN) ": ");
     ctk_print_line(msg, args...);
 }
 
-template<typename ..._args>
-static void ctk_info(u32 tab_count, cstr msg, _args... args) {
+template<typename ...arg_types>
+static void ctk_info(u32 tab_count, cstr msg, arg_types... args) {
     ctk_print(CTK_ANSI_HIGHLIGHT("INFO", GREEN) ": ");
     ctk_print_tabs(tab_count);
     ctk_print_line(msg, args...);
 }
 
-template<typename ..._args>
-static void ctk_warning(cstr msg, _args... args) {
+template<typename ...arg_types>
+static void ctk_warning(cstr msg, arg_types... args) {
     ctk_print(CTK_ANSI_HIGHLIGHT("WARNING", MAGENTA) ": ");
     ctk_print_line(msg, args...);
 }
 
-template<typename ..._args>
-static void ctk_warning(u32 tab_count, cstr msg, _args... args) {
+template<typename ...arg_types>
+static void ctk_warning(u32 tab_count, cstr msg, arg_types... args) {
     ctk_print(CTK_ANSI_HIGHLIGHT("WARNING", MAGENTA) ": ");
     ctk_print_tabs(tab_count);
     ctk_print_line(msg, args...);
@@ -263,7 +263,7 @@ static type *operator+(struct ctk_array<type, size> &arr, u32 i) {
 ////////////////////////////////////////////////////////////
 /// Map
 ////////////////////////////////////////////////////////////
-using ctk_map_key = char[64];
+typedef char ctk_map_key[64];
 
 template<typename type, u32 size>
 struct ctk_map {
