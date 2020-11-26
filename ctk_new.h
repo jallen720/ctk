@@ -458,7 +458,14 @@ struct ctk_v4 {
     type y;
     type z;
     type w;
+    type operator[](u32 i);
 };
+
+template<typename type>
+type ctk_v4<type>::operator[](u32 i) {
+    CTK_ASSERT(i < 4)
+    return *(&x + i);
+}
 
 template<typename l_type, typename r_type>
 static struct ctk_v4<l_type> operator*(struct ctk_v4<l_type> const &l, r_type r) {
@@ -476,6 +483,7 @@ struct ctk_v3 {
     type x;
     type y;
     type z;
+    type operator[](u32 i);
 
     template<typename r_type>
     struct ctk_v3<type> &operator+=(struct ctk_v3<r_type> const &r);
@@ -483,6 +491,12 @@ struct ctk_v3 {
     template<typename r_type>
     struct ctk_v3<type> &operator*=(r_type r);
 };
+
+template<typename type>
+type ctk_v3<type>::operator[](u32 i) {
+    CTK_ASSERT(i < 3)
+    return *(&x + i);
+}
 
 template<typename type>
 template<typename r_type>
@@ -552,10 +566,17 @@ template<typename type>
 struct ctk_v2 {
     type x;
     type y;
+    type operator[](u32 i);
 
     template<typename r_type>
     struct ctk_v2<type> &operator+=(struct ctk_v2<r_type> const &r);
 };
+
+template<typename type>
+type ctk_v2<type>::operator[](u32 i) {
+    CTK_ASSERT(i < 2)
+    return *(&x + i);
+}
 
 template<typename type>
 template<typename r_type>
