@@ -629,6 +629,48 @@ static bool operator!=(struct ctk_v2<l_type> const &l, struct ctk_v2<r_type> con
     return l.x != r.x || l.y != r.y;
 }
 
+// mtx4
+struct ctk_mtx4 {
+    f32 data[16];
+    f32 *operator[](u32 row);
+};
+
+f32 *ctk_mtx4::operator[](u32 row) {
+    return data + (row * 4);
+}
+
+static ctk_mtx4 const CTK_MTX4_ID = {
+    1.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+    0.0f, 0.0f, 0.0f, 1.0f,
+};
+
+static struct ctk_mtx4 operator*(struct ctk_mtx4 &l, struct ctk_mtx4 &r) {
+    struct ctk_mtx4 res = {};
+    for (u32 row = 0; row < 4; ++row)
+    for (u32 col = 0; col < 4; ++col)
+        for (u32 i = 0; i < 4; ++i)
+            res[row][col] += l[i][col] * r[row][i];
+    return res;
+}
+
+static struct ctk_mtx4 ctk_translate(struct ctk_mtx4 m, struct ctk_v3<f32> v) {
+    struct ctk_mtx4 res = m;
+    for (u32 row = 0; row < 3; ++row)
+    for (u32 col = 0; col < 3; ++col)
+        res[3][col] += v[row] * res[row][col];
+    return res;
+}
+
+static struct ctk_mtx4 ctk_scale(struct ctk_mtx4 m, struct ctk_v3<f32> v) {
+    struct ctk_mtx4 res = m;
+    for (u32 row = 0; row < 3; ++row)
+    for (u32 col = 0; col < 3; ++col)
+        res[row][col] *= v[col];
+    return res;
+}
+
 // General Math Functions
 template<typename type>
 static type ctk_max(type a, type b) {
