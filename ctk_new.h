@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstdint>
 #include <cstring>
+#include <cmath>
 
 using u8 = uint8_t;
 using u16 = uint16_t;
@@ -559,6 +560,14 @@ static struct ctk_v3<l_type> operator/(struct ctk_v3<l_type> const &l, r_type r)
         l.y / r,
         l.z / r,
     };
+}
+
+static f32 ctk_length(struct ctk_v3<f32> v) {
+    return sqrt((v.x * v.x) + (v.y * v.y) + (v.z * v.z));
+}
+
+static struct ctk_v3<f32> ctk_normalize(struct ctk_v3<f32> v) {
+    return v / ctk_length(v);
 }
 
 // v2
