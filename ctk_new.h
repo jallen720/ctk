@@ -162,23 +162,43 @@ static void ctk_warning(u32 tab_count, cstr msg, arg_types... args) {
 ////////////////////////////////////////////////////////////
 /// Memory
 ////////////////////////////////////////////////////////////
-void *ctk_zalloc(u32 size) {
-    void *allocation = malloc(size);
-    CTK_ASSERT(allocation != NULL)
-    memset(allocation, 0, size);
-    return allocation;
-}
-
-template<typename type>
-type *ctk_zalloc(u32 count = 1) {
-    return (type *)ctk_zalloc(sizeof(type) * count);
-}
-
 template<typename type>
 type *ctk_alloc(u32 count = 1) {
-    auto allocation = (type *)malloc(sizeof(type) * count);
-    CTK_ASSERT(allocation != NULL)
-    return allocation;
+    auto mem = (type *)malloc(sizeof(type) * count);
+    CTK_ASSERT(mem != NULL)
+    return mem;
+}
+
+void *ctk_alloc_z(u32 size) {
+    void *mem = malloc(size);
+    CTK_ASSERT(mem != NULL)
+    memset(mem, 0, size);
+    return mem;
+}
+
+template<typename type>
+type *ctk_alloc_z(u32 count = 1) {
+    return (type *)ctk_alloc_z(sizeof(type) * count);
+}
+
+template<typename type>
+type *ctk_realloc(type *mem, u32 count) {
+    realloc(mem, sizeof(type) * count);
+    CTK_ASSERT(mem != NULL)
+    return mem;
+}
+
+void *ctk_realloc_z(void *mem, u32 old_size, u32 new_size) {
+    mem = realloc(mem, new_size);
+    CTK_ASSERT(mem != NULL)
+    if (new_size > old_size)
+        memset((u8 *)mem + old_size, 0, new_size - old_size);
+    return mem;
+}
+
+template<typename type>
+type *ctk_realloc_z(type *mem, u32 old_count, u32 new_count) {
+    return (type *)ctk_realloc_z((void *)mem, sizeof(type) * old_count, sizeof(type) * new_count);
 }
 
 ////////////////////////////////////////////////////////////
@@ -345,22 +365,28 @@ struct ctk_buffer {
 };
 
 template<typename type>
-static void ctk_zalloc_buffer(struct ctk_buffer<type> *buf, u32 size) {
-    buf->data = ctk_zalloc<type>(size);
+static void ctk_alloc_z_buffer(struct ctk_buffer<type> *buf, u32 size) {
+    buf->data = ctk_alloc_z<type>(size);
     buf->size = size;
+}
+
+template<typename type>
+static void ctk_realloc_z_buffer(struct ctk_buffer<type> *buf, u32 new_size) {
+    buf->data = ctk_realloc_z(buf->data, buf->size, new_size);
+    buf->size = new_size;
 }
 
 template<typename type>
 static struct ctk_buffer<type> ctk_create_buffer(u32 size) {
     struct ctk_buffer<type> buf = {};
-    ctk_zalloc_buffer(&buf, size);
+    ctk_alloc_z_buffer(&buf, size);
     return buf;
 }
 
 template<typename type>
 static struct ctk_buffer<type> ctk_create_buffer_full(u32 size) {
     struct ctk_buffer<type> buf = {};
-    ctk_zalloc_buffer(&buf, size);
+    ctk_alloc_z_buffer(&buf, size);
     buf.count = size;
     return buf;
 }
