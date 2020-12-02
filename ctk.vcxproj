@@ -144,6 +144,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="ctk.h" />
+    <ClInclude Include="ctkd.h" />
     <ClInclude Include="data.h" />
     <ClInclude Include="math.h" />
     <ClInclude Include="_data_debug.h" />
