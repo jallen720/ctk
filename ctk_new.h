@@ -204,7 +204,7 @@ type *ctk_realloc_z(type *mem, u32 old_count, u32 new_count) {
 ////////////////////////////////////////////////////////////
 /// String
 ////////////////////////////////////////////////////////////
-static bool ctk_equal(cstr a, cstr b) {
+static bool ctk_string_equal(cstr a, cstr b) {
     return strcmp(a, b) == 0;
 }
 
@@ -322,7 +322,7 @@ static type *ctk_push(struct ctk_map<type, size> *map, cstr key) {
 template<typename type, u32 size>
 static type *ctk_find(struct ctk_map<type, size> *map, cstr key) {
     for (u32 i = 0; i < map->count; ++i)
-        if (ctk_equal(key, (cstr)(map->keys + i)))
+        if (ctk_string_equal(key, (cstr)(map->keys + i)))
             return map->values + i;
     return NULL;
 }
@@ -330,7 +330,7 @@ static type *ctk_find(struct ctk_map<type, size> *map, cstr key) {
 template<typename type, u32 size>
 static u32 ctk_find_index(struct ctk_map<type, size> *map, cstr key) {
     for (u32 i = 0; i < map->count; ++i)
-        if (ctk_equal(key, (cstr)(map->keys + i)))
+        if (ctk_string_equal(key, (cstr)(map->keys + i)))
             return i;
     return CTK_U32_MAX;
 }
