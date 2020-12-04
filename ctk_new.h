@@ -16,7 +16,7 @@ using s32 = int32_t;
 using s64 = int64_t;
 using f32 = float;
 using f64 = double;
-using cstr = const char *;
+using cstr = char const *;
 
 #define CTK_S8_MIN SCHAR_MIN
 #define CTK_S8_MAX SCHAR_MAX
