@@ -79,6 +79,7 @@ using cstr = char const *;
 #define CTK_NAME_VALUE_PAIR(VALUE) { #VALUE, VALUE }
 #define CTK_VALUE_NAME_PAIR(VALUE) { VALUE, #VALUE }
 #define CTK_REPEAT(COUNT) for (u32 _ = 0; _ < COUNT; ++_)
+#define CTK_RANGE(INDEX, START, LIMIT) for (u32 INDEX = start; INDEX < LIMIT; ++INDEX)
 #define CTK_EACH(TYPE, ITER, ARRAY) for (TYPE *ITER = ARRAY + 0; ITER < ARRAY.data + ARRAY.count; ++ITER)
 #define CTK_KILOBYTE 1000
 #define CTK_MEGABYTE 1000 * CTK_KILOBYTE
@@ -204,8 +205,40 @@ type *ctk_realloc_z(type *mem, u32 old_count, u32 new_count) {
 ////////////////////////////////////////////////////////////
 /// String
 ////////////////////////////////////////////////////////////
-static bool ctk_string_equal(cstr a, cstr b) {
+static bool ctk_strings_match(cstr a, cstr b) {
     return strcmp(a, b) == 0;
+}
+
+static f32 ctk_f32(cstr s) {
+    return strtof(s, NULL);
+}
+
+static f32 ctk_f64(cstr s) {
+    return strtod(s, NULL);
+}
+
+static s32 ctk_s32(cstr s) {
+    return strtol(s, NULL, 10);
+}
+
+static s32 ctk_s64(cstr s) {
+    return strtoll(s, NULL, 10);
+}
+
+static u32 ctk_u32(cstr s) {
+    return strtoul(s, NULL, 10);
+}
+
+static u32 ctk_u64(cstr s) {
+    return strtoull(s, NULL, 10);
+}
+
+static bool ctk_bool(cstr s) {
+    if (ctk_strings_match(s, "true"))
+        return true;
+    if (ctk_strings_match(s, "false"))
+        return false;
+    CTK_FATAL("string \"%s\" cannot be converted to a boolean value", s)
 }
 
 ////////////////////////////////////////////////////////////
@@ -322,7 +355,7 @@ static type *ctk_push(struct ctk_map<type, size> *map, cstr key) {
 template<typename type, u32 size>
 static type *ctk_find(struct ctk_map<type, size> *map, cstr key) {
     for (u32 i = 0; i < map->count; ++i)
-        if (ctk_string_equal(key, (cstr)(map->keys + i)))
+        if (ctk_strings_match(key, (cstr)(map->keys + i)))
             return map->values + i;
     return NULL;
 }
@@ -330,7 +363,7 @@ static type *ctk_find(struct ctk_map<type, size> *map, cstr key) {
 template<typename type, u32 size>
 static u32 ctk_find_index(struct ctk_map<type, size> *map, cstr key) {
     for (u32 i = 0; i < map->count; ++i)
-        if (ctk_string_equal(key, (cstr)(map->keys + i)))
+        if (ctk_strings_match(key, (cstr)(map->keys + i)))
             return i;
     return CTK_U32_MAX;
 }
