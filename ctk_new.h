@@ -487,6 +487,193 @@ static type *operator+(struct ctk_buffer<type> &buf, u32 i) {
 }
 
 ////////////////////////////////////////////////////////////
+/// Heap
+////////////////////////////////////////////////////////////
+struct _ctk_block {
+    void *mem;
+    u32 size;
+    u32 prev;
+    u32 next;
+    bool free;
+};
+
+struct ctk_heap {
+    u32 size;
+    u32 active;
+    u32 pool;
+    struct ctk_buffer<struct _ctk_block> blocks;
+};
+
+#define _CTK_BLOCK_POOL_CHUNK_COUNT 64
+
+static u32 _ctk_create_block(struct ctk_heap *heap) {
+    u32 new_block_idx = CTK_U32_MAX;
+    if (heap->pool != CTK_U32_MAX) {
+        new_block_idx = heap->pool;
+        heap->pool = heap->blocks[heap->pool].next;
+    } else {
+        if (heap->blocks.count >= heap->blocks.size)
+            ctk_realloc_z_buffer(&heap->blocks, heap->blocks.size + _CTK_BLOCK_POOL_CHUNK_COUNT);
+        new_block_idx = heap->blocks.count++;
+    }
+    if (new_block_idx == CTK_U32_MAX)
+        CTK_FATAL("failed to create new block")
+    heap->blocks[new_block_idx].prev = CTK_U32_MAX;
+    heap->blocks[new_block_idx].next = CTK_U32_MAX;
+    return new_block_idx;
+}
+
+static void _ctk_destroy_block(struct ctk_heap *heap, u32 block_idx) {
+    heap->blocks[heap->blocks[block_idx].prev].next = heap->blocks[block_idx].next;
+    heap->blocks[block_idx].next = heap->pool;
+    heap->pool = block_idx;
+}
+
+static struct ctk_heap ctk_create_heap(u32 size) {
+    struct ctk_heap heap = {};
+    heap.size = size;
+    heap.pool = CTK_U32_MAX;
+    heap.blocks = ctk_create_buffer<struct _ctk_block>(_CTK_BLOCK_POOL_CHUNK_COUNT);
+    heap.active = _ctk_create_block(&heap);
+    heap.blocks[heap.active].mem = malloc(size);
+    CTK_ASSERT(heap.blocks[heap.active].mem != NULL);
+    heap.blocks[heap.active].size = size;
+    heap.blocks[heap.active].free = true;
+    return heap;
+}
+
+static void _ctk_join(struct ctk_heap *heap, u32 block_a, u32 block_b) {
+    heap->blocks[block_a].next = block_b;
+    heap->blocks[block_b].prev = block_a;
+}
+
+static void *ctk_alloc(struct ctk_heap *heap, u32 size) {
+    // Find block large enough for allocation.
+    u32 selected_block_idx = heap->active;
+    while (selected_block_idx != CTK_U32_MAX) {
+        if (heap->blocks[selected_block_idx].free && heap->blocks[selected_block_idx].size >= size)
+            break;
+        selected_block_idx = heap->blocks[selected_block_idx].next;
+    }
+    if (selected_block_idx == CTK_U32_MAX)
+        CTK_FATAL("failed to find memory block with size >= %u", size)
+
+    // Create block representing allocation.
+    u32 alloc_block_idx = CTK_U32_MAX;
+    if (heap->blocks[selected_block_idx].size == size) {
+        alloc_block_idx = selected_block_idx;
+    } else {
+        // Create new block to represent allocation.
+        alloc_block_idx = _ctk_create_block(heap);
+        heap->blocks[alloc_block_idx].mem = heap->blocks[selected_block_idx].mem;
+        heap->blocks[alloc_block_idx].size = size;
+
+        // Insert alloc block before selected block, setting heap->active to new block if selected block was heap->active.
+        if (heap->blocks[selected_block_idx].prev != CTK_U32_MAX)
+            _ctk_join(heap, heap->blocks[selected_block_idx].prev, alloc_block_idx);
+        else
+            heap->active = alloc_block_idx;
+        _ctk_join(heap, alloc_block_idx, selected_block_idx);
+
+        // Resize block.
+        heap->blocks[selected_block_idx].mem = (char *)heap->blocks[selected_block_idx].mem + size;
+        heap->blocks[selected_block_idx].size -= size;
+    }
+    heap->blocks[alloc_block_idx].free = false;
+
+    return heap->blocks[alloc_block_idx].mem;
+}
+
+static void ctk_free(struct ctk_heap *heap, void *mem) {
+    // Find block associated with memory.
+    u32 block_idx = heap->active;
+    while (block_idx != CTK_U32_MAX) {
+        if (heap->blocks[block_idx].mem == mem)
+            break;
+        block_idx = heap->blocks[block_idx].next;
+    }
+    if (block_idx == CTK_U32_MAX)
+        CTK_FATAL("failed to find memory block associated with addres %p", mem)
+    heap->blocks[block_idx].free = true;
+
+    // Merge block with next and prev if free.
+    u32 next_idx = heap->blocks[block_idx].next;
+    if (next_idx != CTK_U32_MAX && heap->blocks[next_idx].free) {
+        heap->blocks[block_idx].size += heap->blocks[next_idx].size;
+        _ctk_destroy_block(heap, next_idx);
+    }
+    u32 prev_idx = heap->blocks[block_idx].prev;
+    if (prev_idx != CTK_U32_MAX && heap->blocks[prev_idx].free) {
+        heap->blocks[prev_idx].size += heap->blocks[block_idx].size;
+        _ctk_destroy_block(heap, block_idx);
+    }
+}
+
+static void _ctk_visualize_heap(struct ctk_heap *heap) {
+    auto buf = (char *)malloc(heap->size);
+    memset(buf, '!', heap->size);
+    char *buf_head = buf;
+    u32 block_idx = heap->active;
+    while (block_idx != CTK_U32_MAX) {
+        u32 block_size = heap->blocks[block_idx].size;
+        if (block_size == 1) {
+            buf_head += sprintf(buf_head, "%c", heap->blocks[block_idx].free ? '_' : '#');
+        } else if (block_size == 2) {
+            buf_head += sprintf(buf_head, "[%c", heap->blocks[block_idx].free ? '_' : '#');
+        } else {
+            buf_head += sprintf(buf_head, "[");
+            char c = heap->blocks[block_idx].free ? '_' : '#';
+            memset(buf_head, heap->blocks[block_idx].free ? '_' : '#', block_size);
+            buf_head += block_size - 2;
+            buf_head += sprintf(buf_head, "]");
+        }
+        block_idx = heap->blocks[block_idx].next;
+    }
+    ctk_print_line("%.*s", heap->size, buf);
+}
+
+static void _ctk_dump_block_children(struct ctk_heap *heap, u32 block_idx, char *out_buf, u32 buf_size) {
+    char *end = out_buf + buf_size;
+    while (block_idx != CTK_U32_MAX) {
+        u32 prev = heap->blocks[block_idx].prev;
+        u32 next = heap->blocks[block_idx].next;
+
+        out_buf += sprintf(out_buf, "    [%u]: {\n", block_idx);
+        out_buf += sprintf(out_buf, "        status: %s\n", heap->blocks[block_idx].free ? "free" : "used");
+        out_buf += sprintf(out_buf, "        mem:    %p\n", heap->blocks[block_idx].mem);
+        out_buf += sprintf(out_buf, "        size:   %u\n", heap->blocks[block_idx].size);
+        if (prev == CTK_U32_MAX)
+            out_buf += sprintf(out_buf, "        prev:   CTK_U32_MAX\n");
+        else
+            out_buf += sprintf(out_buf, "        prev:   %u\n", prev);
+        if (next == CTK_U32_MAX)
+            out_buf += sprintf(out_buf, "        next:   CTK_U32_MAX\n");
+        else
+            out_buf += sprintf(out_buf, "        next:   %u\n", next);
+        out_buf += sprintf(out_buf, "    }\n");
+
+        if (out_buf >= end)
+            CTK_FATAL("writing past end of buffer")
+        block_idx = heap->blocks[block_idx].next;
+    }
+}
+
+#define _CTK_MAX_OUTPUT_PER_BLOCK 256
+
+static void _ctk_dump_heap(struct ctk_heap *heap) {
+    u32 buf_size = heap->blocks.count * _CTK_MAX_OUTPUT_PER_BLOCK;
+    auto buf = (char *)malloc(buf_size);
+    memset(buf, 0, buf_size);
+    _ctk_dump_block_children(heap, heap->active, buf, buf_size);
+    ctk_print_line("active:\n%s", buf);
+    memset(buf, 0, buf_size);
+    _ctk_dump_block_children(heap, heap->pool, buf, buf_size);
+    ctk_print_line("pool:\n%s", buf);
+    ctk_print_line();
+    free(buf);
+}
+
+////////////////////////////////////////////////////////////
 /// File IO
 ////////////////////////////////////////////////////////////
 template<typename type>

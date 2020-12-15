@@ -2,20 +2,34 @@
 #include "ctk/ctkd.h"
 
 s32 main() {
-    // struct ctkd_node *cfg = ctkd_read("data/config.ctkd");
-    struct ctkd_heap heap = ctkd_create_heap(32);
-    auto a = ctkd_alloc(&heap, 8);
-    _ctkd_visualize_heap(&heap);
-    auto b = ctkd_alloc(&heap, 8);
-    _ctkd_visualize_heap(&heap);
-    auto c = ctkd_alloc(&heap, 8);
-    _ctkd_visualize_heap(&heap);
-    ctkd_free(&heap, a);
-    _ctkd_visualize_heap(&heap);
-    ctkd_free(&heap, c);
-    _ctkd_visualize_heap(&heap);
-    ctkd_free(&heap, b);
-    _ctkd_visualize_heap(&heap);
+    // struct ctk_node *cfg = ctk_read("data/config.ctk");
+    struct ctk_heap heap = ctk_create_heap(64);
+    _ctk_visualize_heap(&heap);
+    for (u32 i = 0; i < 2; ++i) {
+        auto a = ctk_alloc(&heap, 16);
+        _ctk_visualize_heap(&heap);
+        auto b = ctk_alloc(&heap, 16);
+        _ctk_visualize_heap(&heap);
+        auto c = ctk_alloc(&heap, 32);
+        _ctk_visualize_heap(&heap);
+        ctk_free(&heap, b);
+        _ctk_visualize_heap(&heap);
+        ctk_free(&heap, c);
+        _ctk_visualize_heap(&heap);
+        ctk_free(&heap, a);
+        _ctk_visualize_heap(&heap);
+    }
+
+    // auto b = ctk_alloc(&heap, 8);
+    // _ctk_visualize_heap(&heap);
+    // auto c = ctk_alloc(&heap, 8);
+    // _ctk_visualize_heap(&heap);
+    // ctk_free(&heap, a);
+    // _ctk_visualize_heap(&heap);
+    // ctk_free(&heap, c);
+    // _ctk_visualize_heap(&heap);
+    // ctk_free(&heap, b);
+    // _ctk_visualize_heap(&heap);
 
     return 0;
 }
