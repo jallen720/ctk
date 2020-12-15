@@ -584,6 +584,22 @@ static void *ctk_alloc(struct ctk_heap *heap, u32 size) {
     return heap->blocks[alloc_block_idx].mem;
 }
 
+static void *ctk_alloc_z(struct ctk_heap *heap, u32 size) {
+    void *mem = ctk_alloc(heap, size);
+    memset(mem, 0, size);
+    return mem;
+}
+
+template<typename type>
+static type *ctk_alloc(struct ctk_heap *heap, u32 count) {
+    return (type *)ctk_alloc(heap, sizeof(type) * count);
+}
+
+template<typename type>
+static type *ctk_alloc_z(struct ctk_heap *heap, u32 count) {
+    return (type *)ctk_alloc_z(heap, sizeof(type) * count);
+}
+
 static void ctk_free(struct ctk_heap *heap, void *mem) {
     // Find block associated with memory.
     u32 block_idx = heap->active;
