@@ -548,12 +548,16 @@ static void _ctk_join(struct ctk_heap *heap, u32 block_a, u32 block_b) {
 }
 
 static void *ctk_alloc(struct ctk_heap *heap, u32 size) {
-    // Find block large enough for allocation.
-    u32 selected_block_idx = heap->active;
-    while (selected_block_idx != CTK_U32_MAX) {
-        if (heap->blocks[selected_block_idx].free && heap->blocks[selected_block_idx].size >= size)
-            break;
-        selected_block_idx = heap->blocks[selected_block_idx].next;
+    // Find smallest block large enough for allocation.
+    u32 search_block_idx = heap->active;
+    u32 selected_block_size = CTK_U32_MAX;
+    u32 selected_block_idx = CTK_U32_MAX;
+    while (search_block_idx != CTK_U32_MAX) {
+        if (heap->blocks[search_block_idx].free && heap->blocks[search_block_idx].size >= size && heap->blocks[search_block_idx].size < selected_block_size) {
+            selected_block_idx = search_block_idx;
+            selected_block_size = heap->blocks[search_block_idx].size;
+        }
+        search_block_idx = heap->blocks[search_block_idx].next;
     }
     if (selected_block_idx == CTK_U32_MAX)
         CTK_FATAL("failed to find memory block with size >= %u", size)

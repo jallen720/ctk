@@ -3,13 +3,16 @@
 
 s32 main() {
     // struct ctk_node *cfg = ctk_read("data/config.ctk");
-    struct ctk_heap heap = ctk_create_heap(64);
+    struct ctk_heap heap = ctk_create_heap(32);
     _ctk_visualize_heap(&heap);
-    auto test = ctk_alloc_z<char>(&heap, 16);
+    char *allocs[4];
+    allocs[0] = ctk_alloc_z<char>(&heap, 16);
     _ctk_visualize_heap(&heap);
-    sprintf(test, "fuck %s\n", "you");
-    ctk_print_line(test);
-    ctk_free(&heap, test);
+    allocs[1] = ctk_alloc_z<char>(&heap, 8);
+    _ctk_visualize_heap(&heap);
+    ctk_free(&heap, allocs[0]);
+    _ctk_visualize_heap(&heap);
+    allocs[1] = ctk_alloc_z<char>(&heap, 8);
     _ctk_visualize_heap(&heap);
 
     // auto b = ctk_alloc(&heap, 8);
