@@ -1,4 +1,4 @@
-#include "ctk/ctk.h"
+#include "ctk/ctk_2.h"
 
 ////////////////////////////////////////////////////////////
 /// DATA STRUCT
@@ -12,21 +12,21 @@ enum {
 struct _ctkd_arena;
 
 struct ctkd_node {
-    struct _ctkd_arena *arena;
+    _ctkd_arena *arena;
     s32 type;
     cstr key;
     union {
         cstr value;
-        struct ctk_buffer<struct ctkd_node> children;
+        ctk_buffer<ctkd_node> children;
     };
 };
 
 struct _ctkd_arena {
-    struct ctk_buffer<char> chars;
-    struct ctk_buffer<struct ctkd_node> nodes;
+    ctk_buffer<char> chars;
+    ctk_buffer<ctkd_node> nodes;
 };
 
-static cstr _ctkd_alloc_string(struct _ctkd_arena *a, cstr str) {
+static cstr _ctkd_alloc_string(_ctkd_arena *a, cstr str) {
     if (str == NULL)
         return NULL;
     u32 str_size = strlen(str) + 1; // Include null-terminator.
@@ -38,31 +38,35 @@ static cstr _ctkd_alloc_string(struct _ctkd_arena *a, cstr str) {
     return new_str;
 }
 
-static struct ctk_buffer<struct ctkd_node> _ctkd_alloc_child_buffer(struct _ctkd_arena *a, u32 size) {
+static ctk_buffer<ctkd_node> _ctkd_alloc_child_buffer(_ctkd_arena *a, u32 size) {
     if (a->nodes.count + size > a->nodes.size)
         CTK_FATAL("CTKD: out of memory for nodes")
-    struct ctk_buffer<struct ctkd_node> child_buf = {};
+    ctk_buffer<ctkd_node> child_buf = {};
     child_buf.data = a->nodes + a->nodes.count;
     child_buf.size = size;
     a->nodes.count += size;
     return child_buf;
 }
 
-static struct ctkd_node *ctkd_create(u32 max_nodes, u32 max_chars, u32 max_root_child_count) {
-    auto arena = ctk_alloc_z<struct _ctkd_arena>();
-    arena->chars = ctk_create_buffer<char>(max_chars);
-    arena->nodes = ctk_create_buffer<struct ctkd_node>(max_nodes);
-    struct ctkd_node *root = ctk_push(&arena->nodes);
-    root->arena = arena;
-    root->type = CTKD_NODE_TYPE_STRUCT;
-    root->key = _ctkd_alloc_string(arena, "root");
-    root->children = _ctkd_alloc_child_buffer(arena, max_root_child_count);
-    return root;
-}
+// static ctkd_node *ctkd_create(ctk_heap *heap) {
 
-static struct ctkd_node *_ctkd_push_vector(struct ctkd_node *parent, s32 type, u32 max_child_count, cstr key = NULL) {
+// }
+
+// static ctkd_node *ctkd_create(u32 max_nodes, u32 max_chars, u32 max_root_child_count) {
+//     auto arena = ctk_alloc_z<_ctkd_arena>();
+//     arena->chars = ctk_create_buffer<char>(max_chars);
+//     arena->nodes = ctk_create_buffer<ctkd_node>(max_nodes);
+//     ctkd_node *root = ctk_push(&arena->nodes);
+//     root->arena = arena;
+//     root->type = CTKD_NODE_TYPE_STRUCT;
+//     root->key = _ctkd_alloc_string(arena, "root");
+//     root->children = _ctkd_alloc_child_buffer(arena, max_root_child_count);
+//     return root;
+// }
+
+static ctkd_node *_ctkd_push_vector(ctkd_node *parent, s32 type, u32 max_child_count, cstr key = NULL) {
     CTK_ASSERT(type == CTKD_NODE_TYPE_STRUCT || type == CTKD_NODE_TYPE_ARRAY);
-    struct ctkd_node *child = ctk_push(&parent->children);
+    ctkd_node *child = ctk_push(&parent->children);
     child->arena = parent->arena;
     child->type = type;
     child->key = _ctkd_alloc_string(parent->arena, key);
@@ -70,28 +74,28 @@ static struct ctkd_node *_ctkd_push_vector(struct ctkd_node *parent, s32 type, u
     return child;
 }
 
-static struct ctkd_node *ctkd_push_array(struct ctkd_node *parent, u32 max_child_count, cstr key = NULL) {
+static ctkd_node *ctkd_push_array(ctkd_node *parent, u32 max_child_count, cstr key = NULL) {
     return _ctkd_push_vector(parent, CTKD_NODE_TYPE_ARRAY, max_child_count, key);
 }
 
-static struct ctkd_node *ctkd_push_struct(struct ctkd_node *parent, u32 max_child_count, cstr key = NULL) {
+static ctkd_node *ctkd_push_struct(ctkd_node *parent, u32 max_child_count, cstr key = NULL) {
     return _ctkd_push_vector(parent, CTKD_NODE_TYPE_STRUCT, max_child_count, key);
 }
 
-static void ctkd_push_string(struct ctkd_node *parent, cstr value, cstr key = NULL) {
-    struct ctkd_node *child = ctk_push(&parent->children);
+static void ctkd_push_string(ctkd_node *parent, cstr value, cstr key = NULL) {
+    ctkd_node *child = ctk_push(&parent->children);
     child->arena = parent->arena;
     child->type = CTKD_NODE_TYPE_SCALAR;
     child->key = _ctkd_alloc_string(parent->arena, key);
     child->value = _ctkd_alloc_string(parent->arena, value);
 }
 
-static void ctkd_push_bool(struct ctkd_node *parent, bool v, cstr key = NULL) {
+static void ctkd_push_bool(ctkd_node *parent, bool v, cstr key = NULL) {
     ctkd_push_string(parent, v ? "true" : "false", key);
 }
 
 #define _CTKD_NUMBER_PUSH_DECL(TYPE, FORMAT)\
-    static void ctkd_push_ ## TYPE(struct ctkd_node *parent, TYPE v, cstr key = NULL) {\
+    static void ctkd_push_ ## TYPE(ctkd_node *parent, TYPE v, cstr key = NULL) {\
         char val_str[32] = {};\
         sprintf(val_str, FORMAT, v);\
         ctkd_push_string(parent, val_str, key);\
@@ -119,11 +123,11 @@ _CTKD_NUMBER_PUSH_DECL(s64, "%lli")
 //         u32 idx;
 //     };
 // };
-// static struct ctkd_node *ctkd_get(struct ctkd_node *parent, u32 idx);
+// static ctkd_node *ctkd_get(ctkd_node *parent, u32 idx);
 
 // template<typename ...arg_types>
-// static ctkd_node *ctkd_find(struct ctkd_node *parent, cstr search_str, arg_types... args) {
-//     struct ctk_array<_ctkd_search_term, 16> search_terms = {};
+// static ctkd_node *ctkd_find(ctkd_node *parent, cstr search_str, arg_types... args) {
+//     ctk_array<_ctkd_search_term, 16> search_terms = {};
 //     u32 term_index = 0;
 //     char search[256] = {};
 //     u32 search_size = sprintf(search, search_str, args...);
@@ -131,12 +135,12 @@ _CTKD_NUMBER_PUSH_DECL(s64, "%lli")
 //         if (search[term_index] == '[') {
 //             ++term_index;
 //             char *end;
-//             struct _ctkd_search_term *st = ctk_push(&search_terms);
+//             _ctkd_search_term *st = ctk_push(&search_terms);
 //             st->type = _CTKD_SEARCH_TERM_TYPE_IDX;
 //             st->idx = strtoul(search + term_index, &end, 10);
 //             term_index = end - search + 1;
 //         } else {
-//             struct _ctkd_search_term *st = ctk_push(&search_terms);
+//             _ctkd_search_term *st = ctk_push(&search_terms);
 //             st->type = _CTKD_SEARCH_TERM_TYPE_KEY;
 //             st->key.start = term_index;
 //             for (; term_index < search_size; ++term_index) {
@@ -149,7 +153,7 @@ _CTKD_NUMBER_PUSH_DECL(s64, "%lli")
 //         if (search[term_index] == '.')
 //             ++term_index;
 //     }
-//     // CTK_EACH(struct _ctkd_search_term, term, search_terms) {
+//     // CTK_EACH(_ctkd_search_term, term, search_terms) {
 //     //     if (term->type == _CTKD_SEARCH_TERM_TYPE_KEY)
 //     //         ctk_print_line("<_CTKD_SEARCH_TERM_TYPE_KEY> %.*s", term->key.size, search + term->key.start);
 //     //     else if (term->type == _CTKD_SEARCH_TERM_TYPE_IDX)
@@ -157,12 +161,12 @@ _CTKD_NUMBER_PUSH_DECL(s64, "%lli")
 //     //     else
 //     //         ctk_print_line("<unknown type>");
 //     // }
-//     struct ctkd_node *base = parent;
-//     CTK_EACH(struct _ctkd_search_term, term, search_terms) {
+//     ctkd_node *base = parent;
+//     CTK_EACH(_ctkd_search_term, term, search_terms) {
 //         if (term->type == _CTKD_SEARCH_TERM_TYPE_IDX) {
 //             base = ctkd_get(base, term->idx);
 //         } else {
-//             CTK_EACH(struct ctkd_node, child, base->children) {
+//             CTK_EACH(ctkd_node, child, base->children) {
 //                 if (ctk_strings_match(key, child->key)) {
 //                     base = child;
 //                     break;
@@ -173,84 +177,84 @@ _CTKD_NUMBER_PUSH_DECL(s64, "%lli")
 //     return base;
 // }
 
-static struct ctkd_node *ctkd_get(struct ctkd_node *parent, cstr key) {
-    CTK_EACH(struct ctkd_node, child, parent->children)
+static ctkd_node *ctkd_get(ctkd_node *parent, cstr key) {
+    CTK_EACH(ctkd_node, child, parent->children)
         if (ctk_strings_match(child->key, key))
             return child;
     CTK_FATAL("failed to find child with key \"%s\" in parent \"%s\"", key, parent->key)
 }
 
-static struct ctkd_node *ctkd_get(struct ctkd_node *parent, u32 idx) {
+static ctkd_node *ctkd_get(ctkd_node *parent, u32 idx) {
     CTK_ASSERT(idx < parent->children.count)
     return parent->children + idx;
 }
 
-static f32 ctkd_f32(struct ctkd_node *parent, cstr key) {
+static f32 ctkd_f32(ctkd_node *parent, cstr key) {
     return ctk_f32(ctkd_get(parent, key)->value);
 }
 
-static f32 ctkd_f32(struct ctkd_node *parent, u32 idx) {
+static f32 ctkd_f32(ctkd_node *parent, u32 idx) {
     return ctk_f32(ctkd_get(parent, idx)->value);
 }
 
-static f64 ctkd_f64(struct ctkd_node *parent, cstr key) {
+static f64 ctkd_f64(ctkd_node *parent, cstr key) {
     return ctk_f64(ctkd_get(parent, key)->value);
 }
 
-static f64 ctkd_f64(struct ctkd_node *parent, u32 idx) {
+static f64 ctkd_f64(ctkd_node *parent, u32 idx) {
     return ctk_f64(ctkd_get(parent, idx)->value);
 }
 
-static s32 ctkd_s32(struct ctkd_node *parent, cstr key) {
+static s32 ctkd_s32(ctkd_node *parent, cstr key) {
     return ctk_s32(ctkd_get(parent, key)->value);
 }
 
-static s32 ctkd_s32(struct ctkd_node *parent, u32 idx) {
+static s32 ctkd_s32(ctkd_node *parent, u32 idx) {
     return ctk_s32(ctkd_get(parent, idx)->value);
 }
 
-static s64 ctkd_s64(struct ctkd_node *parent, cstr key) {
+static s64 ctkd_s64(ctkd_node *parent, cstr key) {
     return ctk_s64(ctkd_get(parent, key)->value);
 }
 
-static s64 ctkd_s64(struct ctkd_node *parent, u32 idx) {
+static s64 ctkd_s64(ctkd_node *parent, u32 idx) {
     return ctk_s64(ctkd_get(parent, idx)->value);
 }
 
-static u32 ctkd_u32(struct ctkd_node *parent, cstr key) {
+static u32 ctkd_u32(ctkd_node *parent, cstr key) {
     return ctk_u32(ctkd_get(parent, key)->value);
 }
 
-static u32 ctkd_u32(struct ctkd_node *parent, u32 idx) {
+static u32 ctkd_u32(ctkd_node *parent, u32 idx) {
     return ctk_u32(ctkd_get(parent, idx)->value);
 }
 
-static u64 ctkd_u64(struct ctkd_node *parent, cstr key) {
+static u64 ctkd_u64(ctkd_node *parent, cstr key) {
     return ctk_u64(ctkd_get(parent, key)->value);
 }
 
-static u64 ctkd_u64(struct ctkd_node *parent, u32 idx) {
+static u64 ctkd_u64(ctkd_node *parent, u32 idx) {
     return ctk_u64(ctkd_get(parent, idx)->value);
 }
 
-static bool ctkd_bool(struct ctkd_node *parent, cstr key) {
+static bool ctkd_bool(ctkd_node *parent, cstr key) {
     return ctk_bool(ctkd_get(parent, key)->value);
 }
 
-static bool ctkd_bool(struct ctkd_node *parent, u32 idx) {
+static bool ctkd_bool(ctkd_node *parent, u32 idx) {
     return ctk_bool(ctkd_get(parent, idx)->value);
 }
 
 /// DEBUG
-static void _ctkd_print_arena(struct _ctkd_arena *a, u32 tab = 0) {
+static void _ctkd_print_arena(_ctkd_arena *a, u32 tab = 0) {
     ctk_print_line(tab + 0, "arena:");
     ctk_print_line(tab + 1, "chars: %u/%u %.2f%%", a->chars.count, a->chars.size, (a->chars.count / (f32)a->chars.size) * 100);
     ctk_print_line(tab + 1, "nodes: %u/%u %.2f%%", a->nodes.count, a->nodes.size, (a->nodes.count / (f32)a->nodes.size) * 100);
 }
 
-static void _ctkd_print_node(struct ctkd_node *n, u32 tab = 0);
+static void _ctkd_print_node(ctkd_node *n, u32 tab = 0);
 
-static void _ctkd_debug_children(struct ctkd_node *n, u32 parent_tab) {
+static void _ctkd_debug_children(ctkd_node *n, u32 parent_tab) {
     if (n->children.count > 0) {
         ctk_print_line();
         for (u32 i = 0; i < n->children.count; ++i)
@@ -259,7 +263,7 @@ static void _ctkd_debug_children(struct ctkd_node *n, u32 parent_tab) {
     }
 }
 
-static void _ctkd_print_node(struct ctkd_node *n, u32 tab) {
+static void _ctkd_print_node(ctkd_node *n, u32 tab) {
     ctk_print_tabs(tab);
     if (n->key != NULL)
         ctk_print("%s ", n->key);
@@ -279,7 +283,7 @@ static void _ctkd_print_node(struct ctkd_node *n, u32 tab) {
     }
 }
 
-static void _ctkd_debug_node(struct ctkd_node *n, u32 tab = 0) {
+static void _ctkd_debug_node(ctkd_node *n, u32 tab = 0) {
     ctk_print_line("============================================================================");
     _ctkd_print_node(n, tab);
     _ctkd_print_arena(n->arena, tab);
@@ -299,13 +303,13 @@ enum {
     _CTKD_TOKEN_TYPE_UNKNOWN,
 };
 
-struct token {
+struct _ctkd_token {
     u32 start;
     u32 size;
     s32 type;
 };
 
-static void _ctkd_visualize_string(cstr title, struct ctk_buffer<char> *str, bool uniform_spacing = true) {
+static void _ctkd_visualize_string(cstr title, ctk_buffer<char> *str, bool uniform_spacing = true) {
     ctk_print_line("%s:\n%.*s", title, str->count, str->data);
     for (u32 i = 0; i < str->count; ++i) {
         char c = str->data[i];
@@ -350,10 +354,14 @@ static bool is_escapable(char c) {
 
 // }
 
-static struct ctkd_node *ctkd_read(cstr path) {
-    struct ctk_buffer<char> file_str = ctk_read_file<char>(path);
+static ctkd_node *ctkd_create() {
+
+}
+
+static ctkd_node *ctkd_read(cstr path) {
+    ctk_buffer<char> file_str = ctk_read_file<char>(path);
     _ctkd_visualize_string(path, &file_str, false);
-    auto tokens = ctk_create_buffer<struct token>(file_str.count); // Can't have more tokens than chars.
+    auto tokens = ctk_create_buffer<_ctkd_token>(file_str.count); // Can't have more tokens than chars.
     for (u32 base_idx = 0; base_idx < file_str.count;) {
         char c = file_str[base_idx];
         if (is_skippable(c)) {
@@ -362,7 +370,7 @@ static struct ctkd_node *ctkd_read(cstr path) {
             continue;
         } else if (is_symbol(c)) {
             // SYMBOL
-            struct token *t = ctk_push(&tokens);
+            _ctkd_token *t = ctk_push(&tokens);
             t->start = base_idx;
             t->size = 1;
             t->type = c == '[' ? _CTKD_TOKEN_TYPE_ARRAY_OPEN :
@@ -375,7 +383,7 @@ static struct ctkd_node *ctkd_read(cstr path) {
             ++base_idx;
         } else if (c == '"') {
             // STRING
-            struct token *t = ctk_push(&tokens);
+            _ctkd_token *t = ctk_push(&tokens);
             t->type = _CTKD_TOKEN_TYPE_STRING;
             t->start = base_idx;
             u32 str_char_idx = base_idx + 1;
@@ -399,7 +407,7 @@ static struct ctkd_node *ctkd_read(cstr path) {
             base_idx = str_char_idx;
         } else {
             // TEXT
-            struct token *t = ctk_push(&tokens);
+            _ctkd_token *t = ctk_push(&tokens);
             t->type = _CTKD_TOKEN_TYPE_TEXT;
             t->start = base_idx;
             u32 text_char_idx = base_idx + 1;
@@ -413,7 +421,7 @@ static struct ctkd_node *ctkd_read(cstr path) {
         }
     }
 
-    CTK_EACH(struct token, t, tokens) {
+    CTK_EACH(_ctkd_token, t, tokens) {
         cstr type_name = t->type == _CTKD_TOKEN_TYPE_TEXT ?           "          TEXT" :
                          t->type == _CTKD_TOKEN_TYPE_STRING ?         "        STRING" :
                          t->type == _CTKD_TOKEN_TYPE_ARRAY_OPEN ?     "    ARRAY_OPEN" :
@@ -432,7 +440,7 @@ static struct ctkd_node *ctkd_read(cstr path) {
     // u32 nest_level = 0;
     // s32 parent_type = CTKD_NODE_TYPE_STRUCT;
     // while (token_idx < tokens.count) {
-    //     struct _ctkd_token *curr = tokens + token_idx;
+    //     _ctkd_token *curr = tokens + token_idx;
     //     ++total_node_count;
     //     if (nest_level == 0)
     //         ++root_child_count;
@@ -448,7 +456,7 @@ static struct ctkd_node *ctkd_read(cstr path) {
     //     }
     // }
 
-    // struct ctkd_node *root = ctkd_create(total_node_count, total_char_count, root_child_count);
+    // ctkd_node *root = ctkd_create(total_node_count, total_char_count, root_child_count);
     // _ctkd_debug_node(root);
 
     ctk_free(&file_str);
