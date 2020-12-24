@@ -86,6 +86,95 @@ using cstr = char const *;
 #define CTK_GIGABYTE 1000 * CTK_MEGABYTE
 
 ////////////////////////////////////////////////////////////
+/// Data
+////////////////////////////////////////////////////////////
+template<typename type, u32 size>
+struct ctk_array {
+    type data[size];
+    u32 count;
+    type &operator[](u32 i);
+};
+
+typedef char ctk_map_key[64];
+
+template<typename type, u32 size>
+struct ctk_map {
+    ctk_map_key keys[size];
+    type values[size];
+    u32 count;
+};
+
+template<typename type>
+struct ctk_buffer {
+    type *data;
+    u32 size;
+    u32 count;
+    type &operator[](u32 i);
+};
+
+struct _ctk_block {
+    void *mem;
+    u32 size;
+    u32 prev;
+    u32 next;
+    bool free;
+};
+
+struct ctk_heap {
+    void *mem;
+    u32 size;
+    u32 active;
+    u32 pool;
+    ctk_buffer<_ctk_block> blocks;
+};
+
+template<typename type>
+struct ctk_vec4 {
+    type x;
+    type y;
+    type z;
+    type w;
+    type operator[](u32 i);
+};
+
+template<typename type>
+struct ctk_vec3 {
+    type x;
+    type y;
+    type z;
+    type operator[](u32 i);
+
+    template<typename r_type>
+    ctk_vec3<type> &operator+=(ctk_vec3<r_type> const &r);
+
+    template<typename r_type>
+    ctk_vec3<type> &operator*=(r_type r);
+};
+
+template<typename type>
+struct ctk_vec2 {
+    type x;
+    type y;
+    type operator[](u32 i);
+
+    template<typename r_type>
+    ctk_vec2<type> &operator+=(ctk_vec2<r_type> const &r);
+};
+
+struct ctk_mtx4 {
+    f32 data[16];
+    f32 *operator[](u32 row);
+};
+
+template<typename type>
+struct ctk_optional {
+    bool set;
+    type value;
+    operator bool();
+    ctk_optional<type> &operator=(type value);
+};
+
+////////////////////////////////////////////////////////////
 /// Logging
 ////////////////////////////////////////////////////////////
 template<typename ...arg_types>
@@ -241,16 +330,28 @@ static bool ctk_bool(cstr s) {
     CTK_FATAL("string \"%s\" cannot be converted to a boolean value", s)
 }
 
+static void ctk_visualize_string(cstr str, u32 size, bool uniform_spacing = true) {
+    for (u32 i = 0; i < size; ++i) {
+        char c = str[i];
+        if (c == '\r') {
+            ctk_print("\\r");
+            continue;
+        } else if (c == '\0') {
+            ctk_print("\\0");
+        } else if (c == '\n') {
+            ctk_print_line("\\n");
+        } else {
+            ctk_print("%c", c);
+            if (uniform_spacing)
+                ctk_print(" ");
+        }
+    }
+    ctk_print_line();
+}
+
 ////////////////////////////////////////////////////////////
 /// Array
 ////////////////////////////////////////////////////////////
-template<typename type, u32 size>
-struct ctk_array {
-    type data[size];
-    u32 count;
-    type &operator[](u32 i);
-};
-
 template<typename type, u32 size>
 static u32 ctk_size(ctk_array<type, size> *_) {
     return size;
@@ -317,15 +418,6 @@ static type *operator+(ctk_array<type, size> &arr, u32 i) {
 ////////////////////////////////////////////////////////////
 /// Map
 ////////////////////////////////////////////////////////////
-typedef char ctk_map_key[64];
-
-template<typename type, u32 size>
-struct ctk_map {
-    ctk_map_key keys[size];
-    type values[size];
-    u32 count;
-};
-
 template<typename type, u32 size>
 static u32 ctk_size(ctk_map<type, size> *_) {
     return size;
@@ -389,14 +481,6 @@ static u32 ctk_values_byte_count(ctk_map<type, size> *map) {
 ////////////////////////////////////////////////////////////
 /// Buffer
 ////////////////////////////////////////////////////////////
-template<typename type>
-struct ctk_buffer {
-    type *data;
-    u32 size;
-    u32 count;
-    type &operator[](u32 i);
-};
-
 template<typename type>
 static void ctk_alloc_z_buffer(ctk_buffer<type> *buf, u32 size) {
     buf->data = ctk_alloc_z<type>(size);
@@ -489,24 +573,9 @@ static type *operator+(ctk_buffer<type> &buf, u32 i) {
 ////////////////////////////////////////////////////////////
 /// Heap
 ////////////////////////////////////////////////////////////
-struct _ctk_block {
-    void *mem;
-    u32 size;
-    u32 prev;
-    u32 next;
-    bool free;
-};
-
-struct ctk_heap {
-    u32 size;
-    u32 active;
-    u32 pool;
-    ctk_buffer<_ctk_block> blocks;
-};
-
 #define _CTK_BLOCK_POOL_CHUNK_COUNT 64
 
-static u32 _ctk_create_block(ctk_heap *heap) {
+static u32 _ctk_activate_block(ctk_heap *heap) {
     u32 new_block_idx = CTK_U32_MAX;
     if (heap->pool != CTK_U32_MAX) {
         new_block_idx = heap->pool;
@@ -516,30 +585,44 @@ static u32 _ctk_create_block(ctk_heap *heap) {
             ctk_realloc_z_buffer(&heap->blocks, heap->blocks.size + _CTK_BLOCK_POOL_CHUNK_COUNT);
         new_block_idx = heap->blocks.count++;
     }
-    if (new_block_idx == CTK_U32_MAX)
-        CTK_FATAL("failed to create new block")
     heap->blocks[new_block_idx].prev = CTK_U32_MAX;
     heap->blocks[new_block_idx].next = CTK_U32_MAX;
     return new_block_idx;
 }
 
-static void _ctk_destroy_block(ctk_heap *heap, u32 block_idx) {
-    heap->blocks[heap->blocks[block_idx].prev].next = heap->blocks[block_idx].next;
+static void _ctk_deactivate_block(ctk_heap *heap, u32 block_idx) {
+    u32 block_prev = heap->blocks[block_idx].prev;
+    u32 block_next = heap->blocks[block_idx].next;
+    if (block_prev != CTK_U32_MAX)
+        heap->blocks[block_prev].next = block_next;
+    if (block_next != CTK_U32_MAX)
+        heap->blocks[block_next].prev = block_prev;
     heap->blocks[block_idx].next = heap->pool;
     heap->pool = block_idx;
 }
 
 static ctk_heap *ctk_create_heap(u32 size) {
     auto heap = ctk_alloc_z<ctk_heap>();
+    heap->mem = malloc(size);
+    CTK_ASSERT(heap->mem != NULL);
     heap->size = size;
     heap->pool = CTK_U32_MAX;
     heap->blocks = ctk_create_buffer<_ctk_block>(_CTK_BLOCK_POOL_CHUNK_COUNT);
-    heap->active = _ctk_create_block(heap);
-    heap->blocks[heap->active].mem = malloc(size);
-    CTK_ASSERT(heap->blocks[heap->active].mem != NULL);
+    heap->active = _ctk_activate_block(heap);
+    heap->blocks[heap->active].mem = heap->mem;
     heap->blocks[heap->active].size = size;
     heap->blocks[heap->active].free = true;
     return heap;
+}
+
+static void _ctk_validate_heap(ctk_heap *heap) {
+    CTK_ASSERT(heap->active != CTK_U32_MAX);
+    CTK_ASSERT(heap->blocks[heap->active].mem == heap->mem);
+    u32 block_idx = heap->active;
+    while (heap->blocks[block_idx].next != CTK_U32_MAX) {
+        CTK_ASSERT(heap->blocks[heap->blocks[block_idx].next].mem == (char *)heap->blocks[block_idx].mem + heap->blocks[block_idx].size);
+        block_idx = heap->blocks[block_idx].next;
+    }
 }
 
 static void _ctk_join(ctk_heap *heap, u32 block_a, u32 block_b) {
@@ -547,13 +630,15 @@ static void _ctk_join(ctk_heap *heap, u32 block_a, u32 block_b) {
     heap->blocks[block_b].prev = block_a;
 }
 
-static void *ctk_alloc(ctk_heap *heap, u32 size) {
+static u32 _ctk_alloc_block(ctk_heap *heap, u32 size) {
     // Find smallest block large enough for allocation.
     u32 search_block_idx = heap->active;
     u32 selected_block_size = CTK_U32_MAX;
     u32 selected_block_idx = CTK_U32_MAX;
     while (search_block_idx != CTK_U32_MAX) {
-        if (heap->blocks[search_block_idx].free && heap->blocks[search_block_idx].size >= size && heap->blocks[search_block_idx].size < selected_block_size) {
+        if (heap->blocks[search_block_idx].free &&
+            heap->blocks[search_block_idx].size >= size &&
+            heap->blocks[search_block_idx].size < selected_block_size) {
             selected_block_idx = search_block_idx;
             selected_block_size = heap->blocks[search_block_idx].size;
         }
@@ -568,7 +653,7 @@ static void *ctk_alloc(ctk_heap *heap, u32 size) {
         alloc_block_idx = selected_block_idx;
     } else {
         // Create new block to represent allocation.
-        alloc_block_idx = _ctk_create_block(heap);
+        alloc_block_idx = _ctk_activate_block(heap);
         heap->blocks[alloc_block_idx].mem = heap->blocks[selected_block_idx].mem;
         heap->blocks[alloc_block_idx].size = size;
 
@@ -584,8 +669,79 @@ static void *ctk_alloc(ctk_heap *heap, u32 size) {
         heap->blocks[selected_block_idx].size -= size;
     }
     heap->blocks[alloc_block_idx].free = false;
+    return alloc_block_idx;
+}
 
-    return heap->blocks[alloc_block_idx].mem;
+static void *ctk_alloc(ctk_heap *heap, u32 size) {
+    return heap->blocks[_ctk_alloc_block(heap, size)].mem;
+}
+
+static u32 _ctk_find_mem_block(ctk_heap *heap, void *mem) {
+    u32 block_idx = heap->active;
+    while (block_idx != CTK_U32_MAX) {
+        if (heap->blocks[block_idx].mem == mem)
+            break;
+        block_idx = heap->blocks[block_idx].next;
+    }
+    if (block_idx == CTK_U32_MAX)
+        CTK_FATAL("failed to find memory block associated with addres %p", mem)
+    return block_idx;
+}
+
+static void _ctk_free_block(ctk_heap *heap, u32 block_idx) {
+    heap->blocks[block_idx].free = true;
+
+    // Merge block with next and prev if free.
+    u32 next_idx = heap->blocks[block_idx].next;
+    if (next_idx != CTK_U32_MAX && heap->blocks[next_idx].free) {
+        heap->blocks[block_idx].size += heap->blocks[next_idx].size;
+        _ctk_deactivate_block(heap, next_idx);
+    }
+    u32 prev_idx = heap->blocks[block_idx].prev;
+    if (prev_idx != CTK_U32_MAX && heap->blocks[prev_idx].free) {
+        heap->blocks[prev_idx].size += heap->blocks[block_idx].size;
+        _ctk_deactivate_block(heap, block_idx);
+    }
+}
+
+static void *ctk_realloc(ctk_heap *heap, void *mem, u32 new_size) {
+    u32 block_idx = _ctk_find_mem_block(heap, mem);
+    u32 realloc_block_idx = block_idx;
+    if (new_size > heap->blocks[block_idx].size) {
+        u32 next_block_idx = heap->blocks[block_idx].next;
+        u32 next_free_block_size = next_block_idx != CTK_U32_MAX && heap->blocks[next_block_idx].free
+                                   ? heap->blocks[next_block_idx].size
+                                   : 0;
+        if (heap->blocks[block_idx].size + next_free_block_size > new_size) {
+            // Next block can be resized.
+
+            // Move memory pointer and resize to make room for space needed for reallocation of block.
+            u32 space_needed = new_size - heap->blocks[block_idx].size;
+            heap->blocks[next_block_idx].size -= space_needed;
+            heap->blocks[next_block_idx].mem = (char *)heap->blocks[next_block_idx].mem + space_needed;
+
+            heap->blocks[block_idx].size = new_size;
+            realloc_block_idx = block_idx;
+        } else if (heap->blocks[block_idx].size + next_free_block_size == new_size) {
+            // Next block can be merged.
+            heap->blocks[block_idx].size = new_size;
+            _ctk_deactivate_block(heap, next_block_idx);
+            realloc_block_idx = block_idx;
+        } else {
+            // New block required to hold reallocation.
+
+            // Store mem pointer and size from block for memmove, free block so it's merged with prev block if free (thus included in search for newly allocated
+            // block).
+            void *block_mem = heap->blocks[block_idx].mem;
+            u32 block_size = heap->blocks[block_idx].size;
+            _ctk_free_block(heap, block_idx);
+            realloc_block_idx = _ctk_alloc_block(heap, new_size);
+            memmove(heap->blocks[realloc_block_idx].mem, block_mem, block_size);
+        }
+    } else if (new_size < heap->blocks[block_idx].size) {
+
+    }
+    return heap->blocks[realloc_block_idx].mem;
 }
 
 static void *ctk_alloc_z(ctk_heap *heap, u32 size) {
@@ -605,28 +761,7 @@ static type *ctk_alloc_z(ctk_heap *heap, u32 count) {
 }
 
 static void ctk_free(ctk_heap *heap, void *mem) {
-    // Find block associated with memory.
-    u32 block_idx = heap->active;
-    while (block_idx != CTK_U32_MAX) {
-        if (heap->blocks[block_idx].mem == mem)
-            break;
-        block_idx = heap->blocks[block_idx].next;
-    }
-    if (block_idx == CTK_U32_MAX)
-        CTK_FATAL("failed to find memory block associated with addres %p", mem)
-    heap->blocks[block_idx].free = true;
-
-    // Merge block with next and prev if free.
-    u32 next_idx = heap->blocks[block_idx].next;
-    if (next_idx != CTK_U32_MAX && heap->blocks[next_idx].free) {
-        heap->blocks[block_idx].size += heap->blocks[next_idx].size;
-        _ctk_destroy_block(heap, next_idx);
-    }
-    u32 prev_idx = heap->blocks[block_idx].prev;
-    if (prev_idx != CTK_U32_MAX && heap->blocks[prev_idx].free) {
-        heap->blocks[prev_idx].size += heap->blocks[block_idx].size;
-        _ctk_destroy_block(heap, block_idx);
-    }
+    _ctk_free_block(heap, _ctk_find_mem_block(heap, mem));
 }
 
 static void _ctk_visualize_heap(ctk_heap *heap) {
@@ -636,17 +771,10 @@ static void _ctk_visualize_heap(ctk_heap *heap) {
     u32 block_idx = heap->active;
     while (block_idx != CTK_U32_MAX) {
         u32 block_size = heap->blocks[block_idx].size;
-        if (block_size == 1) {
-            buf_head += sprintf(buf_head, "%c", heap->blocks[block_idx].free ? '_' : '#');
-        } else if (block_size == 2) {
-            buf_head += sprintf(buf_head, "[%c", heap->blocks[block_idx].free ? '_' : '#');
-        } else {
-            buf_head += sprintf(buf_head, "[");
-            char c = heap->blocks[block_idx].free ? '_' : '#';
-            memset(buf_head, heap->blocks[block_idx].free ? '_' : '#', block_size);
-            buf_head += block_size - 2;
-            buf_head += sprintf(buf_head, "]");
-        }
+        memset(buf_head, heap->blocks[block_idx].free ? '_' : '#', block_size);
+        memset(buf_head, '[', 1);
+        memset(buf_head + block_size - 1, ']', 1);
+        buf_head += block_size;
         block_idx = heap->blocks[block_idx].next;
     }
     ctk_print_line("%.*s", heap->size, buf);
@@ -678,10 +806,9 @@ static void _ctk_dump_block_children(ctk_heap *heap, u32 block_idx, char *out_bu
     }
 }
 
-#define _CTK_MAX_OUTPUT_PER_BLOCK 256
-
 static void _ctk_dump_heap(ctk_heap *heap) {
-    u32 buf_size = heap->blocks.count * _CTK_MAX_OUTPUT_PER_BLOCK;
+    static u32 const MAX_OUTPUT_PER_BLOCK = 256u;
+    u32 buf_size = heap->blocks.count * MAX_OUTPUT_PER_BLOCK;
     auto buf = (char *)malloc(buf_size);
     memset(buf, 0, buf_size);
     _ctk_dump_block_children(heap, heap->active, buf, buf_size);
@@ -720,15 +847,6 @@ static ctk_buffer<type> ctk_read_file(cstr path) {
 
 // vec4
 template<typename type>
-struct ctk_vec4 {
-    type x;
-    type y;
-    type z;
-    type w;
-    type operator[](u32 i);
-};
-
-template<typename type>
 type ctk_vec4<type>::operator[](u32 i) {
     CTK_ASSERT(i < 4)
     return *(&x + i);
@@ -745,20 +863,6 @@ static ctk_vec4<l_type> operator*(ctk_vec4<l_type> const &l, r_type r) {
 }
 
 // vec3
-template<typename type>
-struct ctk_vec3 {
-    type x;
-    type y;
-    type z;
-    type operator[](u32 i);
-
-    template<typename r_type>
-    ctk_vec3<type> &operator+=(ctk_vec3<r_type> const &r);
-
-    template<typename r_type>
-    ctk_vec3<type> &operator*=(r_type r);
-};
-
 template<typename type>
 type ctk_vec3<type>::operator[](u32 i) {
     CTK_ASSERT(i < 3)
@@ -838,16 +942,6 @@ static ctk_vec3<f32> ctk_normalize(ctk_vec3<f32> v) {
 
 // vec2
 template<typename type>
-struct ctk_vec2 {
-    type x;
-    type y;
-    type operator[](u32 i);
-
-    template<typename r_type>
-    ctk_vec2<type> &operator+=(ctk_vec2<r_type> const &r);
-};
-
-template<typename type>
 type ctk_vec2<type>::operator[](u32 i) {
     CTK_ASSERT(i < 2)
     return *(&x + i);
@@ -896,11 +990,6 @@ static bool operator!=(ctk_vec2<l_type> const &l, ctk_vec2<r_type> const &r) {
 }
 
 // mtx4
-struct ctk_mtx4 {
-    f32 data[16];
-    f32 *operator[](u32 row);
-};
-
 f32 *ctk_mtx4::operator[](u32 row) {
     return data + (row * 4);
 }
@@ -966,14 +1055,6 @@ static type ctk_random_range(type min, type max) {
 ////////////////////////////////////////////////////////////
 /// Optional
 ////////////////////////////////////////////////////////////
-template<typename type>
-struct ctk_optional {
-    bool set;
-    type value;
-    operator bool();
-    ctk_optional<type> &operator=(type value);
-};
-
 template<typename type>
 static type *ctk_set(ctk_optional<type> *opt, type val) {
     opt->value = val;

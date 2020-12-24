@@ -309,25 +309,6 @@ struct _ctkd_token {
     s32 type;
 };
 
-static void _ctkd_visualize_string(cstr title, ctk_buffer<char> *str, bool uniform_spacing = true) {
-    ctk_print_line("%s:\n%.*s", title, str->count, str->data);
-    for (u32 i = 0; i < str->count; ++i) {
-        char c = str->data[i];
-        if (c == '\r') {
-            ctk_print("\\r");
-            continue;
-        } else if (c == '\0') {
-            ctk_print("\\0");
-        } else if (c == '\n') {
-            ctk_print_line("\\n");
-        } else {
-            ctk_print("%c", c);
-            if (uniform_spacing)
-                ctk_print(" ");
-        }
-    }
-}
-
 static char const SYMBOLS[] = { '[', ']', '{', '}' };
 static char const SKIPPABLES[] = { ' ', '\0', '\r', '\n' };
 static char const ESCAPABLE[] = { '"', '\\' };
@@ -354,13 +335,14 @@ static bool is_escapable(char c) {
 
 // }
 
-static ctkd_node *ctkd_create() {
+// static ctkd_node *ctkd_create() {
 
-}
+// }
 
 static ctkd_node *ctkd_read(cstr path) {
     ctk_buffer<char> file_str = ctk_read_file<char>(path);
-    _ctkd_visualize_string(path, &file_str, false);
+    ctk_print_line("%s:", path);
+    ctk_visualize_string(file_str.data, file_str.size, false);
     auto tokens = ctk_create_buffer<_ctkd_token>(file_str.count); // Can't have more tokens than chars.
     for (u32 base_idx = 0; base_idx < file_str.count;) {
         char c = file_str[base_idx];
