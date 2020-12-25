@@ -684,7 +684,7 @@ static u32 _ctk_find_mem_block(ctk_heap *heap, void *mem) {
         block_idx = heap->blocks[block_idx].next;
     }
     if (block_idx == CTK_U32_MAX)
-        CTK_FATAL("failed to find memory block associated with addres %p", mem)
+        CTK_FATAL("failed to find memory block associated with address %p", mem)
     return block_idx;
 }
 
