@@ -17,13 +17,13 @@ struct ctkd_node {
     cstr key;
     union {
         cstr value;
-        ctk_buffer<ctkd_node> children;
+        ctk_array<ctkd_node> children;
     };
 };
 
 struct _ctkd_arena {
-    ctk_buffer<char> chars;
-    ctk_buffer<ctkd_node> nodes;
+    ctk_array<char> chars;
+    ctk_array<ctkd_node> nodes;
 };
 
 static cstr _ctkd_alloc_string(_ctkd_arena *a, cstr str) {
@@ -38,10 +38,10 @@ static cstr _ctkd_alloc_string(_ctkd_arena *a, cstr str) {
     return new_str;
 }
 
-static ctk_buffer<ctkd_node> _ctkd_alloc_child_buffer(_ctkd_arena *a, u32 size) {
+static ctk_array<ctkd_node> _ctkd_alloc_child_array(_ctkd_arena *a, u32 size) {
     if (a->nodes.count + size > a->nodes.size)
         CTK_FATAL("CTKD: out of memory for nodes")
-    ctk_buffer<ctkd_node> child_buf = {};
+    ctk_array<ctkd_node> child_buf = {};
     child_buf.data = a->nodes + a->nodes.count;
     child_buf.size = size;
     a->nodes.count += size;
@@ -54,13 +54,13 @@ static ctk_buffer<ctkd_node> _ctkd_alloc_child_buffer(_ctkd_arena *a, u32 size) 
 
 // static ctkd_node *ctkd_create(u32 max_nodes, u32 max_chars, u32 max_root_child_count) {
 //     auto arena = ctk_alloc_z<_ctkd_arena>();
-//     arena->chars = ctk_create_buffer<char>(max_chars);
-//     arena->nodes = ctk_create_buffer<ctkd_node>(max_nodes);
+//     arena->chars = ctk_create_array<char>(max_chars);
+//     arena->nodes = ctk_create_array<ctkd_node>(max_nodes);
 //     ctkd_node *root = ctk_push(&arena->nodes);
 //     root->arena = arena;
 //     root->type = CTKD_NODE_TYPE_STRUCT;
 //     root->key = _ctkd_alloc_string(arena, "root");
-//     root->children = _ctkd_alloc_child_buffer(arena, max_root_child_count);
+//     root->children = _ctkd_alloc_child_array(arena, max_root_child_count);
 //     return root;
 // }
 
@@ -70,7 +70,7 @@ static ctkd_node *_ctkd_push_vector(ctkd_node *parent, s32 type, u32 max_child_c
     child->arena = parent->arena;
     child->type = type;
     child->key = _ctkd_alloc_string(parent->arena, key);
-    child->children = _ctkd_alloc_child_buffer(parent->arena, max_child_count);
+    child->children = _ctkd_alloc_child_array(parent->arena, max_child_count);
     return child;
 }
 
@@ -340,10 +340,10 @@ static bool is_escapable(char c) {
 // }
 
 static ctkd_node *ctkd_read(cstr path) {
-    ctk_buffer<char> file_str = ctk_read_file<char>(path);
+    ctk_array<char> file_str = ctk_read_file<char>(path);
     ctk_print_line("%s:", path);
     ctk_visualize_string(file_str.data, file_str.size, false);
-    auto tokens = ctk_create_buffer<_ctkd_token>(file_str.count); // Can't have more tokens than chars.
+    auto tokens = ctk_create_array<_ctkd_token>(file_str.count); // Can't have more tokens than chars.
     for (u32 base_idx = 0; base_idx < file_str.count;) {
         char c = file_str[base_idx];
         if (is_skippable(c)) {
