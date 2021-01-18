@@ -455,7 +455,7 @@ static CTK_Pool<type> ctk_create_pool(u32 chunk_size) {
 template<typename type>
 static type *ctk_push(CTK_Pool<type> *pool) {
     if (!pool->next) {
-        ctk_print_line("allocating chunk");
+        ctk_print_line("allocating new chunk");
         pool->next = ctk_alloc<_CTK_PoolNode<type>>(pool->chunk_size);
 
         // Point each node except last to next node in allocated chunk.
@@ -465,7 +465,6 @@ static type *ctk_push(CTK_Pool<type> *pool) {
     type *element = &pool->next->element;
     pool->next = pool->next->next;
     memset(element, 0, sizeof(type));
-    ctk_print_line("pushed element");
     return element;
 }
 
@@ -474,37 +473,36 @@ static void ctk_free(CTK_Pool<type> *pool, void *mem) {
     auto node = (_CTK_PoolNode<type> *)mem;
     node->next = pool->next;
     pool->next = node;
-    ctk_print_line("freed element");
 }
 
 // Array
 template<typename type>
-static CTK_Array<type> *ctk_create_array(u32 size) {
-    auto arr = ctk_alloc(sizeof(CTK_Array<type>) + size);
-    arr->data = (type *)(arr + 1);
-    arr->size = size;
+static CTK_Array<type> ctk_create_array(u32 size) {
+    CTK_Array<type> arr = {};
+    arr.data = ctk_alloc<type>(size);
+    arr.size = size;
     return arr;
 }
 
 template<typename type>
-static CTK_Array<type> *ctk_create_array_full(u32 size) {
-    auto *arr = ctk_create_array<type>(size);
-    arr->count = size;
+static CTK_Array<type> ctk_create_array_full(u32 size) {
+    auto arr = ctk_create_array<type>(size);
+    arr.count = size;
     return arr;
 }
 
 template<typename type>
-static CTK_Array<type> *ctk_create_array(u32 size, CTK_Stack *stack) {
-    auto arr = ctk_push(stack, sizeof(CTK_Array<type>) + size);
-    arr->data = (type *)(arr + 1);
-    arr->size = size;
+static CTK_Array<type> ctk_create_array(u32 size, CTK_Stack *stack) {
+    CTK_Array<type> arr = {};
+    arr.data = ctk_alloc<type>(stack, size);
+    arr.size = size;
     return arr;
 }
 
 template<typename type>
-static CTK_Array<type> *ctk_create_array_full(u32 size, CTK_Stack *stack) {
-    auto *arr = ctk_create_array<type>(size, stack);
-    arr->count = size;
+static CTK_Array<type> ctk_create_array_full(u32 size, CTK_Stack *stack) {
+    auto arr = ctk_create_array<type>(size, stack);
+    arr.count = size;
     return arr;
 }
 

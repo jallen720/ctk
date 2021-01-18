@@ -2,6 +2,7 @@
 #include <ctime>
 #include "ctk/ctk_2.h"
 #include "ctk/heap.h"
+#include "ctk/ctkd.h"
 
 template<typename type, typename ...arg_types>
 static void print_bits(type val, cstr title, arg_types... title_args) {
@@ -190,14 +191,23 @@ struct TestObject {
     u64 test;
 };
 
+static void print_node(CTK_Node *n, u32 tab = 0) {
+    _ctk_print_node(n, tab);
+    ctk_print_line();
+}
+
 s32 main() {
-    auto pool = ctk_create_pool<TestObject>(2);
-    TestObject *a[16] = {};
-    a[0] = ctk_push(&pool);
-    a[1] = ctk_push(&pool);
-    a[2] = ctk_push(&pool);
-    ctk_free(&pool, a[0]);
-    a[3] = ctk_push(&pool);
-    a[4] = ctk_push(&pool);
+    CTK_Node *root = ctk_create_root();
+    print_node(root);
+    ctk_push_string(root, "test_key", "test_val");
+    print_node(root);
+    ctk_push_string(root, "test_key_0", "test_val_0");
+    print_node(root);
+    CTK_Node *s = ctk_push_struct(root, "test_struct");
+    print_node(root);
+    ctk_push_string(s, "test_key", "test_val");
+    print_node(root);
+    ctk_push_u32(s, "test_key_0", 12);
+    print_node(root);
     return 0;
 }
