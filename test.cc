@@ -197,17 +197,25 @@ static void print_node(CTK_Node *n, u32 tab = 0) {
 }
 
 s32 main() {
-    CTK_Node *root = ctk_create_root();
-    print_node(root);
-    ctk_push_string(root, "test_key", "test_val");
-    print_node(root);
-    ctk_push_string(root, "test_key_0", "test_val_0");
-    print_node(root);
-    CTK_Node *s = ctk_push_struct(root, "test_struct");
-    print_node(root);
-    ctk_push_string(s, "test_key", "test_val");
-    print_node(root);
-    ctk_push_u32(s, "test_key_0", 12);
-    print_node(root);
+    // CTK_Node *root = ctk_create_root();
+    // print_node(root);
+    // ctk_push_string(root, "test_key", "test_val");
+    // print_node(root);
+    // ctk_push_string(root, "test_key_0", "test_val_0");
+    // print_node(root);
+    // CTK_Node *s = ctk_push_struct(root, "test_struct");
+    // print_node(root);
+    // ctk_push_string(s, "test_key", "test_val");
+    // print_node(root);
+    // ctk_push_u32(s, "test_key_0", 12);
+    // print_node(root);
+    CTK_String str = ctk_create_string(4);
+    // _ctk_write_node(root, &str);
+    // ctk_print("str:\n:%s\n\n", str.data);
+    ctk_write(&str, "12345678");
+    ctk_visualize_string(&str);
+    ctk_write(&str, "12345678");
+    ctk_visualize_string(&str);
+
     return 0;
 }

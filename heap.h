@@ -116,13 +116,9 @@ static _CTK_ChunkHeader *_ctk_push_chunk(CTK_Heap *heap) {
     return chunk;
 }
 
-static inline u32 _ctk_cache_line_aligned_size(u32 size) {
-    return (((size - 1) / _CTK_CACHE_LINE) + 1) * _CTK_CACHE_LINE;
-}
-
 static CTK_Heap ctk_create_heap(u32 min_chunk_size = 4 * CTK_MEGABYTE) {
     CTK_Heap heap = {};
-    heap.chunk_size = _ctk_cache_line_aligned_size(min_chunk_size);
+    heap.chunk_size = ctk_total_chunk_size(min_chunk_size, _CTK_CACHE_LINE);
     heap.chunk_list = _ctk_push_chunk(&heap);
     return heap;
 }
@@ -168,7 +164,7 @@ static _CTK_BlockHeader *_ctk_shrink_allocated_block(CTK_Heap *heap, _CTK_BlockH
 
 static void *ctk_alloc(CTK_Heap *heap, u32 min_size) {
     // Blocks are aligned with cache-lines, so the effective size of an allocation is in intervals of cache-lines.
-    u32 size = _ctk_cache_line_aligned_size(min_size);
+    u32 size = ctk_total_chunk_size(min_size, _CTK_CACHE_LINE);
 
     // If a large enough free block doesn't exist, allocate a new chunk to ensure a large enough block is available.
     if (!heap->largest_free || size > heap->largest_free->size)
@@ -243,7 +239,7 @@ static _CTK_BlockHeader *_ctk_merge_free_neighbors(CTK_Heap *heap, _CTK_BlockHea
 }
 
 static void *ctk_realloc(CTK_Heap *heap, void *mem, u32 min_new_size) {
-    u32 new_size = _ctk_cache_line_aligned_size(min_new_size);
+    u32 new_size = ctk_total_chunk_size(min_new_size, _CTK_CACHE_LINE);
     _CTK_BlockHeader *block = _ctk_find_block(heap, mem);
     if (new_size > block->size) {
 
