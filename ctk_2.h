@@ -272,6 +272,29 @@ void ctk_print_bits(type val) {
     }
 }
 
+static void ctk_visualize_string(cstr str, u32 size, bool uniform_spacing = true) {
+    for (u32 i = 0; i < size; ++i) {
+        char c = str[i];
+        if (c == '\r') {
+            ctk_print("\\r");
+            continue;
+        } else if (c == '\0') {
+            ctk_print("\\0");
+        } else if (c == '\n') {
+            ctk_print_line("\\n");
+        } else {
+            ctk_print("%c", c);
+            if (uniform_spacing)
+                ctk_print(" ");
+        }
+    }
+    ctk_print_line();
+}
+
+static void ctk_visualize_string(CTK_String *str, bool uniform_spacing = true) {
+    ctk_visualize_string(str->data, str->size, uniform_spacing);
+}
+
 ////////////////////////////////////////////////////////////
 /// Math
 ////////////////////////////////////////////////////////////
@@ -794,29 +817,6 @@ static bool ctk_bool(cstr s) {
     if (ctk_strings_match(s, "false"))
         return false;
     CTK_FATAL("string \"%s\" cannot be converted to a boolean value", s);
-}
-
-static void ctk_visualize_string(cstr str, u32 size, bool uniform_spacing = true) {
-    for (u32 i = 0; i < size; ++i) {
-        char c = str[i];
-        if (c == '\r') {
-            ctk_print("\\r");
-            continue;
-        } else if (c == '\0') {
-            ctk_print("\\0");
-        } else if (c == '\n') {
-            ctk_print_line("\\n");
-        } else {
-            ctk_print("%c", c);
-            if (uniform_spacing)
-                ctk_print(" ");
-        }
-    }
-    ctk_print_line();
-}
-
-static void ctk_visualize_string(CTK_String *str, bool uniform_spacing = true) {
-    ctk_visualize_string(str->data, str->size, uniform_spacing);
 }
 
 ////////////////////////////////////////////////////////////
