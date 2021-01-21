@@ -763,8 +763,8 @@ static void ctk_free(CTK_String *str) {
 }
 
 template<typename ...arg_types>
-static void ctk_write(CTK_String *str, cstr msg, arg_types... args) {
-    u32 write_size = snprintf(str->data, str->size - str->count, msg, args...) + 1;
+static void ctk_print(CTK_String *str, cstr msg, arg_types... args) {
+    u32 write_size = snprintf(str->data + str->count, str->size - str->count, msg, args...) + 1;
     if (str->count + write_size > str->size) {
         ctk_realloc(str, ctk_total_chunk_size(str->count + write_size, str->size));
         snprintf(str->data + str->count, str->size - str->count, msg, args...);
@@ -772,15 +772,15 @@ static void ctk_write(CTK_String *str, cstr msg, arg_types... args) {
     str->count += write_size;
 }
 
-static void _ctk_write_tabs(CTK_String *str, u32 tabs) {
+static void _ctk_print_tabs(CTK_String *str, u32 tabs) {
     CTK_REPEAT(tabs)
-        ctk_write(str, "    ");
+        ctk_print(str, "    ");
 }
 
 template<typename ...arg_types>
-static void ctk_write(CTK_String *str, u32 tabs, cstr msg, arg_types... args) {
-    _ctk_write_tabs(str, tabs);
-    ctk_write(str, msg, args...);
+static void ctk_print(CTK_String *str, u32 tabs, cstr msg, arg_types... args) {
+    _ctk_print_tabs(str, tabs);
+    ctk_print(str, msg, args...);
 }
 
 static bool ctk_strings_match(cstr a, cstr b) {

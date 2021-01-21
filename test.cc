@@ -212,9 +212,9 @@ s32 main() {
     CTK_String str = ctk_create_string(4);
     // _ctk_write_node(root, &str);
     // ctk_print("str:\n:%s\n\n", str.data);
-    ctk_write(&str, "12345678");
+    ctk_print(&str, "12345678");
     ctk_visualize_string(&str);
-    ctk_write(&str, "12345678");
+    ctk_print(&str, "12345678");
     ctk_visualize_string(&str);
 
     return 0;
