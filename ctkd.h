@@ -71,25 +71,25 @@ static void _ctk_print_node(CTK_Node *n, u32 tab = 0) {
     }
 }
 
-static void _ctk_write_node(CTK_Node *n, CTK_String *buf, u32 tab = 0) {
-    if (n->key)
-        ctk_write(buf, tab, "%s ", n->key);
-    if (n->type == _CTK_NODE_TYPE_SCALAR) {
-        ctk_write(buf, "%s\n", n->value);
-    } else {
-        ctk_write(buf, "%s", n->type == _CTK_NODE_TYPE_ARRAY ? "[" : "{");
-        if (n->children.count > 0) {
-            ctk_write(buf, "\n");
-            CTK_Node *child = n->children.list;
-            while (child) {
-                _ctk_print_node(child, tab + 1);
-                child = child->next;
-            }
-            _ctk_write_tabs(buf, tab);
-        }
-        ctk_write(buf, "%s\n", n->type == _CTK_NODE_TYPE_ARRAY ? "]" : "}");
-    }
-}
+// static void _ctk_write_node(CTK_Node *n, CTK_String *buf, u32 tab = 0) {
+//     if (n->key)
+//         ctk_write(buf, tab, "%s ", n->key);
+//     if (n->type == _CTK_NODE_TYPE_SCALAR) {
+//         ctk_write(buf, "%s\n", n->value);
+//     } else {
+//         ctk_write(buf, "%s", n->type == _CTK_NODE_TYPE_ARRAY ? "[" : "{");
+//         if (n->children.count > 0) {
+//             ctk_write(buf, "\n");
+//             CTK_Node *child = n->children.list;
+//             while (child) {
+//                 _ctk_print_node(child, tab + 1);
+//                 child = child->next;
+//             }
+//             _ctk_write_tabs(buf, tab);
+//         }
+//         ctk_write(buf, "%s\n", n->type == _CTK_NODE_TYPE_ARRAY ? "]" : "}");
+//     }
+// }
 
 static CTK_Node *ctk_create_root() {
     if (!_CTK_NODE_POOL) {
