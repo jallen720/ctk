@@ -86,41 +86,40 @@ typedef char const *    cstr;
 #define CTK_GIGABYTE 1000 * CTK_MEGABYTE
 #define _CTK_CACHE_LINE 64
 
-
 ////////////////////////////////////////////////////////////
 /// Data
 ////////////////////////////////////////////////////////////
-template<typename type>
+template<typename Type>
 struct CTK_Vector4 {
-    type x;
-    type y;
-    type z;
-    type w;
-    type operator[](u32 i);
+    Type x;
+    Type y;
+    Type z;
+    Type w;
+    Type operator[](u32 i);
 };
 
-template<typename type>
+template<typename Type>
 struct CTK_Vector3 {
-    type x;
-    type y;
-    type z;
-    type operator[](u32 i);
+    Type x;
+    Type y;
+    Type z;
+    Type operator[](u32 i);
 
     template<typename RType>
-    CTK_Vector3<type> &operator+=(CTK_Vector3<RType> const &r);
+    CTK_Vector3<Type> &operator+=(CTK_Vector3<RType> const &r);
 
     template<typename RType>
-    CTK_Vector3<type> &operator*=(RType r);
+    CTK_Vector3<Type> &operator*=(RType r);
 };
 
-template<typename type>
+template<typename Type>
 struct CTK_Vector2 {
-    type x;
-    type y;
-    type operator[](u32 i);
+    Type x;
+    Type y;
+    Type operator[](u32 i);
 
     template<typename RType>
-    CTK_Vector2<type> &operator+=(CTK_Vector2<RType> const &r);
+    CTK_Vector2<Type> &operator+=(CTK_Vector2<RType> const &r);
 };
 
 struct CTK_Matrix {
@@ -134,71 +133,71 @@ struct CTK_Stack {
     u32 count;
 };
 
-template<typename type>
+template<typename Type>
 union _CTK_PoolNode {
-    type element;
+    Type element;
     _CTK_PoolNode *next;
 };
 
-template<typename type>
+template<typename Type>
 struct CTK_Pool {
-    _CTK_PoolNode<type> *next;
+    _CTK_PoolNode<Type> *next;
     u32 chunk_size;
 };
 
-template<typename type>
+template<typename Type>
 struct CTK_Array {
-    type *data;
+    Type *data;
     u32 size;
     u32 count;
-    type &operator[](u32 i);
+    Type &operator[](u32 i);
 };
 
 typedef CTK_Array<char> CTK_String;
 
-template<typename type, u32 size>
+template<typename Type, u32 size>
 struct CTK_StaticArray {
-    type data[size];
+    Type data[size];
     u32 count;
-    type &operator[](u32 i);
+    Type &operator[](u32 i);
 };
 
-template<typename type, u32 size, u32 key_size = _CTK_CACHE_LINE>
+template<typename Type, u32 size, u32 key_size = _CTK_CACHE_LINE>
 struct CTK_StaticMap {
     char keys[size][key_size];
-    type values[size];
+    Type values[size];
     u32 count;
 };
 
-template<typename type>
+template<typename Type>
 struct CTK_Optional {
     bool set;
-    type value;
+    Type value;
     operator bool();
-    CTK_Optional<type> &operator=(type value);
+    CTK_Optional<Type> &operator=(Type value);
 };
 
-template<typename key_type, typename val_type>
+template<typename Key, typename Value>
 struct CTK_Pair {
-    key_type key;
-    val_type value;
+    Key key;
+    Value value;
 };
 
 ////////////////////////////////////////////////////////////
 /// Logging
 ////////////////////////////////////////////////////////////
-template<typename ...arg_types>
-static void ctk_print(cstr msg, arg_types... args) {
+template<typename ...Args>
+static void ctk_print(cstr msg, Args... args) {
     printf(msg, args...);
 }
 
-template<typename ...arg_types>
+template<typename ...Args>
 static void ctk_print_line() {
     ctk_print("\n");
 }
 
-template<typename ...arg_types>
-static void ctk_print_line(cstr msg, arg_types... args) {
+template<typename ...Args>
+static void ctk_print_line(cstr msg, Args... args) {
     ctk_print(msg, args...);
     ctk_print_line();
 }
@@ -208,52 +207,52 @@ static void _ctk_print_tabs(u32 tabs) {
         ctk_print("    ");
 }
 
-template<typename ...arg_types>
-static void ctk_print(u32 tabs, cstr msg, arg_types... args) {
+template<typename ...Args>
+static void ctk_print(u32 tabs, cstr msg, Args... args) {
     _ctk_print_tabs(tabs);
     ctk_print(msg, args...);
 }
 
-template<typename ...arg_types>
-static void ctk_print_line(u32 tabs, cstr msg, arg_types... args) {
+template<typename ...Args>
+static void ctk_print_line(u32 tabs, cstr msg, Args... args) {
     _ctk_print_tabs(tabs);
     ctk_print_line(msg, args...);
 }
 
-template<typename ...arg_types>
-static void ctk_error(cstr msg, arg_types... args) {
+template<typename ...Args>
+static void ctk_error(cstr msg, Args... args) {
     ctk_print(CTK_ERROR_TAG);
     ctk_print_line(msg, args...);
 }
 
-template<typename ...arg_types>
-static void ctk_error(u32 tabs, cstr msg, arg_types... args) {
+template<typename ...Args>
+static void ctk_error(u32 tabs, cstr msg, Args... args) {
     ctk_print(CTK_ERROR_TAG);
     _ctk_print_tabs(tabs);
     ctk_print_line(msg, args...);
 }
 
-template<typename ...arg_types>
-static void ctk_info(cstr msg, arg_types... args) {
+template<typename ...Args>
+static void ctk_info(cstr msg, Args... args) {
     ctk_print(CTK_ANSI_HIGHLIGHT("INFO", GREEN) ": ");
     ctk_print_line(msg, args...);
 }
 
-template<typename ...arg_types>
-static void ctk_info(u32 tabs, cstr msg, arg_types... args) {
+template<typename ...Args>
+static void ctk_info(u32 tabs, cstr msg, Args... args) {
     ctk_print(CTK_ANSI_HIGHLIGHT("INFO", GREEN) ": ");
     _ctk_print_tabs(tabs);
     ctk_print_line(msg, args...);
 }
 
-template<typename ...arg_types>
-static void ctk_warning(cstr msg, arg_types... args) {
+template<typename ...Args>
+static void ctk_warning(cstr msg, Args... args) {
     ctk_print(CTK_ANSI_HIGHLIGHT("WARNING", MAGENTA) ": ");
     ctk_print_line(msg, args...);
 }
 
-template<typename ...arg_types>
-static void ctk_warning(u32 tabs, cstr msg, arg_types... args) {
+template<typename ...Args>
+static void ctk_warning(u32 tabs, cstr msg, Args... args) {
     ctk_print(CTK_ANSI_HIGHLIGHT("WARNING", MAGENTA) ": ");
     _ctk_print_tabs(tabs);
     ctk_print_line(msg, args...);
@@ -262,12 +261,14 @@ static void ctk_warning(u32 tabs, cstr msg, arg_types... args) {
 ////////////////////////////////////////////////////////////
 /// Debugging
 ////////////////////////////////////////////////////////////
-template<typename type>
-void ctk_print_bits(type val) {
+template<typename Type>
+void ctk_print_bits(Type val) {
     auto val_bytes = (u8 *)&val;
-    for (s32 i = sizeof(type) - 1; i >= 0; --i) {
+
+    for (s32 i = sizeof(Type) - 1; i >= 0; --i) {
         for (s32 j = 7; j >= 0; --j)
             ctk_print("%u", (val_bytes[i] >> j) & 1);
+
         ctk_print(" ");
     }
 }
@@ -275,6 +276,7 @@ void ctk_print_bits(type val) {
 static void ctk_visualize_string(cstr str, u32 size, bool uniform_spacing = true) {
     for (u32 i = 0; i < size; ++i) {
         char c = str[i];
+
         if (c == '\r') {
             ctk_print("\\r");
             continue;
@@ -284,10 +286,12 @@ static void ctk_visualize_string(cstr str, u32 size, bool uniform_spacing = true
             ctk_print_line("\\n");
         } else {
             ctk_print("%c", c);
+
             if (uniform_spacing)
                 ctk_print(" ");
         }
     }
+
     ctk_print_line();
 }
 
@@ -300,8 +304,8 @@ static void ctk_visualize_string(CTK_String *str, bool uniform_spacing = true) {
 ////////////////////////////////////////////////////////////
 
 // Vector4
-template<typename type>
-type CTK_Vector4<type>::operator[](u32 i) {
+template<typename Type>
+Type CTK_Vector4<Type>::operator[](u32 i) {
     CTK_ASSERT(i < 4);
     return *(&x + i);
 }
@@ -317,24 +321,24 @@ static CTK_Vector4<LType> operator*(CTK_Vector4<LType> const &l, RType r) {
 }
 
 // Vector3
-template<typename type>
-type CTK_Vector3<type>::operator[](u32 i) {
+template<typename Type>
+Type CTK_Vector3<Type>::operator[](u32 i) {
     CTK_ASSERT(i < 3);
     return *(&x + i);
 }
 
-template<typename type>
+template<typename Type>
 template<typename RType>
-CTK_Vector3<type> &CTK_Vector3<type>::operator+=(CTK_Vector3<RType> const &r) {
+CTK_Vector3<Type> &CTK_Vector3<Type>::operator+=(CTK_Vector3<RType> const &r) {
     x += r.x;
     y += r.y;
     z += r.z;
     return *this;
 }
 
-template<typename type>
+template<typename Type>
 template<typename RType>
-CTK_Vector3<type> &CTK_Vector3<type>::operator*=(RType r) {
+CTK_Vector3<Type> &CTK_Vector3<Type>::operator*=(RType r) {
     x *= r;
     y *= r;
     z *= r;
@@ -395,15 +399,15 @@ static CTK_Vector3<f32> ctk_normalize(CTK_Vector3<f32> v) {
 }
 
 // Vector2
-template<typename type>
-type CTK_Vector2<type>::operator[](u32 i) {
+template<typename Type>
+Type CTK_Vector2<Type>::operator[](u32 i) {
     CTK_ASSERT(i < 2);
     return *(&x + i);
 }
 
-template<typename type>
+template<typename Type>
 template<typename RType>
-CTK_Vector2<type> &CTK_Vector2<type>::operator+=(CTK_Vector2<RType> const &r) {
+CTK_Vector2<Type> &CTK_Vector2<Type>::operator+=(CTK_Vector2<RType> const &r) {
     x += r.x;
     y += r.y;
     return *this;
@@ -457,26 +461,32 @@ static CTK_Matrix const CTK_MTX4_ID = {
 
 static CTK_Matrix operator*(CTK_Matrix &l, CTK_Matrix &r) {
     CTK_Matrix res = {};
+
     for (u32 row = 0; row < 4; ++row)
     for (u32 col = 0; col < 4; ++col)
         for (u32 i = 0; i < 4; ++i)
             res[row][col] += l[i][col] * r[row][i];
+
     return res;
 }
 
 static CTK_Matrix ctk_translate(CTK_Matrix m, CTK_Vector3<f32> v) {
     CTK_Matrix res = m;
+
     for (u32 row = 0; row < 3; ++row)
     for (u32 col = 0; col < 3; ++col)
         res[3][col] += v[row] * res[row][col];
+
     return res;
 }
 
 static CTK_Matrix ctk_scale(CTK_Matrix m, CTK_Vector3<f32> v) {
     CTK_Matrix res = m;
+
     for (u32 row = 0; row < 3; ++row)
     for (u32 col = 0; col < 3; ++col)
         res[row][col] *= v[col];
+
     return res;
 }
 
@@ -486,23 +496,23 @@ static CTK_Matrix ctk_rotate(CTK_Matrix m, f32 angle, CTK_Vector3<f32> axis) {
 }
 
 // General Math Functions
-template<typename type>
-static type ctk_max(type a, type b) {
+template<typename Type>
+static Type ctk_max(Type a, Type b) {
     return a > b ? a : b;
 }
 
-template<typename type>
-static type ctk_min(type a, type b) {
+template<typename Type>
+static Type ctk_min(Type a, Type b) {
     return a < b ? a : b;
 }
 
-template<typename type>
-static type ctk_clamp(type val, type min, type max) {
+template<typename Type>
+static Type ctk_clamp(Type val, Type min, Type max) {
     return ctk_min(ctk_max(val, min), max);
 }
 
-template<typename type>
-static type ctk_random_range(type min, type max) {
+template<typename Type>
+static Type ctk_random_range(Type min, Type max) {
     return (max <= min) ? min : ((rand() % (max - min)) + min);
 }
 
@@ -541,9 +551,9 @@ static inline u32 ctk_total_chunk_size(u32 min_size, u32 chunk_size) {
     }
 #endif
 
-template<typename type>
-static type *ctk_alloc_aligned(u32 alignment, u32 count = 1) {
-    return (type *)ctk_alloc_aligned(alignment, sizeof(type) * count);
+template<typename Type>
+static Type *ctk_alloc_aligned(u32 alignment, u32 count = 1) {
+    return (Type *)ctk_alloc_aligned(alignment, sizeof(Type) * count);
 }
 
 static void *ctk_alloc(u32 size) {
@@ -554,22 +564,24 @@ static void *ctk_alloc(u32 size) {
     return mem;
 }
 
-template<typename type>
-static type *ctk_alloc(u32 count = 1) {
-    return (type *)ctk_alloc(sizeof(type) * count);
+template<typename Type>
+static Type *ctk_alloc(u32 count = 1) {
+    return (Type *)ctk_alloc(sizeof(Type) * count);
 }
 
 static void *ctk_realloc(void *mem, u32 old_size, u32 new_size) {
     mem = realloc(mem, new_size);
     CTK_ASSERT(mem != NULL);
+
     if (new_size > old_size)
         memset((u8 *)mem + old_size, 0, new_size - old_size);
+
     return mem;
 }
 
-template<typename type>
-static type *ctk_realloc(type *mem, u32 old_count, u32 new_count) {
-    return (type *)ctk_realloc((void *)mem, sizeof(type) * old_count, sizeof(type) * new_count);
+template<typename Type>
+static Type *ctk_realloc(Type *mem, u32 old_count, u32 new_count) {
+    return (Type *)ctk_realloc((void *)mem, sizeof(Type) * old_count, sizeof(Type) * new_count);
 }
 
 ////////////////////////////////////////////////////////////
@@ -582,9 +594,9 @@ static u8 *ctk_push(CTK_Stack *stack, u32 size) {
     return mem;
 }
 
-template<typename type>
-static type *ctk_push(CTK_Stack *stack, u32 count = 1) {
-    return (type *)ctk_push(stack, sizeof(type) * count);
+template<typename Type>
+static Type *ctk_push(CTK_Stack *stack, u32 count = 1) {
+    return (Type *)ctk_push(stack, sizeof(Type) * count);
 }
 
 static CTK_Stack ctk_create_stack(u32 size) {
@@ -623,32 +635,34 @@ static void _ctk_visualize_stack(CTK_Stack *stack, cstr title = NULL) {
 ////////////////////////////////////////////////////////////
 /// Pool
 ////////////////////////////////////////////////////////////
-template<typename type>
-static CTK_Pool<type> ctk_create_pool(u32 chunk_size) {
-    if (sizeof(type) < sizeof(void *))
-        CTK_FATAL("size of type for CTK_Pool must be >= 8");
+template<typename Type>
+static CTK_Pool<Type> ctk_create_pool(u32 chunk_size) {
+    if (sizeof(Type) < sizeof(void *))
+        CTK_FATAL("size of Type for CTK_Pool must be >= 8");
+
     return { NULL, chunk_size };
 }
 
-template<typename type>
-static type *ctk_push(CTK_Pool<type> *pool) {
+template<typename Type>
+static Type *ctk_push(CTK_Pool<Type> *pool) {
     if (!pool->next) {
         ctk_print_line("allocating new chunk");
-        pool->next = ctk_alloc<_CTK_PoolNode<type>>(pool->chunk_size);
+        pool->next = ctk_alloc<_CTK_PoolNode<Type>>(pool->chunk_size);
 
         // Point each node except last to next node in allocated chunk.
         for (u32 i = 0; i < pool->chunk_size - 1; ++i)
             pool->next->next = pool->next + 1;
     }
-    type *element = &pool->next->element;
+
+    Type *element = &pool->next->element;
     pool->next = pool->next->next;
-    memset(element, 0, sizeof(type));
+    memset(element, 0, sizeof(Type));
     return element;
 }
 
-template<typename type>
-static void ctk_free(CTK_Pool<type> *pool, void *mem) {
-    auto node = (_CTK_PoolNode<type> *)mem;
+template<typename Type>
+static void ctk_free(CTK_Pool<Type> *pool, void *mem) {
+    auto node = (_CTK_PoolNode<Type> *)mem;
     node->next = pool->next;
     pool->next = node;
 }
@@ -656,97 +670,101 @@ static void ctk_free(CTK_Pool<type> *pool, void *mem) {
 ////////////////////////////////////////////////////////////
 /// Array
 ////////////////////////////////////////////////////////////
-template<typename type>
-static CTK_Array<type> ctk_create_array(u32 size) {
-    CTK_Array<type> arr = {};
-    arr.data = ctk_alloc<type>(size);
+template<typename Type>
+static CTK_Array<Type> ctk_create_array(u32 size) {
+    CTK_Array<Type> arr = {};
+    arr.data = ctk_alloc<Type>(size);
     arr.size = size;
     return arr;
 }
 
-template<typename type>
-static CTK_Array<type> ctk_create_array_full(u32 size) {
-    auto arr = ctk_create_array<type>(size);
+template<typename Type>
+static CTK_Array<Type> ctk_create_array_full(u32 size) {
+    auto arr = ctk_create_array<Type>(size);
     arr.count = size;
     return arr;
 }
 
-template<typename type>
-static CTK_Array<type> ctk_create_array(u32 size, CTK_Stack *stack) {
-    CTK_Array<type> arr = {};
-    arr.data = ctk_alloc<type>(stack, size);
+template<typename Type>
+static CTK_Array<Type> ctk_create_array(u32 size, CTK_Stack *stack) {
+    CTK_Array<Type> arr = {};
+    arr.data = ctk_alloc<Type>(stack, size);
     arr.size = size;
     return arr;
 }
 
-template<typename type>
-static CTK_Array<type> ctk_create_array_full(u32 size, CTK_Stack *stack) {
-    auto arr = ctk_create_array<type>(size, stack);
+template<typename Type>
+static CTK_Array<Type> ctk_create_array_full(u32 size, CTK_Stack *stack) {
+    auto arr = ctk_create_array<Type>(size, stack);
     arr.count = size;
     return arr;
 }
 
-template<typename type>
-static void ctk_realloc(CTK_Array<type> *arr, u32 new_size) {
+template<typename Type>
+static void ctk_realloc(CTK_Array<Type> *arr, u32 new_size) {
     arr->data = ctk_realloc(arr->data, arr->size, new_size);
     arr->size = new_size;
 }
 
-template<typename type>
-static void ctk_free(CTK_Array<type> *arr) {
+template<typename Type>
+static void ctk_free(CTK_Array<Type> *arr) {
     free(arr->data);
 }
 
-template<typename type>
-static type *ctk_push(CTK_Array<type> *arr, type elem) {
+template<typename Type>
+static Type *ctk_push(CTK_Array<Type> *arr, Type elem) {
     if (arr->count + 1 > arr->size)
         CTK_FATAL("array (size=%u count=%u) cannot hold any more elements", arr->size, arr->count);
-    type *new_elem = ctk_get(arr, arr->count++);
+
+    Type *new_elem = ctk_get(arr, arr->count++);
     *new_elem = elem;
     return new_elem;
 }
 
-template<typename type>
-static type *ctk_push(CTK_Array<type> *arr) {
+template<typename Type>
+static Type *ctk_push(CTK_Array<Type> *arr) {
     return ctk_push(arr, {});
 }
 
-template<typename type>
-static void ctk_push(CTK_Array<type> *arr, type *elems, u32 elem_count) {
+template<typename Type>
+static void ctk_push(CTK_Array<Type> *arr, Type *elems, u32 elem_count) {
     if (elem_count == 0)
         return;
+
     if (arr->size == 0)
         CTK_FATAL("pushing to unallocated array (size=0)");
+
     if (arr->count + elem_count > arr->size)
         CTK_FATAL("array (size=%u count=%u) cannot hold %u more elements", arr->size, arr->count, elem_count);
-    memcpy(ctk_get(arr, arr->count), elems, sizeof(type) * elem_count);
+
+    memcpy(ctk_get(arr, arr->count), elems, sizeof(Type) * elem_count);
     arr->count += elem_count;
 }
 
-template<typename type>
-static u32 ctk_byte_size(CTK_Array<type> *arr) {
-    return arr->size * sizeof(type);
+template<typename Type>
+static u32 ctk_byte_size(CTK_Array<Type> *arr) {
+    return arr->size * sizeof(Type);
 }
 
-template<typename type>
-static u32 ctk_byte_count(CTK_Array<type> *arr) {
-    return arr->count * sizeof(type);
+template<typename Type>
+static u32 ctk_byte_count(CTK_Array<Type> *arr) {
+    return arr->count * sizeof(Type);
 }
 
-template<typename type>
-static type *ctk_get(CTK_Array<type> *arr, u32 i) {
+template<typename Type>
+static Type *ctk_get(CTK_Array<Type> *arr, u32 i) {
     CTK_ASSERT(i < arr->size);
     return arr->data + i;
 }
 
-template<typename type>
-type &CTK_Array<type>::operator[](u32 i) {
+template<typename Type>
+Type &CTK_Array<Type>::operator[](u32 i) {
     CTK_ASSERT(i < size);
     return data[i];
 }
 
-template<typename type>
-static type *operator+(CTK_Array<type> &arr, u32 i) {
+template<typename Type>
+static Type *operator+(CTK_Array<Type> &arr, u32 i) {
     CTK_ASSERT(i < arr.size);
     return arr.data + i;
 }
@@ -762,13 +780,15 @@ static void ctk_free(CTK_String *str) {
     free(str->data);
 }
 
-template<typename ...arg_types>
-static void ctk_print(CTK_String *str, cstr msg, arg_types... args) {
+template<typename ...Args>
+static void ctk_print(CTK_String *str, cstr msg, Args... args) {
     u32 write_size = snprintf(str->data + str->count, str->size - str->count, msg, args...) + 1;
+
     if (str->count + write_size > str->size) {
         ctk_realloc(str, ctk_total_chunk_size(str->count + write_size, str->size));
         snprintf(str->data + str->count, str->size - str->count, msg, args...);
     }
+
     str->count += write_size;
 }
 
@@ -777,8 +797,8 @@ static void _ctk_print_tabs(CTK_String *str, u32 tabs) {
         ctk_print(str, "    ");
 }
 
-template<typename ...arg_types>
-static void ctk_print(CTK_String *str, u32 tabs, cstr msg, arg_types... args) {
+template<typename ...Args>
+static void ctk_print(CTK_String *str, u32 tabs, cstr msg, Args... args) {
     _ctk_print_tabs(str, tabs);
     ctk_print(str, msg, args...);
 }
@@ -814,73 +834,78 @@ static u32 ctk_u64(cstr s) {
 static bool ctk_bool(cstr s) {
     if (ctk_strings_match(s, "true"))
         return true;
+
     if (ctk_strings_match(s, "false"))
         return false;
+
     CTK_FATAL("string \"%s\" cannot be converted to a boolean value", s);
 }
 
 ////////////////////////////////////////////////////////////
 /// Static Array
 ////////////////////////////////////////////////////////////
-template<typename type, u32 size>
-static u32 ctk_size(CTK_StaticArray<type, size> *_) {
+template<typename Type, u32 size>
+static u32 ctk_size(CTK_StaticArray<Type, size> *_) {
     return size;
 }
 
-template<typename type, u32 size>
-static type *ctk_push(CTK_StaticArray<type, size> *arr, type elem) {
+template<typename Type, u32 size>
+static Type *ctk_push(CTK_StaticArray<Type, size> *arr, Type elem) {
     if (arr->count + 1 > ctk_size(arr))
         CTK_FATAL("static array (size=%u count=%u) cannot hold any more elements", ctk_size(arr), arr->count);
-    type *new_elem = ctk_get(arr, arr->count++);
+
+    Type *new_elem = ctk_get(arr, arr->count++);
     *new_elem = elem;
     return new_elem;
 }
 
-template<typename type, u32 size>
-static type *ctk_push(CTK_StaticArray<type, size> *arr) {
+template<typename Type, u32 size>
+static Type *ctk_push(CTK_StaticArray<Type, size> *arr) {
     return ctk_push(arr, {});
 }
 
-template<typename type, u32 size>
-static void ctk_push(CTK_StaticArray<type, size> *arr, type *elems, u32 elem_count) {
+template<typename Type, u32 size>
+static void ctk_push(CTK_StaticArray<Type, size> *arr, Type *elems, u32 elem_count) {
     if (elem_count == 0)
         return;
+
     if (arr->count + elem_count > ctk_size(arr))
         CTK_FATAL("static array (size=%u count=%u) cannot hold %u more elements", ctk_size(arr), arr->count, elem_count);
-    memcpy(ctk_get(arr, arr->count), elems, sizeof(type) * elem_count);
+
+    memcpy(ctk_get(arr, arr->count), elems, sizeof(Type) * elem_count);
     arr->count += elem_count;
 }
 
-template<typename type, u32 size>
-static type ctk_pop(CTK_StaticArray<type, size>* arr) {
+template<typename Type, u32 size>
+static Type ctk_pop(CTK_StaticArray<Type, size>* arr) {
     CTK_ASSERT(arr->count > 0);
     return arr->data[--arr->count];
 }
 
-template<typename type, u32 size>
-static u32 ctk_byte_size(CTK_StaticArray<type, size> *arr) {
-    return ctk_size(arr) * sizeof(type);
+template<typename Type, u32 size>
+static u32 ctk_byte_size(CTK_StaticArray<Type, size> *arr) {
+    return ctk_size(arr) * sizeof(Type);
 }
 
-template<typename type, u32 size>
-static u32 ctk_byte_count(CTK_StaticArray<type, size> *arr) {
-    return arr->count * sizeof(type);
+template<typename Type, u32 size>
+static u32 ctk_byte_count(CTK_StaticArray<Type, size> *arr) {
+    return arr->count * sizeof(Type);
 }
 
-template<typename type, u32 size>
-static type *ctk_get(CTK_StaticArray<type, size> *arr, u32 i) {
+template<typename Type, u32 size>
+static Type *ctk_get(CTK_StaticArray<Type, size> *arr, u32 i) {
     CTK_ASSERT(i < ctk_size(arr));
     return arr->data + i;
 }
 
-template<typename type, u32 size>
-type &CTK_StaticArray<type, size>::operator[](u32 i) {
+template<typename Type, u32 size>
+Type &CTK_StaticArray<Type, size>::operator[](u32 i) {
     CTK_ASSERT(i < size);
     return data[i];
 }
 
-template<typename type, u32 size>
-static type *operator+(CTK_StaticArray<type, size> &arr, u32 i) {
+template<typename Type, u32 size>
+static Type *operator+(CTK_StaticArray<Type, size> &arr, u32 i) {
     CTK_ASSERT(i < size);
     return arr.data + i;
 }
@@ -888,17 +913,19 @@ static type *operator+(CTK_StaticArray<type, size> &arr, u32 i) {
 ////////////////////////////////////////////////////////////
 /// Static Map
 ////////////////////////////////////////////////////////////
-template<typename type, u32 size, u32 key_size>
-static u32 ctk_size(CTK_StaticMap<type, size, key_size> *_) {
+template<typename Type, u32 size, u32 key_size>
+static u32 ctk_size(CTK_StaticMap<Type, size, key_size> *_) {
     return size;
 }
 
-template<typename type, u32 size, u32 key_size>
-static type *ctk_push(CTK_StaticMap<type, size, key_size> *map, cstr key, type val) {
+template<typename Type, u32 size, u32 key_size>
+static Type *ctk_push(CTK_StaticMap<Type, size, key_size> *map, cstr key, Type val) {
     if (map->count + 1 > ctk_size(map))
         CTK_FATAL("static map (size=%u count=%u) cannot hold any more elements", ctk_size(map), map->count);
+
     if (strlen(key) >= key_size)
         CTK_FATAL("pushing key: \"%s\" (size=%u) which is longer than max key size: %u", key, strlen(key), key_size - 1);
+
     // Check if duplicate key.
     if (ctk_find(map, key) != NULL)
         CTK_FATAL("attempting to push key \"%s\" to static map that already has that key", key);
@@ -909,62 +936,70 @@ static type *ctk_push(CTK_StaticMap<type, size, key_size> *map, cstr key, type v
     return map->values + map->count - 1;
 }
 
-template<typename type, u32 size, u32 key_size>
-static type *ctk_push(CTK_StaticMap<type, size, key_size> *map, cstr key) {
+template<typename Type, u32 size, u32 key_size>
+static Type *ctk_push(CTK_StaticMap<Type, size, key_size> *map, cstr key) {
     return ctk_push(map, key, {});
 }
 
-template<typename type, u32 size, u32 key_size>
-static type *ctk_find(CTK_StaticMap<type, size, key_size> *map, cstr key) {
+template<typename Type, u32 size, u32 key_size>
+static Type *ctk_find(CTK_StaticMap<Type, size, key_size> *map, cstr key) {
     for (u32 i = 0; i < map->count; ++i)
         if (ctk_strings_match(key, (cstr)(map->keys + i)))
             return map->values + i;
+
     return NULL;
 }
 
-template<typename type, u32 size, u32 key_size>
-static u32 ctk_find_index(CTK_StaticMap<type, size, key_size> *map, cstr key) {
+template<typename Type, u32 size, u32 key_size>
+static u32 ctk_find_index(CTK_StaticMap<Type, size, key_size> *map, cstr key) {
     for (u32 i = 0; i < map->count; ++i)
         if (ctk_strings_match(key, (cstr)(map->keys + i)))
             return i;
+
     return CTK_U32_MAX;
 }
 
-template<typename type, u32 size, u32 key_size>
-static type *ctk_get(CTK_StaticMap<type, size, key_size> *map, cstr key) {
-    type *val = ctk_find(map, key);
+template<typename Type, u32 size, u32 key_size>
+static Type *ctk_get(CTK_StaticMap<Type, size, key_size> *map, cstr key) {
+    Type *val = ctk_find(map, key);
+
     if (val == NULL)
         CTK_FATAL("failed to get entry for key \"%s\" in static map", key);
+
     return val;
 }
 
-template<typename type, u32 size, u32 key_size>
-static u32 ctk_values_byte_size(CTK_StaticMap<type, size, key_size> *map) {
-    return ctk_size(map) * sizeof(type);
+template<typename Type, u32 size, u32 key_size>
+static u32 ctk_values_byte_size(CTK_StaticMap<Type, size, key_size> *map) {
+    return ctk_size(map) * sizeof(Type);
 }
 
-template<typename type, u32 size, u32 key_size>
-static u32 ctk_values_byte_count(CTK_StaticMap<type, size, key_size> *map) {
-    return map->count * sizeof(type);
+template<typename Type, u32 size, u32 key_size>
+static u32 ctk_values_byte_count(CTK_StaticMap<Type, size, key_size> *map) {
+    return map->count * sizeof(Type);
 }
 
 ////////////////////////////////////////////////////////////
 /// File IO
 ////////////////////////////////////////////////////////////
-template<typename type>
-static CTK_Array<type> ctk_read_file(cstr path) {
+template<typename Type>
+static CTK_Array<Type> ctk_read_file(cstr path) {
     CTK_ASSERT(path != NULL);
-    CTK_Array<type> elems = {};
+    CTK_Array<Type> elems = {};
     FILE *f = fopen(path, "rb");
+
     if (f == NULL)
         CTK_FATAL("failed to open \"%s\"", path);
+
     fseek(f, 0, SEEK_END);
     u32 fsize = ftell(f);
+
     if (fsize > 0) {
         rewind(f);
-        elems = ctk_create_array_full<type>(fsize);
+        elems = ctk_create_array_full<Type>(fsize);
         fread(elems.data, fsize, 1, f);
     }
+
     fclose(f);
     return elems;
 }
@@ -974,49 +1009,55 @@ static CTK_Array<type> ctk_read_file(cstr path) {
 ////////////////////////////////////////////////////////////
 
 // Optional
-template<typename type>
-static type *ctk_set(CTK_Optional<type> *opt, type val) {
+template<typename Type>
+static Type *ctk_set(CTK_Optional<Type> *opt, Type val) {
     opt->value = val;
     opt->set = true;
     return &opt->value;
 }
 
-template<typename type>
-CTK_Optional<type> &CTK_Optional<type>::operator=(type val) {
+template<typename Type>
+CTK_Optional<Type> &CTK_Optional<Type>::operator=(Type val) {
     this->value = val;
     set = true;
     return *this;
 }
 
 // Pair
-template<typename key_type, typename val_type>
-static val_type ctk_find_value(key_type key, CTK_Pair<key_type, val_type> *pairs, u32 pair_count) {
+template<typename Key, typename Value>
+static Value ctk_find_value(Key key, CTK_Pair<Key, Value> *pairs, u32 pair_count) {
     for (u32 i = 0; i < pair_count; ++i)
         if (pairs[i].key == key)
             return pairs[i].value;
+
     return {};
 }
 
-template<typename key_type, typename val_type>
-static val_type ctk_get_value(key_type key, CTK_Pair<key_type, val_type> *pairs, u32 pair_count) {
-    val_type res = ctk_find_value(key, pairs, pair_count);
+template<typename Key, typename Value>
+static Value ctk_get_value(Key key, CTK_Pair<Key, Value> *pairs, u32 pair_count) {
+    Value res = ctk_find_value(key, pairs, pair_count);
+
     if (res == NULL)
         CTK_FATAL("failed to get value from pairs by key");
+
     return res;
 }
 
-template<typename key_type, typename val_type>
-static key_type ctk_find_key(val_type value, CTK_Pair<key_type, val_type> *pairs, u32 pair_count) {
+template<typename Key, typename Value>
+static Key ctk_find_key(Value value, CTK_Pair<Key, Value> *pairs, u32 pair_count) {
     for (u32 i = 0; i < pair_count; ++i)
         if (pairs[i].value == value)
             return pairs[i].key;
+
     return {};
 }
 
-template<typename key_type, typename val_type>
-static key_type ctk_get_key(val_type value, CTK_Pair<key_type, val_type> *pairs, u32 pair_count) {
-    key_type res = ctk_find_key(value, pairs, pair_count);
+template<typename Key, typename Value>
+static Key ctk_get_key(Value value, CTK_Pair<Key, Value> *pairs, u32 pair_count) {
+    Key res = ctk_find_key(value, pairs, pair_count);
+
     if (res == NULL)
         CTK_FATAL("failed to get key from pairs by value");
+
     return res;
 }

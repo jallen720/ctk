@@ -32,18 +32,21 @@ static void _ctk_dump_node(CTK_Node *n, u32 tab = 0) {
     ++tab;
     ctk_print_line(tab, "next:  %p", n->next);
     ctk_print_line(tab, "type:  %s",
-            n->type == _CTK_NODE_TYPE_SCALAR ? "_CTK_NODE_TYPE_SCALAR" :
-            n->type == _CTK_NODE_TYPE_STRUCT ? "_CTK_NODE_TYPE_STRUCT" :
-            n->type == _CTK_NODE_TYPE_ARRAY ? "_CTK_NODE_TYPE_ARRAY" :
-            "unknown");
+                   n->type == _CTK_NODE_TYPE_SCALAR ? "_CTK_NODE_TYPE_SCALAR" :
+                   n->type == _CTK_NODE_TYPE_STRUCT ? "_CTK_NODE_TYPE_STRUCT" :
+                   n->type == _CTK_NODE_TYPE_ARRAY ? "_CTK_NODE_TYPE_ARRAY" :
+                   "unknown");
     ctk_print_line(tab, "key:   %s", n->key);
+
     if (n->next)
         _ctk_dump_node(n->next, tab + 1);
+
     if (n->type == _CTK_NODE_TYPE_SCALAR) {
         ctk_print_line(tab, "value: %s", n->value);
     } else {
         ctk_print_line(tab, "children:");
         CTK_Node *child = n->children.list;
+
         while (child) {
             _ctk_dump_node(child, tab + 1);
             child = child->next;
@@ -54,19 +57,24 @@ static void _ctk_dump_node(CTK_Node *n, u32 tab = 0) {
 static void _ctk_print_node(CTK_Node *n, u32 tab = 0) {
     if (n->key)
         ctk_print(tab, "%s ", n->key);
+
     if (n->type == _CTK_NODE_TYPE_SCALAR) {
         ctk_print("%s\n", n->value);
     } else {
         ctk_print("%s", n->type == _CTK_NODE_TYPE_ARRAY ? "[" : "{");
+
         if (n->children.count > 0) {
             ctk_print("\n");
             CTK_Node *child = n->children.list;
+
             while (child) {
                 _ctk_print_node(child, tab + 1);
                 child = child->next;
             }
+
             _ctk_print_tabs(tab);
         }
+
         ctk_print("%s\n", n->type == _CTK_NODE_TYPE_ARRAY ? "]" : "}");
     }
 }
@@ -96,6 +104,7 @@ static CTK_Node *ctk_create_root() {
         _CTK_NODE_POOL = ctk_alloc<CTK_Pool<CTK_Node>>();
         *_CTK_NODE_POOL = ctk_create_pool<CTK_Node>(64);
     }
+
     CTK_Node *root = ctk_push(_CTK_NODE_POOL);
     root->type = _CTK_NODE_TYPE_STRUCT;
     root->key = NULL;
@@ -107,8 +116,10 @@ static CTK_Node *ctk_create_root() {
 static CTK_Node *_ctk_push_child(CTK_Node *parent) {
     CTK_ASSERT(parent->type != _CTK_NODE_TYPE_SCALAR); // Can't push children to scalar.
     CTK_Node **end_child_ptr = &parent->children.list;
+
     while (*end_child_ptr)
         end_child_ptr = &(*end_child_ptr)->next;
+
     CTK_Node *new_child = ctk_push(_CTK_NODE_POOL);
     *end_child_ptr = new_child;
     ++parent->children.count;
@@ -152,6 +163,7 @@ static CTK_Node *ctk_push_string(CTK_Node *parent, cstr value) {
         sprintf(val_str, FORMAT, value);\
         ctk_push_string(parent, key, val_str);\
     }\
+    \
     static void ctk_push_ ## TYPE(CTK_Node *parent, TYPE value) {\
         ctk_push_ ## TYPE(parent, value);\
     }
@@ -348,6 +360,7 @@ static char const ESCAPABLE[] = { '"', '\\' };
     for (u32 i = 0; i < CTK_ARRAY_COUNT(ARR); ++i)\
         if (ARR[i] == c)\
             return true;\
+    \
     return false;
 
 static bool is_symbol(char c) {
@@ -367,8 +380,10 @@ static CTK_Node *ctk_read(cstr path) {
     ctk_print_line("%s:", path);
     ctk_visualize_string(file_str.data, file_str.size, false);
     auto tokens = ctk_create_array<_CTK_Token>(file_str.count); // Can't have more tokens than chars.
+
     for (u32 base_idx = 0; base_idx < file_str.count;) {
         char c = file_str[base_idx];
+
         if (is_skippable(c)) {
             // SKIPPABLE
             ++base_idx;
@@ -383,8 +398,10 @@ static CTK_Node *ctk_read(cstr path) {
                       c == '{' ? _CTK_TOKEN_TYPE_STRUCT_OPEN :
                       c == '}' ? _CTK_TOKEN_TYPE_STRUCT_CLOSE :
                       _CTK_TOKEN_TYPE_UNKNOWN;
+
             if (t->type == _CTK_TOKEN_TYPE_UNKNOWN)
                 CTK_FATAL("unknown symbol type for token char: %c", c)
+
             ++base_idx;
         } else if (c == '"') {
             // STRING
@@ -393,11 +410,14 @@ static CTK_Node *ctk_read(cstr path) {
             t->start = base_idx;
             u32 str_char_idx = base_idx + 1;
             bool next_char_escaped = false;
+
             for (; str_char_idx < file_str.count; ++str_char_idx) {
                 char text_char = file_str[str_char_idx];
+
                 if (next_char_escaped) {
                     if (!is_escapable(text_char))
                         CTK_FATAL("unsupported escape character: \\%c", text_char)
+
                     next_char_escaped = false;
                 } else if (text_char == '\\') {
                     next_char_escaped = true;
@@ -406,9 +426,12 @@ static CTK_Node *ctk_read(cstr path) {
                     break;
                 }
             }
+
             t->size = str_char_idx - t->start;
+
             if (str_char_idx >= file_str.count)
                 CTK_FATAL("reached end of file while parsing string: %.*s", t->size, file_str + t->start)
+
             base_idx = str_char_idx;
         } else {
             // TEXT
@@ -416,11 +439,14 @@ static CTK_Node *ctk_read(cstr path) {
             t->type = _CTK_TOKEN_TYPE_TEXT;
             t->start = base_idx;
             u32 text_char_idx = base_idx + 1;
+
             for (; text_char_idx < file_str.count; ++text_char_idx) {
                 char text_char = file_str[text_char_idx];
+
                 if (is_skippable(text_char) || is_symbol(text_char) || text_char == '"')
                     break;
             }
+
             t->size = text_char_idx - t->start;
             base_idx = text_char_idx;
         }
@@ -444,13 +470,17 @@ static CTK_Node *ctk_read(cstr path) {
     // u32 token_idx = 0;
     // u32 nest_level = 0;
     // s32 parent_type = _CTK_NODE_TYPE_STRUCT;
+
     // while (token_idx < tokens.count) {
     //     _CTK_Token *curr = tokens + token_idx;
     //     ++total_node_count;
+
     //     if (nest_level == 0)
     //         ++root_child_count;
+
     //     if (parent_type == _CTK_NODE_TYPE_STRUCT) {
     //         ++token_idx;
+
     //         if (curr->type == _CTK_TOKEN_TYPE_TEXT) {
 
     //         } else if (curr->type == _CTK_TOKEN_TYPE_ARRAY_OPEN) {
