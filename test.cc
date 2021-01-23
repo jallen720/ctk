@@ -26,7 +26,7 @@ static void interactive() {
     // u32 alloc_sizes[] = { 10, 20 };
     // populate(&heap, alloc_sizes, CTK_ARRAY_COUNT(alloc_sizes));
     while (1) {
-        _ctk_dump_heap(&heap);
+        _ctk_debug_heap(&heap);
         ctk_print("enter command: ");
         if (gets_s(buf, BUF_SZ) == NULL)
             continue;
@@ -148,15 +148,15 @@ static void test_0() {
     u32 alloc_sizes[] = { 10, 20, 30, 40, 50, 60, 70 };
     void *allocs[CTK_ARRAY_COUNT(alloc_sizes)] = {};
     populate(&heap, alloc_sizes, CTK_ARRAY_COUNT(alloc_sizes), allocs);
-    _ctk_dump_heap(&heap);
+    _ctk_debug_heap(&heap);
 //  allocs[0] = ctk_alloc(&heap, 10);
-//  _ctk_dump_heap(&heap);
+//  _ctk_debug_heap(&heap);
 //  ctk_free(&heap, allocs[0]);
-//  _ctk_dump_heap(&heap);
+//  _ctk_debug_heap(&heap);
 //  allocs[0] = ctk_alloc(&heap, 10);
-//  _ctk_dump_heap(&heap);
+//  _ctk_debug_heap(&heap);
 //  ctk_free(&heap, allocs[0]);
-//  _ctk_dump_heap(&heap);
+//  _ctk_debug_heap(&heap);
 }
 
 static void leak_test() {
@@ -192,30 +192,41 @@ struct TestObject {
 };
 
 static void print_node(CTK_Node *n, u32 tab = 0) {
-    _ctk_print_node(n, tab);
+    _ctk_debug_node(n, tab);
     ctk_print_line();
 }
 
+static void print_char_array(CTK_Array<char> *a, u32 tab = 0) {
+    ctk_print("\n");
+    ctk_visualize_string(a->data, a->size);
+    ctk_print_array(a);
+}
+
 s32 main() {
-    // CTK_Node *root = ctk_create_root();
-    // print_node(root);
-    // ctk_push_string(root, "test_key", "test_val");
-    // print_node(root);
-    // ctk_push_string(root, "test_key_0", "test_val_0");
-    // print_node(root);
-    // CTK_Node *s = ctk_push_struct(root, "test_struct");
-    // print_node(root);
-    // ctk_push_string(s, "test_key", "test_val");
-    // print_node(root);
-    // ctk_push_u32(s, "test_key_0", 12);
-    // print_node(root);
-    CTK_String str = ctk_create_string(4);
-    // _ctk_write_node(root, &str);
-    // ctk_print("str:\n:%s\n\n", str.data);
-    ctk_print(&str, "12345678");
-    ctk_visualize_string(&str);
-    ctk_print(&str, "12345678");
-    ctk_visualize_string(&str);
+    CTK_Node *root = ctk_create_root();
+    print_node(root);
+    ctk_push_string(root, "test_key", "test_val");
+    print_node(root);
+    ctk_push_string(root, "test_key_0", "test_val_0");
+    print_node(root);
+    CTK_Node *s = ctk_push_struct(root, "test_struct");
+    print_node(root);
+    ctk_push_string(s, "test_key", "test_val");
+    print_node(root);
+    ctk_push_u32(s, "test_key_0", 12);
+    CTK_Node *a = ctk_push_array(root, "test_array");
+    print_node(root);
+    ctk_push_string(a, "test_val");
+    print_node(root);
+    ctk_push_u32(a, 12);
+    print_node(root);
+    // CTK_Stack stack = ctk_create_stack(256);
+    // CTK_String str = ctk_create_string(&stack, "test");
+    // ctk_visualize_stack(&stack);
+    // // ctk_print_node(root);
+    // // // ctk_print("%.*s\n", str.count, str.data);
+    // // _ctk_debug_node(root);
+    // ctk_visualize_string(&str);
 
     return 0;
 }

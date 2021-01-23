@@ -27,7 +27,7 @@ struct CTK_Heap {
     _CTK_BlockHeader *largest_free;
 };
 
-static void _ctk_dump_block(u32 tab, _CTK_BlockHeader *block) {
+static void _ctk_debug_block(u32 tab, _CTK_BlockHeader *block) {
     ctk_print/*_line*/(tab, "block %p:", block);ctk_print(" ");ctk_print_bits(block);ctk_print_line();
     ctk_print_line(tab + 1, "mem:       %p", block->mem);
     ctk_print_line(tab + 1, "size:      %u (total=%u)", block->size, block->size + sizeof(_CTK_BlockHeader));
@@ -38,7 +38,7 @@ static void _ctk_dump_block(u32 tab, _CTK_BlockHeader *block) {
     ctk_print_line(tab + 1, "next_free: %p", block->next_free);
 }
 
-static void _ctk_dump_heap(CTK_Heap *heap) {
+static void _ctk_debug_heap(CTK_Heap *heap) {
     ctk_print_line("heap:");
     ctk_print_line(1, "chunk_size: %u", heap->chunk_size);
     ctk_print_line(1, "num_chunks: %u", heap->num_chunks);
@@ -54,7 +54,7 @@ static void _ctk_dump_heap(CTK_Heap *heap) {
         _CTK_BlockHeader *block = chunk->block_list;
 
         while (block) {
-            _ctk_dump_block(4, block);
+            _ctk_debug_block(4, block);
             block = block->next;
         }
 
@@ -65,14 +65,14 @@ static void _ctk_dump_heap(CTK_Heap *heap) {
     _CTK_BlockHeader *free_block = heap->free_list;
 
     while (free_block) {
-        _ctk_dump_block(2, free_block);
+        _ctk_debug_block(2, free_block);
         free_block = free_block->next_free;
     }
 
     ctk_print_line(1, "largest_free:");
 
     if (heap->largest_free)
-        _ctk_dump_block(2, heap->largest_free);
+        _ctk_debug_block(2, heap->largest_free);
 }
 
 static void _ctk_push_free_block(CTK_Heap *heap, _CTK_BlockHeader *block) {
