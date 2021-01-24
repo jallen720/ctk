@@ -18,9 +18,9 @@ typedef float           f32;
 typedef double          f64;
 typedef char const *    cstr;
 
-#define CTK_S8_MIN SCHAR_MIN
-#define CTK_S8_MAX SCHAR_MAX
-#define CTK_U8_MAX UCHAR_MAX
+#define CTK_S8_MIN  SCHAR_MIN
+#define CTK_S8_MAX  SCHAR_MAX
+#define CTK_U8_MAX  UCHAR_MAX
 #define CTK_S16_MIN SHRT_MIN
 #define CTK_S16_MAX SHRT_MAX
 #define CTK_U16_MAX USHRT_MAX
@@ -30,13 +30,17 @@ typedef char const *    cstr;
 #define CTK_S64_MIN LLONG_MIN
 #define CTK_S64_MAX LLONG_MAX
 #define CTK_U64_MAX ULLONG_MAX
-#define CTK_ANSI_RESET "\x1b[0m"
-#define CTK_ANSI_COLOR_RED "\x1b[31m"
-#define CTK_ANSI_COLOR_GREEN "\x1b[32m"
-#define CTK_ANSI_COLOR_YELLOW "\x1b[33m"
-#define CTK_ANSI_COLOR_MAGENTA "\x1b[35m"
-#define CTK_ANSI_COLOR_SKY "\x1b[36m"
-#define CTK_ANSI_COLOR_BLUE "\x1b[34m"
+#define CTK_ANSI_RESET          "\x1b[0m"
+#define CTK_ANSI_COLOR_RED      "\x1b[31m"
+#define CTK_ANSI_COLOR_GREEN    "\x1b[32m"
+#define CTK_ANSI_COLOR_YELLOW   "\x1b[33m"
+#define CTK_ANSI_COLOR_MAGENTA  "\x1b[35m"
+#define CTK_ANSI_COLOR_SKY      "\x1b[36m"
+#define CTK_ANSI_COLOR_BLUE     "\x1b[34m"
+#define CTK_KILOBYTE 1000
+#define CTK_MEGABYTE 1000 * CTK_KILOBYTE
+#define CTK_GIGABYTE 1000 * CTK_MEGABYTE
+#define _CTK_CACHE_LINE 64
 #define CTK_ANSI_HIGHLIGHT(STR, COLOR) CTK_ANSI_COLOR_ ## COLOR STR CTK_ANSI_RESET
 #define CTK_ERROR_TAG CTK_ANSI_HIGHLIGHT("ERROR", RED) ": "
 
@@ -81,10 +85,6 @@ typedef char const *    cstr;
 #define CTK_REPEAT(COUNT) for (u32 _ = 0; _ < COUNT; ++_)
 #define CTK_RANGE(INDEX, START, LIMIT) for (u32 INDEX = start; INDEX < LIMIT; ++INDEX)
 #define CTK_EACH(TYPE, ITER, ARRAY) for (TYPE *ITER = ARRAY + 0; ITER < ARRAY.data + ARRAY.count; ++ITER)
-#define CTK_KILOBYTE 1000
-#define CTK_MEGABYTE 1000 * CTK_KILOBYTE
-#define CTK_GIGABYTE 1000 * CTK_MEGABYTE
-#define _CTK_CACHE_LINE 64
 
 ////////////////////////////////////////////////////////////
 /// Data
