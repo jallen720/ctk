@@ -25,15 +25,20 @@ static void interactive() {
     CTK_Heap heap = ctk_create_heap();
     // u32 alloc_sizes[] = { 10, 20 };
     // populate(&heap, alloc_sizes, CTK_ARRAY_COUNT(alloc_sizes));
+
     while (1) {
         _ctk_debug_heap(&heap);
         ctk_print("enter command: ");
+
         if (gets_s(buf, BUF_SZ) == NULL)
             continue;
+
         char *cmd = buf;
+
         if (*cmd == 'a') {
             char *arg = buf + 2;
             u32 alloc_size = strtoul(arg, NULL, 10);
+
             if (alloc_size > 0) {
                 ctk_print_line("allocationg %u bytes", alloc_size);
                 ctk_alloc(&heap, alloc_size);
@@ -42,12 +47,14 @@ static void interactive() {
             char *arg = buf + 2;
             u64 num = strtoull(arg, NULL, 16);
             auto mem_addr = (void *)num;
+
             if (mem_addr) {
                 ctk_print_line("freeing block %p", mem_addr);
                 ctk_free(&heap, mem_addr);
             }
         } else if (*cmd == 'r') {
             char *args[2] = { buf + 2 };
+
             for (u32 i = 3; i < BUF_SZ; ++i) {
                 if (buf[i] == ' ') {
                     buf[i] = '\0';
@@ -55,11 +62,13 @@ static void interactive() {
                     break;
                 }
             }
+
             if (args[1] == NULL) {
                 ctk_print_line("failed to parse second arg");
             } else {
                 auto mem_addr = (void *)strtoull(args[0], NULL, 16);
                 u32 realloc_size = strtoul(args[1], NULL, 10);
+
                 if (mem_addr) {
                     ctk_print_line("reallocating block %p", mem_addr);
                     ctk_realloc(&heap, mem_addr, realloc_size);
@@ -80,18 +89,22 @@ static void performance() {
 
         // Alloc
         clock_t start = clock();
+
         for (u64 i = 0; i < TEST_CYCLES; ++i) {
             allocs[i] = malloc(64);
             CTK_ASSERT(allocs[i]);
         }
+
         clock_t end = clock();
         f64 ms = (f64)(end - start) / (CLOCKS_PER_SEC / 1000.0);
         ctk_print_line("malloc() ms: %f", ms);
 
         // Free
         start = clock();
+
         for (u64 i = 0; i < TEST_CYCLES; ++i)
             free(allocs[i]);
+
         end = clock();
         ms = (f64)(end - start) / (CLOCKS_PER_SEC / 1000.0);
         ctk_print_line("free() ms: %f", ms);
@@ -107,18 +120,22 @@ static void performance() {
 
         // Alloc
         clock_t start = clock();
+
         for (u64 i = 0; i < TEST_CYCLES; ++i) {
             allocs[i] = ctk_alloc(&heap, 64);
             CTK_ASSERT(allocs[i]);
         }
+
         clock_t end = clock();
         f64 ms = (f64)(end - start) / (CLOCKS_PER_SEC / 1000.0);
         ctk_print_line("ctk_alloc(heap) ms: %f", ms);
 
         // Free
         start = clock();
+
         for (u64 i = 0; i < TEST_CYCLES; ++i)
             ctk_free(&heap, allocs[i]);
+
         end = clock();
         ms = (f64)(end - start) / (CLOCKS_PER_SEC / 1000.0);
         ctk_print_line("ctk_free(heap) ms: %f", ms);
@@ -164,15 +181,19 @@ static void leak_test() {
     bool allocated = false;
     static const u32 BUF_SZ = 64;
     char buf[BUF_SZ] = {};
+
     while (1) {
         ctk_print("enter command: ");
+
         if (gets_s(buf, BUF_SZ) == NULL)
             continue;
+
         if (*buf == 's') {
             if (allocated)
                 ctk_free(&heap);
             else
                 heap = ctk_create_heap(100 * CTK_MEGABYTE);
+
             allocated = !allocated;
         } else {
             break;
@@ -203,30 +224,17 @@ static void print_char_array(CTK_Array<char> *a, u32 tab = 0) {
 }
 
 s32 main() {
-    CTK_Node *root = ctk_create_root();
-    print_node(root);
-    ctk_push_string(root, "test_key", "test_val");
-    print_node(root);
-    ctk_push_string(root, "test_key_0", "test_val_0");
-    print_node(root);
-    CTK_Node *s = ctk_push_struct(root, "test_struct");
-    print_node(root);
-    ctk_push_string(s, "test_key", "test_val");
-    print_node(root);
-    ctk_push_u32(s, "test_key_0", 12);
-    CTK_Node *a = ctk_push_array(root, "test_array");
-    print_node(root);
-    ctk_push_string(a, "test_val");
-    print_node(root);
-    ctk_push_u32(a, 12);
-    print_node(root);
     // CTK_Stack stack = ctk_create_stack(256);
-    // CTK_String str = ctk_create_string(&stack, "test");
-    // ctk_visualize_stack(&stack);
-    // // ctk_print_node(root);
-    // // // ctk_print("%.*s\n", str.count, str.data);
-    // // _ctk_debug_node(root);
-    // ctk_visualize_string(&str);
-
+    CTK_String s = ctk_create_string(/*&stack, */4, 4);
+    ctk_print(&s, "%s", "test");
+    print_char_array(&s);
+    ctk_print(&s, " |%c|", 'a');
+    print_char_array(&s);
+    ctk_push(&s, "12345" + 1, 2);
+    print_char_array(&s);
+    ctk_push(&s, 'a');
+    print_char_array(&s);
+    ctk_push(&s, "us");
+    print_char_array(&s);
     return 0;
 }

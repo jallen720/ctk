@@ -27,7 +27,7 @@ struct CTK_Node {
 static CTK_Pool<CTK_Node> *_CTK_NODE_POOL;
 
 ////////////////////////////////////////////////////////////
-/// Interface
+/// Debugging
 ////////////////////////////////////////////////////////////
 static void _ctk_debug_node(CTK_Node *n, u32 tabs = 0) {
     ctk_print_line(tabs, "node %p:", n);
@@ -106,6 +106,9 @@ static void ctk_print_node(CTK_String *buf, CTK_Node *n, u32 tabs = 0) {
     }
 }
 
+////////////////////////////////////////////////////////////
+/// Interface
+////////////////////////////////////////////////////////////
 static CTK_Node *ctk_create_root() {
     if (!_CTK_NODE_POOL) {
         _CTK_NODE_POOL = ctk_alloc<CTK_Pool<CTK_Node>>(1);
