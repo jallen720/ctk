@@ -109,7 +109,7 @@ static void ctk_print_node(CTK_String *buf, CTK_Node *n, u32 tabs = 0) {
 ////////////////////////////////////////////////////////////
 /// Interface
 ////////////////////////////////////////////////////////////
-static CTK_Node *ctk_create_root() {
+static CTK_Node *ctk_create_root_node() {
     if (!_CTK_NODE_POOL) {
         _CTK_NODE_POOL = ctk_alloc<CTK_Pool<CTK_Node>>(1);
         *_CTK_NODE_POOL = ctk_create_pool<CTK_Node>(64);
