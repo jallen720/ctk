@@ -224,17 +224,12 @@ static void print_char_array(CTK_Array<char> *a, u32 tab = 0) {
 }
 
 s32 main() {
-    // CTK_Stack stack = ctk_create_stack(256);
-    CTK_String s = ctk_create_string(/*&stack, */4, 4);
-    ctk_print(&s, "%s", "test");
-    print_char_array(&s);
-    ctk_print(&s, " |%c|", 'a');
-    print_char_array(&s);
-    ctk_push(&s, "12345" + 1, 2);
-    print_char_array(&s);
-    ctk_push(&s, 'a');
-    print_char_array(&s);
-    ctk_push(&s, "us");
-    print_char_array(&s);
+    CTK_String output = ctk_create_string(CTK_KILOBYTE, CTK_KILOBYTE);
+    CTK_Node *root = ctk_create_root_node();
+    CTK_Node *array = ctk_push_array(root, "test_array");
+    CTK_Node *struc = ctk_push_struct(array);
+    ctk_push_f32(struc, "f32", 12.34f);
+    ctk_print_node_children(&output, root);
+    ctk_print(output.data);
     return 0;
 }

@@ -37,10 +37,10 @@ static void _ctk_debug_node(CTK_Node *n, u32 tabs = 0) {
                    n->type == _CTK_NODE_TYPE_STRUCT ? "_CTK_NODE_TYPE_STRUCT" :
                    n->type == _CTK_NODE_TYPE_ARRAY ? "_CTK_NODE_TYPE_ARRAY" :
                    "unknown");
-    ctk_print_line(tabs + 1, "key:   \"%.*s\"", n->key.count, n->key.data);
+    ctk_print_line(tabs + 1, "key:   \"%s\"", n->key.data);
 
     if (n->type == _CTK_NODE_TYPE_SCALAR) {
-        ctk_print_line(tabs + 1, "value: \"%.*s\"", n->value.count, n->value.data);
+        ctk_print_line(tabs + 1, "value: \"%s\"", n->value.data);
     } else {
         ctk_print_line(tabs + 1, "children:");
         CTK_Node *child = n->children.list;
@@ -56,7 +56,7 @@ static void ctk_print_node(CTK_Node *n, u32 tabs = 0) {
     _ctk_print_tabs(tabs);
 
     if (n->key.data)
-        ctk_print("%.*s: ", n->key.count, n->key.data);
+        ctk_print("%s: ", n->key.data);
 
     if (n->type == _CTK_NODE_TYPE_SCALAR) {
         ctk_print("%s\n", n->value);
@@ -79,26 +79,31 @@ static void ctk_print_node(CTK_Node *n, u32 tabs = 0) {
     }
 }
 
-static void ctk_print_node(CTK_String *buf, CTK_Node *n, u32 tabs = 0) {
+static void ctk_print_node(CTK_String *buf, CTK_Node *n, u32 tabs = 0);
+
+static void ctk_print_node_children(CTK_String *buf, CTK_Node *n, u32 tabs = 0) {
+    CTK_Node *child = n->children.list;
+
+    while (child) {
+        ctk_print_node(buf, child, tabs);
+        child = child->next;
+    }
+}
+
+static void ctk_print_node(CTK_String *buf, CTK_Node *n, u32 tabs) {
     _ctk_print_tabs(buf, tabs);
 
     if (n->key.data)
-        ctk_print(buf, "%.*s: ", n->key.count, n->key.data);
+        ctk_print(buf, "%s: ", n->key.data);
 
     if (n->type == _CTK_NODE_TYPE_SCALAR) {
-        ctk_print(buf, "%s\n", n->value);
+        ctk_print(buf, "%s\n", n->value.data);
     } else {
         ctk_print(buf, "%s", n->type == _CTK_NODE_TYPE_ARRAY ? "[" : "{");
 
         if (n->children.count > 0) {
             ctk_print(buf, "\n");
-            CTK_Node *child = n->children.list;
-
-            while (child) {
-                ctk_print_node(buf, child, tabs + 1);
-                child = child->next;
-            }
-
+            ctk_print_node_children(buf, n, tabs + 1);
             _ctk_print_tabs(buf, tabs);
         }
 
@@ -137,7 +142,7 @@ static CTK_Node *_ctk_push_child(CTK_Node *parent) {
 static CTK_Node *_ctk_push_scalar(CTK_Node *parent, cstr value) {
     CTK_Node *n = _ctk_push_child(parent);
     n->type = _CTK_NODE_TYPE_SCALAR;
-    n->value = value ? ctk_create_string(value) : ctk_create_string(16);
+    n->value = value ? ctk_create_string(value, CTK_CACHE_LINE) : ctk_create_string(CTK_CACHE_LINE, CTK_CACHE_LINE);
     return n;
 }
 
@@ -145,7 +150,7 @@ static CTK_Node *ctk_push_string(CTK_Node *parent, cstr key, cstr value) {
     CTK_ASSERT(key);
     CTK_ASSERT(parent->type == _CTK_NODE_TYPE_STRUCT);
     CTK_Node *n = _ctk_push_scalar(parent, value);
-    n->key = ctk_create_string(key);
+    n->key = ctk_create_string(key, CTK_CACHE_LINE);
     return n;
 }
 
@@ -155,16 +160,16 @@ static CTK_Node *ctk_push_string(CTK_Node *parent, cstr value) {
 }
 
 #define _CTK_NUMBER_PUSH_DECL(TYPE, FORMAT)\
-    static void ctk_push_ ## TYPE(CTK_Node *parent, cstr key, TYPE value) {\
-        char val_str[256] = {};\
-        sprintf(val_str, FORMAT, value);\
-        ctk_push_string(parent, key, val_str);\
+    static CTK_Node *ctk_push_ ## TYPE(CTK_Node *parent, cstr key, TYPE value) {\
+        CTK_Node *string = ctk_push_string(parent, key, NULL);\
+        ctk_print(&string->value, FORMAT, value);\
+        return string;\
     }\
     \
-    static void ctk_push_ ## TYPE(CTK_Node *parent, TYPE value) {\
-        char val_str[256] = {};\
-        sprintf(val_str, FORMAT, value);\
-        ctk_push_string(parent, val_str);\
+    static CTK_Node *ctk_push_ ## TYPE(CTK_Node *parent, TYPE value) {\
+        CTK_Node *string = ctk_push_string(parent, NULL);\
+        ctk_print(&string->value, FORMAT, value);\
+        return string;\
     }
 
 _CTK_NUMBER_PUSH_DECL(f32, "%f")
