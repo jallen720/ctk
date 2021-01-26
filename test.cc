@@ -4,18 +4,13 @@
 #include "ctk/heap.h"
 #include "ctk/ctkd.h"
 
-template<typename type, typename ...arg_types>
-static void print_bits(type val, cstr title, arg_types... title_args) {
-    ctk_print(title, title_args...);
-    ctk_print_bits(val);
-    ctk_print_line();
-}
-
 static void populate(CTK_Heap *heap, u32 *allocs, u32 num_allocs, void **output = NULL) {
     for (u32 i = 0; i < num_allocs; ++i) {
         void *alloc = ctk_alloc(heap, allocs[i]);
-        if (output)
+
+        if (output) {
             output[i] = alloc;
+        }
     }
 }
 
@@ -30,8 +25,9 @@ static void interactive() {
         _ctk_debug_heap(&heap);
         ctk_print("enter command: ");
 
-        if (gets_s(buf, BUF_SZ) == NULL)
+        if (gets_s(buf, BUF_SZ) == NULL) {
             continue;
+        }
 
         char *cmd = buf;
 
@@ -102,8 +98,9 @@ static void performance() {
         // Free
         start = clock();
 
-        for (u64 i = 0; i < TEST_CYCLES; ++i)
+        for (u64 i = 0; i < TEST_CYCLES; ++i) {
             free(allocs[i]);
+        }
 
         end = clock();
         ms = (f64)(end - start) / (CLOCKS_PER_SEC / 1000.0);
@@ -133,8 +130,9 @@ static void performance() {
         // Free
         start = clock();
 
-        for (u64 i = 0; i < TEST_CYCLES; ++i)
+        for (u64 i = 0; i < TEST_CYCLES; ++i) {
             ctk_free(&heap, allocs[i]);
+        }
 
         end = clock();
         ms = (f64)(end - start) / (CLOCKS_PER_SEC / 1000.0);
@@ -148,10 +146,12 @@ static void performance() {
     {
         CTK_Stack stack = ctk_create_stack(CTK_GIGABYTE);
         clock_t start = clock();
+
         for (u64 i = 0; i < TEST_CYCLES; ++i) {
             void *a = ctk_push(&stack, 64);
             CTK_ASSERT(a);
         }
+
         clock_t end = clock();
         f64 ms = (f64)(end - start) / (CLOCKS_PER_SEC / 1000.0);
         ctk_print_line("ctk_alloc(stack) ms: %f", ms);
@@ -185,14 +185,16 @@ static void leak_test() {
     while (1) {
         ctk_print("enter command: ");
 
-        if (gets_s(buf, BUF_SZ) == NULL)
+        if (gets_s(buf, BUF_SZ) == NULL) {
             continue;
+        }
 
         if (*buf == 's') {
-            if (allocated)
+            if (allocated) {
                 ctk_free(&heap);
-            else
+            } else {
                 heap = ctk_create_heap(100 * CTK_MEGABYTE);
+            }
 
             allocated = !allocated;
         } else {

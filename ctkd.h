@@ -53,10 +53,11 @@ static void _ctk_debug_node(CTK_Node *n, u32 tabs = 0) {
 }
 
 static void ctk_print_node(CTK_Node *n, u32 tabs = 0) {
-    _ctk_print_tabs(tabs);
+    ctk_print_tabs(tabs);
 
-    if (n->key.data)
+    if (n->key.data) {
         ctk_print("%s: ", n->key.data);
+    }
 
     if (n->type == _CTK_NODE_TYPE_SCALAR) {
         ctk_print("%s\n", n->value);
@@ -72,7 +73,7 @@ static void ctk_print_node(CTK_Node *n, u32 tabs = 0) {
                 child = child->next;
             }
 
-            _ctk_print_tabs(tabs);
+            ctk_print_tabs(tabs);
         }
 
         ctk_print("%s\n", n->type == _CTK_NODE_TYPE_ARRAY ? "]" : "}");
@@ -91,10 +92,11 @@ static void ctk_print_node_children(CTK_String *buf, CTK_Node *n, u32 tabs = 0) 
 }
 
 static void ctk_print_node(CTK_String *buf, CTK_Node *n, u32 tabs) {
-    _ctk_print_tabs(buf, tabs);
+    ctk_print_tabs(buf, tabs);
 
-    if (n->key.data)
+    if (n->key.data) {
         ctk_print(buf, "%s: ", n->key.data);
+    }
 
     if (n->type == _CTK_NODE_TYPE_SCALAR) {
         ctk_print(buf, "%s\n", n->value.data);
@@ -104,7 +106,7 @@ static void ctk_print_node(CTK_String *buf, CTK_Node *n, u32 tabs) {
         if (n->children.count > 0) {
             ctk_print(buf, "\n");
             ctk_print_node_children(buf, n, tabs + 1);
-            _ctk_print_tabs(buf, tabs);
+            ctk_print_tabs(buf, tabs);
         }
 
         ctk_print(buf, "%s\n", n->type == _CTK_NODE_TYPE_ARRAY ? "]" : "}");
@@ -129,8 +131,9 @@ static CTK_Node *_ctk_push_child(CTK_Node *parent) {
     CTK_ASSERT(parent->type != _CTK_NODE_TYPE_SCALAR); // Can't push children to scalar.
     CTK_Node **end_child_ptr = &parent->children.list;
 
-    while (*end_child_ptr)
+    while (*end_child_ptr) {
         end_child_ptr = &(*end_child_ptr)->next;
+    }
 
     CTK_Node *new_child = ctk_push(_CTK_NODE_POOL);
     *end_child_ptr = new_child;
@@ -218,11 +221,13 @@ static CTK_Node *ctk_push_struct(CTK_Node *parent, cstr key) {
 
 // struct _ctk_search_term {
 //     s32 type;
+
 //     union {
 //         struct {
 //             u32 start;
 //             u32 size;
 //         } key;
+
 //         u32 idx;
 //     };
 // };
@@ -234,6 +239,7 @@ static CTK_Node *ctk_push_struct(CTK_Node *parent, cstr key) {
 //     u32 term_index = 0;
 //     char search[256] = {};
 //     u32 search_size = sprintf(search, search_str, args...);
+
 //     while (term_index < search_size) {
 //         if (search[term_index] == '[') {
 //             ++term_index;
@@ -246,25 +252,34 @@ static CTK_Node *ctk_push_struct(CTK_Node *parent, cstr key) {
 //             _ctk_search_term *st = ctk_push(&search_terms);
 //             st->type = _CTK_SEARCH_TERM_TYPE_KEY;
 //             st->key.start = term_index;
+
 //             for (; term_index < search_size; ++term_index) {
 //                 char c = search[term_index];
-//                 if (c == '.' || c == '[')
+
+//                 if (c == '.' || c == '[') {
 //                     break;
+//                 }
 //             }
+
 //             st->key.size = term_index - st->key.start;
 //         }
-//         if (search[term_index] == '.')
+
+//         if (search[term_index] == '.') {
 //             ++term_index;
+//         }
 //     }
 //     // CTK_EACH(_ctk_search_term, term, search_terms) {
-//     //     if (term->type == _CTK_SEARCH_TERM_TYPE_KEY)
+//     //     if (term->type == _CTK_SEARCH_TERM_TYPE_KEY) {
 //     //         ctk_print_line("<_CTK_SEARCH_TERM_TYPE_KEY> %.*s", term->key.size, search + term->key.start);
-//     //     else if (term->type == _CTK_SEARCH_TERM_TYPE_IDX)
+//     //     } else if (term->type == _CTK_SEARCH_TERM_TYPE_IDX) {
 //     //         ctk_print_line("<_CTK_SEARCH_TERM_TYPE_IDX> %u", term->idx);
-//     //     else
+//     //     } else {
 //     //         ctk_print_line("<unknown type>");
+//     //     }
 //     // }
+
 //     CTK_Node *base = parent;
+
 //     CTK_EACH(_ctk_search_term, term, search_terms) {
 //         if (term->type == _CTK_SEARCH_TERM_TYPE_IDX) {
 //             base = ctk_get(base, term->idx);
@@ -277,13 +292,17 @@ static CTK_Node *ctk_push_struct(CTK_Node *parent, cstr key) {
 //             }
 //         }
 //     }
+
 //     return base;
 // }
 
 // static CTK_Node *ctk_get(CTK_Node *parent, cstr key) {
-//     CTK_EACH(CTK_Node, child, parent->children)
-//         if (ctk_strings_match(child->key, key))
+//     CTK_EACH(CTK_Node, child, parent->children) {
+//         if (ctk_strings_match(child->key, key)) {
 //             return child;
+//         }
+//     }
+
 //     CTK_FATAL("failed to find child with key \"%s\" in parent \"%s\"", key, parent->key)
 // }
 
@@ -372,9 +391,11 @@ static char const SKIPPABLES[] = { ' ', '\0', '\r', '\n' };
 static char const ESCAPABLE[] = { '"', '\\' };
 
 #define _CTK_CHAR_LOOKUP(ARR)\
-    for (u32 i = 0; i < CTK_ARRAY_COUNT(ARR); ++i)\
-        if (ARR[i] == c)\
+    for (u32 i = 0; i < CTK_ARRAY_COUNT(ARR); ++i) {\
+        if (ARR[i] == c) {\
             return true;\
+        }\
+    }\
     \
     return false;
 
@@ -414,8 +435,9 @@ static CTK_Node *ctk_read(cstr path) {
     //                   c == '}' ? _CTK_TOKEN_TYPE_STRUCT_CLOSE :
     //                   _CTK_TOKEN_TYPE_UNKNOWN;
 
-    //         if (t->type == _CTK_TOKEN_TYPE_UNKNOWN)
+    //         if (t->type == _CTK_TOKEN_TYPE_UNKNOWN) {
     //             CTK_FATAL("unknown symbol type for token char: %c", c)
+    //         }
 
     //         ++base_idx;
     //     } else if (c == '"') {
@@ -430,8 +452,9 @@ static CTK_Node *ctk_read(cstr path) {
     //             char text_char = file_str[str_char_idx];
 
     //             if (next_char_escaped) {
-    //                 if (!is_escapable(text_char))
+    //                 if (!is_escapable(text_char)) {
     //                     CTK_FATAL("unsupported escape character: \\%c", text_char)
+    //                 }
 
     //                 next_char_escaped = false;
     //             } else if (text_char == '\\') {
@@ -444,8 +467,9 @@ static CTK_Node *ctk_read(cstr path) {
 
     //         t->size = str_char_idx - t->start;
 
-    //         if (str_char_idx >= file_str.count)
+    //         if (str_char_idx >= file_str.count) {
     //             CTK_FATAL("reached end of file while parsing string: %.*s", t->size, file_str + t->start)
+    //         }
 
     //         base_idx = str_char_idx;
     //     } else {
@@ -458,8 +482,9 @@ static CTK_Node *ctk_read(cstr path) {
     //         for (; text_char_idx < file_str.count; ++text_char_idx) {
     //             char text_char = file_str[text_char_idx];
 
-    //             if (is_skippable(text_char) || is_symbol(text_char) || text_char == '"')
+    //             if (is_skippable(text_char) || is_symbol(text_char) || text_char == '"') {
     //                 break;
+    //             }
     //         }
 
     //         t->size = text_char_idx - t->start;
@@ -490,8 +515,9 @@ static CTK_Node *ctk_read(cstr path) {
     //     _CTK_Token *curr = tokens + token_idx;
     //     ++total_node_count;
 
-    //     if (nest_level == 0)
+    //     if (nest_level == 0) {
     //         ++root_child_count;
+    //     }
 
     //     if (parent_type == _CTK_NODE_TYPE_STRUCT) {
     //         ++token_idx;
