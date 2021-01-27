@@ -226,12 +226,13 @@ static void print_char_array(CTK_Array<char> *a, u32 tab = 0) {
 }
 
 s32 main() {
-    CTK_String output = ctk_create_string(CTK_KILOBYTE, CTK_KILOBYTE);
-    CTK_Node *root = ctk_create_root_node();
-    CTK_Node *array = ctk_push_array(root, "test_array");
-    CTK_Node *struc = ctk_push_struct(array);
-    ctk_push_f32(struc, "f32", 12.34f);
-    ctk_print_node_children(&output, root);
-    ctk_print(output.data);
+    // CTK_String output = ctk_create_string(CTK_KILOBYTE, CTK_KILOBYTE);
+    // CTK_Node *root = ctk_create_root_node();
+    // CTK_Node *array = ctk_push_array(root, "test_array");
+    // CTK_Node *struc = ctk_push_struct(array);
+    // ctk_push_f32(struc, "f32", 12.34f);
+    // ctk_print_node_children(&output, root);
+    // ctk_print(output.data);
+    CTK_Node *config = ctk_read("data/config.ctkd");
     return 0;
 }

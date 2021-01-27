@@ -412,96 +412,96 @@ static bool is_escapable(char c) {
 }
 
 static CTK_Node *ctk_read(cstr path) {
-    // CTK_Array<char> file_str = ctk_read_file<char>(path);
-    // ctk_print_line("%s:", path);
-    // ctk_visualize_string(file_str.data, file_str.size, false);
-    // auto tokens = ctk_create_array<_CTK_Token>(file_str.count); // Can't have more tokens than chars.
+    CTK_String file_str = ctk_read_file<char>(path);
+    ctk_print_line("%s:", path);
+    ctk_visualize_string(file_str.data, file_str.size, false);
+    auto tokens = ctk_create_array<_CTK_Token>(1024, 1024); // Can't have more tokens than chars.
 
-    // for (u32 base_idx = 0; base_idx < file_str.count;) {
-    //     char c = file_str[base_idx];
+    for (u32 base_idx = 0; base_idx < file_str.count;) {
+        char c = file_str[base_idx];
 
-    //     if (is_skippable(c)) {
-    //         // SKIPPABLE
-    //         ++base_idx;
-    //         continue;
-    //     } else if (is_symbol(c)) {
-    //         // SYMBOL
-    //         _CTK_Token *t = ctk_push(&tokens);
-    //         t->start = base_idx;
-    //         t->size = 1;
-    //         t->type = c == '[' ? _CTK_TOKEN_TYPE_ARRAY_OPEN :
-    //                   c == ']' ? _CTK_TOKEN_TYPE_ARRAY_CLOSE :
-    //                   c == '{' ? _CTK_TOKEN_TYPE_STRUCT_OPEN :
-    //                   c == '}' ? _CTK_TOKEN_TYPE_STRUCT_CLOSE :
-    //                   _CTK_TOKEN_TYPE_UNKNOWN;
+        if (is_skippable(c)) {
+            // SKIPPABLE
+            ++base_idx;
+            continue;
+        } else if (is_symbol(c)) {
+            // SYMBOL
+            _CTK_Token *t = ctk_push<_CTK_Token>(&tokens);
+            t->start = base_idx;
+            t->size = 1;
+            t->type = c == '[' ? _CTK_TOKEN_TYPE_ARRAY_OPEN :
+                      c == ']' ? _CTK_TOKEN_TYPE_ARRAY_CLOSE :
+                      c == '{' ? _CTK_TOKEN_TYPE_STRUCT_OPEN :
+                      c == '}' ? _CTK_TOKEN_TYPE_STRUCT_CLOSE :
+                      _CTK_TOKEN_TYPE_UNKNOWN;
 
-    //         if (t->type == _CTK_TOKEN_TYPE_UNKNOWN) {
-    //             CTK_FATAL("unknown symbol type for token char: %c", c)
-    //         }
+            if (t->type == _CTK_TOKEN_TYPE_UNKNOWN) {
+                CTK_FATAL("unknown symbol type for token char: %c", c)
+            }
 
-    //         ++base_idx;
-    //     } else if (c == '"') {
-    //         // STRING
-    //         _CTK_Token *t = ctk_push(&tokens);
-    //         t->type = _CTK_TOKEN_TYPE_STRING;
-    //         t->start = base_idx;
-    //         u32 str_char_idx = base_idx + 1;
-    //         bool next_char_escaped = false;
+            ++base_idx;
+        } else if (c == '"') {
+            // STRING
+            _CTK_Token *t = ctk_push(&tokens);
+            t->type = _CTK_TOKEN_TYPE_STRING;
+            t->start = base_idx;
+            u32 str_char_idx = base_idx + 1;
+            bool next_char_escaped = false;
 
-    //         for (; str_char_idx < file_str.count; ++str_char_idx) {
-    //             char text_char = file_str[str_char_idx];
+            for (; str_char_idx < file_str.count; ++str_char_idx) {
+                char text_char = file_str[str_char_idx];
 
-    //             if (next_char_escaped) {
-    //                 if (!is_escapable(text_char)) {
-    //                     CTK_FATAL("unsupported escape character: \\%c", text_char)
-    //                 }
+                if (next_char_escaped) {
+                    if (!is_escapable(text_char)) {
+                        CTK_FATAL("unsupported escape character: \\%c", text_char)
+                    }
 
-    //                 next_char_escaped = false;
-    //             } else if (text_char == '\\') {
-    //                 next_char_escaped = true;
-    //             } else if (text_char == '"') {
-    //                 ++str_char_idx;
-    //                 break;
-    //             }
-    //         }
+                    next_char_escaped = false;
+                } else if (text_char == '\\') {
+                    next_char_escaped = true;
+                } else if (text_char == '"') {
+                    ++str_char_idx;
+                    break;
+                }
+            }
 
-    //         t->size = str_char_idx - t->start;
+            t->size = str_char_idx - t->start;
 
-    //         if (str_char_idx >= file_str.count) {
-    //             CTK_FATAL("reached end of file while parsing string: %.*s", t->size, file_str + t->start)
-    //         }
+            if (str_char_idx >= file_str.count) {
+                CTK_FATAL("reached end of file while parsing string: %.*s", t->size, file_str + t->start)
+            }
 
-    //         base_idx = str_char_idx;
-    //     } else {
-    //         // TEXT
-    //         _CTK_Token *t = ctk_push(&tokens);
-    //         t->type = _CTK_TOKEN_TYPE_TEXT;
-    //         t->start = base_idx;
-    //         u32 text_char_idx = base_idx + 1;
+            base_idx = str_char_idx;
+        } else {
+            // TEXT
+            _CTK_Token *t = ctk_push(&tokens);
+            t->type = _CTK_TOKEN_TYPE_TEXT;
+            t->start = base_idx;
+            u32 text_char_idx = base_idx + 1;
 
-    //         for (; text_char_idx < file_str.count; ++text_char_idx) {
-    //             char text_char = file_str[text_char_idx];
+            for (; text_char_idx < file_str.count; ++text_char_idx) {
+                char text_char = file_str[text_char_idx];
 
-    //             if (is_skippable(text_char) || is_symbol(text_char) || text_char == '"') {
-    //                 break;
-    //             }
-    //         }
+                if (is_skippable(text_char) || is_symbol(text_char) || text_char == '"') {
+                    break;
+                }
+            }
 
-    //         t->size = text_char_idx - t->start;
-    //         base_idx = text_char_idx;
-    //     }
-    // }
+            t->size = text_char_idx - t->start;
+            base_idx = text_char_idx;
+        }
+    }
 
-    // CTK_EACH(_CTK_Token, t, tokens) {
-    //     cstr type_name = t->type == _CTK_TOKEN_TYPE_TEXT ?           "          TEXT" :
-    //                      t->type == _CTK_TOKEN_TYPE_STRING ?         "        STRING" :
-    //                      t->type == _CTK_TOKEN_TYPE_ARRAY_OPEN ?     "    ARRAY_OPEN" :
-    //                      t->type == _CTK_TOKEN_TYPE_ARRAY_CLOSE ?    "   ARRAY_CLOSE" :
-    //                      t->type == _CTK_TOKEN_TYPE_STRUCT_OPEN ?    "   STRUCT_OPEN" :
-    //                      t->type == _CTK_TOKEN_TYPE_STRUCT_CLOSE ?   "  STRUCT_CLOSE" :
-    //                                                                  "       UNKNOWN";
-    //     ctk_print_line("%s |%.*s|", type_name, t->size, file_str + t->start);
-    // }
+    CTK_EACH(_CTK_Token, t, tokens) {
+        cstr type_name = t->type == _CTK_TOKEN_TYPE_TEXT ?           "          TEXT" :
+                         t->type == _CTK_TOKEN_TYPE_STRING ?         "        STRING" :
+                         t->type == _CTK_TOKEN_TYPE_ARRAY_OPEN ?     "    ARRAY_OPEN" :
+                         t->type == _CTK_TOKEN_TYPE_ARRAY_CLOSE ?    "   ARRAY_CLOSE" :
+                         t->type == _CTK_TOKEN_TYPE_STRUCT_OPEN ?    "   STRUCT_OPEN" :
+                         t->type == _CTK_TOKEN_TYPE_STRUCT_CLOSE ?   "  STRUCT_CLOSE" :
+                                                                     "       UNKNOWN";
+        ctk_print_line("%s |%.*s|", type_name, t->size, file_str + t->start);
+    }
 
     // // Count nodes and chars for allocating memory.
     // u32 total_node_count = 0;
@@ -535,6 +535,7 @@ static CTK_Node *ctk_read(cstr path) {
     // CTK_Node *root = ctk_create(total_node_count, total_char_count, root_child_count);
     // _ctk_debug_node(root);
 
-    // ctk_free(&file_str);
+    ctk_free(&tokens);
+    ctk_free(&file_str);
     return NULL;//root;
 }

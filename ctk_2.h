@@ -785,7 +785,7 @@ static Type *ctk_push(CTK_Array<Type> *array) {
 }
 
 template<typename Type>
-static void ctk_push(CTK_Array<Type> *array, Type const *elems, u32 elem_count) {
+static void ctk_concat(CTK_Array<Type> *array, Type const *elems, u32 elem_count) {
     CTK_ASSERT(elems && elem_count > 0)
 
     if (array->size == 0) {
@@ -798,8 +798,8 @@ static void ctk_push(CTK_Array<Type> *array, Type const *elems, u32 elem_count) 
 }
 
 template<typename Type>
-static void ctk_push(CTK_Array<Type> *array, CTK_Array<Type> *other) {
-    ctk_push(array, other->data, other->count);
+static void ctk_concat(CTK_Array<Type> *array, CTK_Array<Type> *other) {
+    ctk_concat(array, other->data, other->count);
 }
 
 template<typename Type>
@@ -895,7 +895,7 @@ static void _ctk_check_realloc(CTK_String *string, u32 new_char_count) {
     ctk_realloc(string, string->count + new_char_count + 1);
 }
 
-static void ctk_push(CTK_String *string, cstr chars, u32 char_count = 0) {
+static void ctk_concat(CTK_String *string, cstr chars, u32 char_count = 0) {
     if (!char_count) {
         char_count = strlen(chars);
     }
@@ -919,7 +919,7 @@ static CTK_String ctk_create_string(u32 init_size, u32 chunk_size = 0) {
 static CTK_String ctk_create_string(cstr str, u32 chunk_size = 0) {
     CTK_ASSERT(str != NULL);
     CTK_String string = ctk_create_string(strlen(str) + 1, chunk_size); // Include space for null-terminator.
-    ctk_push(&string, str);
+    ctk_concat(&string, str);
     return string;
 }
 
@@ -937,7 +937,7 @@ static CTK_String ctk_create_string(CTK_Stack *stack, cstr str, u32 size = 0) {
     }
 
     CTK_String string = ctk_create_string(stack, size ? size : strlen(str) + 1);
-    ctk_push(&string, str);
+    ctk_concat(&string, str);
     return string;
 }
 
@@ -977,8 +977,8 @@ static char *ctk_push(CTK_String *string) {
     return ctk_push(string, (char)0);
 }
 
-static void ctk_push(CTK_String *string, CTK_String *other) {
-    ctk_push(string, other->data, other->count);
+static void ctk_concat(CTK_String *string, CTK_String *other) {
+    ctk_concat(string, other->data, other->count);
 }
 
 static bool ctk_strings_match(CTK_String *a, CTK_String *b) {
