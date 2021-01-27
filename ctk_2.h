@@ -881,37 +881,10 @@ static bool ctk_bool(cstr s) {
 }
 
 // CTK_String
-static void _ctk_check_realloc(CTK_String *string, u32 new_char_count) {
-    // Must always be room for null-terminator at the end.
-    if (string->count + new_char_count + 1 <= string->size) {
-        return;
-    }
-
-    if (string->chunk_size == 0) {
-        CTK_FATAL("string (size=%u count=%u) including null-terminator cannot hold %u more character(s), and cannot be "
-                  "resized as it was created with a chunk_size of 0", string->size, string->count, new_char_count);
-    }
-
-    ctk_realloc(string, string->count + new_char_count + 1);
-}
-
-static void ctk_concat(CTK_String *string, cstr chars, u32 char_count = 0) {
-    if (!char_count) {
-        char_count = strlen(chars);
-    }
-
-    CTK_ASSERT(chars && char_count > 0)
-
-    if (string->size == 0) {
-        CTK_FATAL("pushing to unallocated string (size=0)");
-    }
-
-    _ctk_check_realloc(string, char_count);
-    memcpy(ctk_get(string, string->count), chars, sizeof(char) * char_count);
-    string->count += char_count;
-}
 
 // System Allocator
+static void ctk_concat(CTK_String *string, cstr chars, u32 char_count = 0);
+
 static CTK_String ctk_create_string(u32 init_size, u32 chunk_size = 0) {
     return ctk_create_array<char>(init_size, chunk_size);
 }
@@ -942,6 +915,20 @@ static CTK_String ctk_create_string(CTK_Stack *stack, cstr str, u32 size = 0) {
 }
 
 // Interface
+static void _ctk_check_realloc(CTK_String *string, u32 new_char_count) {
+    // Must always be room for null-terminator at the end.
+    if (string->count + new_char_count + 1 <= string->size) {
+        return;
+    }
+
+    if (string->chunk_size == 0) {
+        CTK_FATAL("string (size=%u count=%u) including null-terminator cannot hold %u more character(s), and cannot be "
+                  "resized as it was created with a chunk_size of 0", string->size, string->count, new_char_count);
+    }
+
+    ctk_realloc(string, string->count + new_char_count + 1);
+}
+
 template<typename ...Args>
 static void ctk_print(CTK_String *str, cstr msg, Args... args) {
     u32 msg_size = snprintf(NULL, 0, msg, args...);
@@ -977,12 +964,32 @@ static char *ctk_push(CTK_String *string) {
     return ctk_push(string, (char)0);
 }
 
+static void ctk_concat(CTK_String *string, cstr chars, u32 char_count) {
+    if (!char_count) {
+        char_count = strlen(chars);
+    }
+
+    CTK_ASSERT(chars && char_count > 0)
+
+    if (string->size == 0) {
+        CTK_FATAL("pushing to unallocated string (size=0)");
+    }
+
+    _ctk_check_realloc(string, char_count);
+    memcpy(ctk_get(string, string->count), chars, sizeof(char) * char_count);
+    string->count += char_count;
+}
+
 static void ctk_concat(CTK_String *string, CTK_String *other) {
-    ctk_concat(string, other->data, other->count);
+    ctk_concat(string, other->data);
+}
+
+static bool ctk_strings_match(CTK_String *a, cstr b) {
+    return ctk_strings_match(a->data, b);
 }
 
 static bool ctk_strings_match(CTK_String *a, CTK_String *b) {
-    return strcmp(a->data, b->data) == 0;
+    return ctk_strings_match(a, b->data);
 }
 
 static f32 ctk_f32(CTK_String *s) {
