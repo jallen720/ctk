@@ -157,6 +157,11 @@ struct CTK_Array {
 
 typedef CTK_Array<char> CTK_String;
 
+struct CTK_CharRange {
+    cstr data;
+    u32 size;
+};
+
 template<typename Type, u32 size>
 struct CTK_StaticArray {
     Type data[size];
@@ -839,7 +844,7 @@ static Type *operator+(CTK_Array<Type> &array, u32 i) {
 /// String
 ////////////////////////////////////////////////////////////
 
-// C-String
+// cstr
 static bool ctk_strings_match(cstr a, cstr b) {
     return strcmp(a, b) == 0;
 }
@@ -881,37 +886,22 @@ static bool ctk_bool(cstr s) {
 }
 
 // CTK_String
-
-// System Allocator
-static void ctk_concat(CTK_String *string, cstr chars, u32 char_count = 0);
+static void ctk_concat(CTK_String *string, CTK_CharRange char_range);
 
 static CTK_String ctk_create_string(u32 init_size, u32 chunk_size = 0) {
     return ctk_create_array<char>(init_size, chunk_size);
 }
 
+static CTK_String ctk_create_string(CTK_CharRange char_range, u32 chunk_size = 0) {
+    CTK_ASSERT(char_range.data != NULL && char_range.size > 0);
+    CTK_String string = ctk_create_string(char_range.size + 1, chunk_size); // Include space for null-terminator.
+    ctk_concat(&string, char_range);
+    return string;
+}
+ 
 static CTK_String ctk_create_string(cstr str, u32 chunk_size = 0) {
     CTK_ASSERT(str != NULL);
-    CTK_String string = ctk_create_string(strlen(str) + 1, chunk_size); // Include space for null-terminator.
-    ctk_concat(&string, str);
-    return string;
-}
-
-// Stack Allocator
-static CTK_String ctk_create_string(CTK_Stack *stack, u32 size) {
-    return ctk_create_array<char>(stack, size);
-}
-
-static CTK_String ctk_create_string(CTK_Stack *stack, cstr str, u32 size = 0) {
-    CTK_ASSERT(str != NULL);
-
-    if (size && size < strlen(str) + 1) {
-        CTK_FATAL("string of size %u can't be created from c-string with size (including null-terminator) %u", size,
-                  strlen(str) + 1);
-    }
-
-    CTK_String string = ctk_create_string(stack, size ? size : strlen(str) + 1);
-    ctk_concat(&string, str);
-    return string;
+    return ctk_create_string({ str, strlen(str) }, chunk_size);
 }
 
 // Interface
@@ -964,24 +954,26 @@ static char *ctk_push(CTK_String *string) {
     return ctk_push(string, (char)0);
 }
 
-static void ctk_concat(CTK_String *string, cstr chars, u32 char_count) {
-    if (!char_count) {
-        char_count = strlen(chars);
-    }
-
-    CTK_ASSERT(chars && char_count > 0)
+static void ctk_concat(CTK_String *string, CTK_CharRange char_range) {
+    CTK_ASSERT(char_range.data != NULL && char_range.size > 0);
 
     if (string->size == 0) {
         CTK_FATAL("pushing to unallocated string (size=0)");
     }
 
-    _ctk_check_realloc(string, char_count);
-    memcpy(ctk_get(string, string->count), chars, sizeof(char) * char_count);
-    string->count += char_count;
+    _ctk_check_realloc(string, char_range.size);
+    memcpy(ctk_get(string, string->count), char_range.data, char_range.size);
+    string->count += char_range.size;
+}
+
+static void ctk_concat(CTK_String *string, cstr other) {
+    CTK_ASSERT(other != NULL);
+    ctk_concat(string, { other, strlen(other) });
 }
 
 static void ctk_concat(CTK_String *string, CTK_String *other) {
-    ctk_concat(string, other->data);
+    CTK_ASSERT(other != NULL);
+    ctk_concat(string, { other->data, other->count });
 }
 
 static bool ctk_strings_match(CTK_String *a, cstr b) {
