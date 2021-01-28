@@ -417,26 +417,22 @@ static bool _ctk_is_symbol(char c) {
 }
 
 static bool _ctk_is_skippable(char c) {
-    return _ctk_contains_char(c, " \0\r\n");
+    return _ctk_contains_char(c, " \r\n") || c == '\0';
 }
 
 static bool _ctk_is_escapable(char c) {
     return _ctk_contains_char(c, "\"\\");
 }
 
-static CTK_Node *ctk_read(cstr path) {
-    CTK_String file_str = ctk_read_file<char>(path);
-    ctk_print_line("%s:", path);
-    ctk_visualize_string(file_str.data, file_str.size, false);
+static CTK_Array<_CTK_Token> _ctk_parse_tokens(CTK_String *string) {
     auto tokens = ctk_create_array<_CTK_Token>(CTK_KILOBYTE, CTK_KILOBYTE); // Can't have more tokens than chars.
 
-    for (u32 base_idx = 0; base_idx < file_str.count;) {
-        char c = file_str[base_idx];
+    for (u32 base_idx = 0; base_idx < string->count;) {
+        char c = string->data[base_idx];
 
         if (_ctk_is_skippable(c)) {
             // SKIPPABLE
             ++base_idx;
-            continue;
         } else if (_ctk_is_symbol(c)) {
             // SYMBOL
             _CTK_Token *t = ctk_push<_CTK_Token>(&tokens);
@@ -461,8 +457,8 @@ static CTK_Node *ctk_read(cstr path) {
             u32 str_char_idx = base_idx + 1;
             bool next_char_escaped = false;
 
-            for (; str_char_idx < file_str.count; ++str_char_idx) {
-                char text_char = file_str[str_char_idx];
+            for (; str_char_idx < string->count; ++str_char_idx) {
+                char text_char = string->data[str_char_idx];
 
                 if (next_char_escaped) {
                     if (!_ctk_is_escapable(text_char)) {
@@ -480,11 +476,15 @@ static CTK_Node *ctk_read(cstr path) {
 
             t->size = str_char_idx - t->start;
 
-            if (str_char_idx >= file_str.count) {
-                CTK_FATAL("reached end of file while parsing string: %.*s", t->size, file_str + t->start)
+            if (str_char_idx >= string->count) {
+                CTK_FATAL("reached end of file while parsing string: %.*s", t->size, string + t->start)
             }
 
             base_idx = str_char_idx;
+        } else if (c == '#') {
+            // COMMENT
+            while (string->data[++base_idx] != '\n'); // Skip to first newline.
+            ++base_idx;
         } else {
             // TEXT
             _CTK_Token *t = ctk_push(&tokens);
@@ -492,8 +492,8 @@ static CTK_Node *ctk_read(cstr path) {
             t->start = base_idx;
             u32 text_char_idx = base_idx + 1;
 
-            for (; text_char_idx < file_str.count; ++text_char_idx) {
-                char text_char = file_str[text_char_idx];
+            for (; text_char_idx < string->count; ++text_char_idx) {
+                char text_char = string->data[text_char_idx];
 
                 if (_ctk_is_skippable(text_char) || _ctk_is_symbol(text_char) || text_char == '"') {
                     break;
@@ -505,16 +505,44 @@ static CTK_Node *ctk_read(cstr path) {
         }
     }
 
-    // CTK_EACH(_CTK_Token, t, tokens) {
-    //     cstr type_name = t->type == _CTK_TOKEN_TYPE_TEXT ?           "          TEXT" :
-    //                      t->type == _CTK_TOKEN_TYPE_STRING ?         "        STRING" :
-    //                      t->type == _CTK_TOKEN_TYPE_ARRAY_OPEN ?     "    ARRAY_OPEN" :
-    //                      t->type == _CTK_TOKEN_TYPE_ARRAY_CLOSE ?    "   ARRAY_CLOSE" :
-    //                      t->type == _CTK_TOKEN_TYPE_STRUCT_OPEN ?    "   STRUCT_OPEN" :
-    //                      t->type == _CTK_TOKEN_TYPE_STRUCT_CLOSE ?   "  STRUCT_CLOSE" :
-    //                                                                  "       UNKNOWN";
-    //     ctk_print_line("%s |%.*s|", type_name, t->size, file_str + t->start);
-    // }
+    CTK_EACH(_CTK_Token, t, tokens) {
+        cstr type_name = t->type == _CTK_TOKEN_TYPE_TEXT ?           "          TEXT" :
+                         t->type == _CTK_TOKEN_TYPE_STRING ?         "        STRING" :
+                         t->type == _CTK_TOKEN_TYPE_ARRAY_OPEN ?     "    ARRAY_OPEN" :
+                         t->type == _CTK_TOKEN_TYPE_ARRAY_CLOSE ?    "   ARRAY_CLOSE" :
+                         t->type == _CTK_TOKEN_TYPE_STRUCT_OPEN ?    "   STRUCT_OPEN" :
+                         t->type == _CTK_TOKEN_TYPE_STRUCT_CLOSE ?   "  STRUCT_CLOSE" :
+                                                                     "       UNKNOWN";
+        ctk_print_line("%s |%.*s|", type_name, t->size, ctk_get(string, t->start));
+    }
+
+    return tokens;
+}
+
+static void _ctk_process_struct_child_tokens(CTK_Node *parent, CTK_Array<_CTK_Token> *tokens, u32 idx) {
+    _CTK_Token *key = ctk_get(tokens, idx);
+    CTK_ASSERT(key->type == _CTK_TOKEN_TYPE_TEXT);
+    _CTK_Token *value = ctk_get(tokens, ++idx);
+
+    if (value->type == _CTK_TOKEN_TYPE_STRING || value->type == _CTK_TOKEN_TYPE_TEXT) {
+        ctk_push_string(parent, key)
+    } else if (value->type == ) {
+
+    }
+}
+
+static void _ctk_process_array_child_tokens(CTK_Node *parent, CTK_Array<_CTK_Token> *tokens, u32 idx) {
+    _CTK_Token *value = ctk_get(tokens, idx);
+}
+
+static CTK_Node *ctk_read(cstr path) {
+    CTK_String file_str = ctk_read_file<char>(path);
+    ctk_print_line("%s:", path);
+    ctk_visualize_string(file_str.data, file_str.size, false);
+
+    CTK_Array<_CTK_Token> tokens = _ctk_parse_tokens(&file_str);
+    CTK_Node *root = ctk_create_root_node();
+    _ctk_process_struct_child_tokens(root, &tokens, 0);
 
     ctk_free(&tokens);
     ctk_free(&file_str);
