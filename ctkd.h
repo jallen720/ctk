@@ -448,7 +448,7 @@ static bool _ctk_is_escapable(char c) {
 }
 
 static CTK_Array<_CTK_Token> _ctk_parse_tokens(CTK_String *string) {
-    auto tokens = ctk_create_array<_CTK_Token>(CTK_KILOBYTE, CTK_KILOBYTE); // Can't have more tokens than chars.
+    auto tokens = ctk_create_array<_CTK_Token>(CTK_KILOBYTE, CTK_KILOBYTE);
 
     for (u32 base_idx = 0; base_idx < string->count;) {
         char c = string->data[base_idx];
