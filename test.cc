@@ -223,5 +223,13 @@ static void print_char_array(CTK_Array<char> *a, u32 tab = 0) {
 
 s32 main() {
     CTK_Node *config = ctk_read("data/config.ctkd");
+    CTK_String output = ctk_create_string(CTK_KILOBYTE, CTK_KILOBYTE);
+    ctk_print_node_children(&output, config);
+    ctk_print("%.*s", output.size, output.data);
+    ctk_push_f32(config, "test", 12.34f);
+    ctk_clear(&output);
+    ctk_print_node_children(&output, config);
+    ctk_print("%.*s", output.size, output.data);
+
     return 0;
 }

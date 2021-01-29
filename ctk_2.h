@@ -159,7 +159,7 @@ typedef CTK_Array<char> CTK_String;
 
 struct CTK_CharRange {
     cstr data;
-    u32 size;
+    u64 size;
 };
 
 template<typename Type, u32 size>
@@ -898,7 +898,7 @@ static CTK_String ctk_create_string(CTK_CharRange char_range, u32 chunk_size = 0
     ctk_concat(&string, char_range);
     return string;
 }
- 
+
 static CTK_String ctk_create_string(cstr str, u32 chunk_size = 0) {
     CTK_ASSERT(str != NULL);
     return ctk_create_string({ str, strlen(str) }, chunk_size);

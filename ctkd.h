@@ -154,14 +154,14 @@ static CTK_Node *_ctk_push_scalar(CTK_Node *parent, cstr value = NULL) {
 }
 
 static CTK_Node *ctk_push_string(CTK_Node *parent, CTK_CharRange key, CTK_CharRange value) {
-    CTK_ASSERT(key.data != NULL);
     CTK_ASSERT(parent->type == _CTK_NODE_TYPE_STRUCT);
+    CTK_ASSERT(key.data != NULL);
     CTK_Node *n = _ctk_push_scalar(parent, value);
     n->key = ctk_create_string(key, CTK_CACHE_LINE);
     return n;
 }
 
-static CTK_Node *ctk_push_string(CTK_Node *parent, cstr key, cstr value = NULL) {
+static CTK_Node *ctk_push_string(CTK_Node *parent, cstr key, cstr value) {
     CTK_ASSERT(key != NULL);
     return ctk_push_string(parent, { key, strlen(key) }, { value, value ? strlen(value) : 0 });
 }
@@ -171,15 +171,19 @@ static CTK_Node *ctk_push_string(CTK_Node *parent, CTK_CharRange value) {
     return _ctk_push_scalar(parent, value);
 }
 
-static CTK_Node *ctk_push_string(CTK_Node *parent, cstr value = NULL) {
+static CTK_Node *ctk_push_string(CTK_Node *parent, cstr value) {
     return ctk_push_string(parent, { value, value ? strlen(value) : 0 });
 }
 
 #define _CTK_NUMBER_PUSH_DECL(TYPE, FORMAT)\
-    static CTK_Node *ctk_push_ ## TYPE(CTK_Node *parent, cstr key, TYPE value) {\
-        CTK_Node *string = ctk_push_string(parent, key, NULL);\
+    static CTK_Node *ctk_push_ ## TYPE(CTK_Node *parent, CTK_CharRange key, TYPE value) {\
+        CTK_Node *string = ctk_push_string(parent, key, {});\
         ctk_print(&string->value, FORMAT, value);\
         return string;\
+    }\
+    \
+    static CTK_Node *ctk_push_ ## TYPE(CTK_Node *parent, cstr key, TYPE value) {\
+        return ctk_push_ ## TYPE(parent, { key, key ? strlen(key) : 0 }, value);\
     }\
     \
     static CTK_Node *ctk_push_ ## TYPE(CTK_Node *parent, TYPE value) {\
@@ -202,13 +206,16 @@ static CTK_Node *ctk_push_array(CTK_Node *parent) {
     return n;
 }
 
-static CTK_Node *ctk_push_array(CTK_Node *parent, cstr key) {
-    CTK_ASSERT(key)
+static CTK_Node *ctk_push_array(CTK_Node *parent, CTK_CharRange key) {
     CTK_ASSERT(parent->type == _CTK_NODE_TYPE_STRUCT);
+    CTK_ASSERT(key.data);
     CTK_Node *n = _ctk_push_child(parent);
     n->type = _CTK_NODE_TYPE_ARRAY;
     n->key = ctk_create_string(key);
-    return n;
+}
+
+static CTK_Node *ctk_push_array(CTK_Node *parent, cstr key) {
+    return ctk_push_array(parent, { key, key ? strlen(key) : 0 });
 }
 
 static CTK_Node *ctk_push_struct(CTK_Node *parent) {
@@ -218,13 +225,17 @@ static CTK_Node *ctk_push_struct(CTK_Node *parent) {
     return n;
 }
 
-static CTK_Node *ctk_push_struct(CTK_Node *parent, cstr key) {
-    CTK_ASSERT(key)
+static CTK_Node *ctk_push_struct(CTK_Node *parent, CTK_CharRange key) {
     CTK_ASSERT(parent->type == _CTK_NODE_TYPE_STRUCT);
+    CTK_ASSERT(key.data)
     CTK_Node *n = _ctk_push_child(parent);
     n->type = _CTK_NODE_TYPE_STRUCT;
     n->key = ctk_create_string(key);
-    return n;
+
+}
+
+static CTK_Node *ctk_push_struct(CTK_Node *parent, cstr key) {
+    return ctk_push_struct(parent, { key, key ? strlen(key) : 0 });
 }
 
 // enum {
@@ -246,8 +257,8 @@ static CTK_Node *ctk_push_struct(CTK_Node *parent, cstr key) {
 // };
 // static CTK_Node *ctk_get(CTK_Node *parent, u32 idx);
 
-// template<typename ...arg_types>
-// static CTK_Node *ctk_find(CTK_Node *parent, cstr search_str, arg_types... args) {
+// template<typename ...Args>
+// static CTK_Node *ctk_find(CTK_Node *parent, cstr search_str, Args... args) {
 //     CTK_FixedArray<_ctk_search_term, 16> search_terms = {};
 //     u32 term_index = 0;
 //     char search[256] = {};
@@ -397,7 +408,7 @@ static bool ctk_bool(CTK_Node *parent, u32 idx) {
 }
 
 ////////////////////////////////////////////////////////////
-/// PARSER
+/// Parser
 ////////////////////////////////////////////////////////////
 enum {
     _CTK_TOKEN_TYPE_TEXT,
@@ -429,7 +440,7 @@ static bool _ctk_is_symbol(char c) {
 }
 
 static bool _ctk_is_skippable(char c) {
-    return _ctk_contains_char(c, " \r\n") || c == '\0';
+    return _ctk_contains_char(c, " \r\n\t") || c == '\0';
 }
 
 static bool _ctk_is_escapable(char c) {
@@ -448,7 +459,7 @@ static CTK_Array<_CTK_Token> _ctk_parse_tokens(CTK_String *string) {
         } else if (_ctk_is_symbol(c)) {
             // SYMBOL
             _CTK_Token *t = ctk_push<_CTK_Token>(&tokens);
-            t->char_range = { string + base_idx, 1 };
+            t->char_range = { string->data + base_idx, 1 };
             t->type = c == '[' ? _CTK_TOKEN_TYPE_ARRAY_OPEN :
                       c == ']' ? _CTK_TOKEN_TYPE_ARRAY_CLOSE :
                       c == '{' ? _CTK_TOKEN_TYPE_STRUCT_OPEN :
@@ -464,8 +475,9 @@ static CTK_Array<_CTK_Token> _ctk_parse_tokens(CTK_String *string) {
             // STRING
             _CTK_Token *t = ctk_push(&tokens);
             t->type = _CTK_TOKEN_TYPE_STRING;
-            t->char_range.data = string + base_idx;
-            u32 str_char_idx = base_idx + 1;
+            u32 string_start = base_idx + 1;
+            t->char_range.data = string->data + string_start;
+            u32 str_char_idx = string_start;
             bool next_char_escaped = false;
 
             for (; str_char_idx < string->count; ++str_char_idx) {
@@ -485,10 +497,10 @@ static CTK_Array<_CTK_Token> _ctk_parse_tokens(CTK_String *string) {
                 }
             }
 
-            t->char_range.size = str_char_idx - t->start;
+            t->char_range.size = str_char_idx - 1 - string_start;
 
             if (str_char_idx >= string->count) {
-                CTK_FATAL("reached end of file while parsing string: %.*s", t->size, string + t->start)
+                CTK_FATAL("reached end of file while parsing string: %.*s", t->char_range.size, t->char_range.data)
             }
 
             base_idx = str_char_idx;
@@ -500,7 +512,7 @@ static CTK_Array<_CTK_Token> _ctk_parse_tokens(CTK_String *string) {
             // TEXT
             _CTK_Token *t = ctk_push(&tokens);
             t->type = _CTK_TOKEN_TYPE_TEXT;
-            t->char_range.data = string + base_idx;
+            t->char_range.data = string->data + base_idx;
             u32 text_char_idx = base_idx + 1;
 
             for (; text_char_idx < string->count; ++text_char_idx) {
@@ -511,7 +523,7 @@ static CTK_Array<_CTK_Token> _ctk_parse_tokens(CTK_String *string) {
                 }
             }
 
-            t->char_range.size = text_char_idx - t->start;
+            t->char_range.size = text_char_idx - base_idx;
             base_idx = text_char_idx;
         }
     }
@@ -530,20 +542,51 @@ static CTK_Array<_CTK_Token> _ctk_parse_tokens(CTK_String *string) {
     return tokens;
 }
 
-static void _ctk_process_struct_child_tokens(CTK_Node *parent, CTK_Array<_CTK_Token> *tokens, u32 idx) {
-    //_CTK_Token *key = ctk_get(tokens, idx);
-    //CTK_ASSERT(key->type == _CTK_TOKEN_TYPE_TEXT);
-    //_CTK_Token *value = ctk_get(tokens, ++idx);
+static void _ctk_process_array_child_tokens(CTK_Node* parent, CTK_Array<_CTK_Token>* tokens, u32 *idx);
 
-    //if (value->type == _CTK_TOKEN_TYPE_STRING || value->type == _CTK_TOKEN_TYPE_TEXT) {
-    //    ctk_push_string(parent, key)
-    //} else if (value->type == ) {
+static void _ctk_process_struct_child_tokens(CTK_Node *parent, CTK_Array<_CTK_Token> *tokens, u32 *idx) {
+    while (*idx < tokens->count && ctk_get(tokens, *idx)->type != _CTK_TOKEN_TYPE_STRUCT_CLOSE) {
+        _CTK_Token *key = ctk_get(tokens, *idx);
+        CTK_ASSERT(key->type == _CTK_TOKEN_TYPE_TEXT);
+        _CTK_Token *value = ctk_get(tokens, ++(*idx));
+        ctk_print("processing struct child: key: %.*s value: %.*s\n",
+                  key->char_range.size, key->char_range.data,
+                  value->char_range.size, value->char_range.data);
 
-    //}
+        ++(*idx);
+
+        if (value->type == _CTK_TOKEN_TYPE_STRING || value->type == _CTK_TOKEN_TYPE_TEXT) {
+            ctk_push_string(parent, key->char_range, value->char_range);
+        } else if (value->type == _CTK_TOKEN_TYPE_STRUCT_OPEN) {
+            CTK_Node *struct_node = ctk_push_struct(parent, key->char_range);
+            _ctk_process_struct_child_tokens(struct_node, tokens, idx);
+        } else if (value->type == _CTK_TOKEN_TYPE_ARRAY_OPEN) {
+            CTK_Node *array_node = ctk_push_array(parent, key->char_range);
+            _ctk_process_array_child_tokens(array_node, tokens, idx);
+        }
+    }
+    ++(*idx);
 }
 
-static void _ctk_process_array_child_tokens(CTK_Node *parent, CTK_Array<_CTK_Token> *tokens, u32 idx) {
-    _CTK_Token *value = ctk_get(tokens, idx);
+static void _ctk_process_array_child_tokens(CTK_Node *parent, CTK_Array<_CTK_Token> *tokens, u32 *idx) {
+    while (*idx < tokens->count && ctk_get(tokens, *idx)->type != _CTK_TOKEN_TYPE_ARRAY_CLOSE) {
+        _CTK_Token *value = ctk_get(tokens, *idx);
+        ctk_print("processing array child: value: %.*s\n",
+                  value->char_range.size, value->char_range.data);
+
+        ++(*idx);
+
+        if (value->type == _CTK_TOKEN_TYPE_STRING || value->type == _CTK_TOKEN_TYPE_TEXT) {
+            ctk_push_string(parent, value->char_range);
+        } else if (value->type == _CTK_TOKEN_TYPE_STRUCT_OPEN) {
+            CTK_Node *struct_node = ctk_push_struct(parent);
+            _ctk_process_struct_child_tokens(struct_node, tokens, idx);
+        } else if (value->type == _CTK_TOKEN_TYPE_ARRAY_OPEN) {
+            CTK_Node *array_node = ctk_push_array(parent);
+            _ctk_process_array_child_tokens(array_node, tokens, idx);
+        }
+    }
+    ++(*idx);
 }
 
 static CTK_Node *ctk_read(cstr path) {
@@ -553,9 +596,11 @@ static CTK_Node *ctk_read(cstr path) {
 
     CTK_Array<_CTK_Token> tokens = _ctk_parse_tokens(&file_str);
     CTK_Node *root = ctk_create_root_node();
-    _ctk_process_struct_child_tokens(root, &tokens, 0);
+    u32 idx = 0;
+    _ctk_process_struct_child_tokens(root, &tokens, &idx);
+    ctk_print("\n");
 
     ctk_free(&tokens);
     ctk_free(&file_str);
-    return NULL;
+    return root;
 }
