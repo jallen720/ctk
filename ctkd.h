@@ -552,7 +552,6 @@ static void _ctk_process_struct_child_tokens(CTK_Node *parent, CTK_Array<_CTK_To
         ctk_print("processing struct child: key: %.*s value: %.*s\n",
                   key->char_range.size, key->char_range.data,
                   value->char_range.size, value->char_range.data);
-
         ++(*idx);
 
         if (value->type == _CTK_TOKEN_TYPE_STRING || value->type == _CTK_TOKEN_TYPE_TEXT) {
@@ -565,6 +564,7 @@ static void _ctk_process_struct_child_tokens(CTK_Node *parent, CTK_Array<_CTK_To
             _ctk_process_array_child_tokens(array_node, tokens, idx);
         }
     }
+
     ++(*idx);
 }
 
@@ -573,7 +573,6 @@ static void _ctk_process_array_child_tokens(CTK_Node *parent, CTK_Array<_CTK_Tok
         _CTK_Token *value = ctk_get(tokens, *idx);
         ctk_print("processing array child: value: %.*s\n",
                   value->char_range.size, value->char_range.data);
-
         ++(*idx);
 
         if (value->type == _CTK_TOKEN_TYPE_STRING || value->type == _CTK_TOKEN_TYPE_TEXT) {
@@ -586,6 +585,7 @@ static void _ctk_process_array_child_tokens(CTK_Node *parent, CTK_Array<_CTK_Tok
             _ctk_process_array_child_tokens(array_node, tokens, idx);
         }
     }
+
     ++(*idx);
 }
 
