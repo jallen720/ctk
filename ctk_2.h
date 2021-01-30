@@ -272,11 +272,9 @@ static void ctk_warning(u32 tabs, cstr msg, Args... args) {
 template<typename Type>
 void ctk_print_bits(Type val) {
     auto val_bytes = (u8 *)&val;
-
     for (s32 i = sizeof(Type) - 1; i >= 0; --i) {
-        for (s32 j = 7; j >= 0; --j) {
+        for (s32 j = 7; j >= 0; --j)
             ctk_print("%u", (val_bytes[i] >> j) & 1);
-        }
 
         ctk_print(" ");
     }
@@ -285,20 +283,20 @@ void ctk_print_bits(Type val) {
 static void ctk_visualize_string(cstr str, u32 size, bool uniform_spacing = true) {
     for (u32 i = 0; i < size; ++i) {
         char c = str[i];
-
         if (c == '\r') {
             ctk_print("\\r");
             continue;
-        } else if (c == '\0') {
+        }
+        else if (c == '\0') {
             ctk_print("\\0");
-        } else if (c == '\n') {
+        }
+        else if (c == '\n') {
             ctk_print_line("\\n");
-        } else {
+        }
+        else {
             ctk_print("%c", c);
-
-            if (uniform_spacing) {
+            if (uniform_spacing)
                 ctk_print(" ");
-            }
         }
     }
 
@@ -493,13 +491,10 @@ static CTK_Matrix const CTK_MATRIX_ID = {
 static CTK_Matrix operator*(CTK_Matrix &l, CTK_Matrix &r) {
     CTK_Matrix res = {};
 
-    for (u32 row = 0; row < 4; ++row) {
-        for (u32 col = 0; col < 4; ++col) {
-            for (u32 i = 0; i < 4; ++i) {
+    for (u32 row = 0; row < 4; ++row)
+        for (u32 col = 0; col < 4; ++col)
+            for (u32 i = 0; i < 4; ++i)
                 res[row][col] += l[i][col] * r[row][i];
-            }
-        }
-    }
 
     return res;
 }
@@ -507,11 +502,9 @@ static CTK_Matrix operator*(CTK_Matrix &l, CTK_Matrix &r) {
 static CTK_Matrix ctk_translate(CTK_Matrix m, CTK_Vector3<f32> v) {
     CTK_Matrix res = m;
 
-    for (u32 row = 0; row < 3; ++row) {
-        for (u32 col = 0; col < 3; ++col) {
+    for (u32 row = 0; row < 3; ++row)
+        for (u32 col = 0; col < 3; ++col)
             res[3][col] += v[row] * res[row][col];
-        }
-    }
 
     return res;
 }
@@ -519,11 +512,9 @@ static CTK_Matrix ctk_translate(CTK_Matrix m, CTK_Vector3<f32> v) {
 static CTK_Matrix ctk_scale(CTK_Matrix m, CTK_Vector3<f32> v) {
     CTK_Matrix res = m;
 
-    for (u32 row = 0; row < 3; ++row) {
-        for (u32 col = 0; col < 3; ++col) {
+    for (u32 row = 0; row < 3; ++row)
+        for (u32 col = 0; col < 3; ++col)
             res[row][col] *= v[col];
-        }
-    }
 
     return res;
 }
@@ -611,9 +602,9 @@ static void *ctk_realloc(void *mem, u32 old_size, u32 new_size) {
     mem = realloc(mem, new_size);
     CTK_ASSERT(mem != NULL);
 
-    if (new_size > old_size) {
+    // Zero newly allocated region.
+    if (new_size > old_size)
         memset((u8 *)mem + old_size, 0, new_size - old_size);
-    }
 
     return mem;
 }
@@ -665,9 +656,8 @@ static void ctk_end_region(CTK_Stack *stack, u32 region) {
 ////////////////////////////////////////////////////////////
 template<typename Type>
 static CTK_Pool<Type> ctk_create_pool(u32 chunk_size) {
-    if (sizeof(Type) < sizeof(void *)) {
+    if (sizeof(Type) < sizeof(void *))
         CTK_FATAL("size of Type for CTK_Pool must be >= 8");
-    }
 
     return { NULL, chunk_size };
 }
@@ -678,9 +668,8 @@ static Type *ctk_push(CTK_Pool<Type> *pool) {
         pool->next = ctk_alloc<_CTK_PoolNode<Type>>(pool->chunk_size);
 
         // Point each node except last to next node in allocated chunk.
-        for (u32 i = 0; i < pool->chunk_size - 1; ++i) {
+        for (u32 i = 0; i < pool->chunk_size - 1; ++i)
             pool->next->next = pool->next + 1;
-        }
     }
 
     Type *element = &pool->next->element;
@@ -742,13 +731,11 @@ template<typename Type>
 static void ctk_realloc(CTK_Array<Type> *array, u32 new_size) {
     CTK_ASSERT(new_size > 0);
     CTK_ASSERT(array->chunk_size != 0);
+
     u32 total_realloc_size = ctk_total_chunk_size(new_size, array->chunk_size);
     array->data = ctk_realloc(array->data, array->size, total_realloc_size);
-
-    if (!array->data) {
+    if (!array->data)
         CTK_FATAL("array reallocation failed");
-    }
-
     array->size = total_realloc_size;
 }
 
@@ -760,9 +747,8 @@ static void ctk_free(CTK_Array<Type> *array) {
 
 template<typename Type>
 static void _ctk_check_realloc(CTK_Array<Type> *array, u32 new_elem_count) {
-    if (array->count + new_elem_count <= array->size) {
+    if (array->count + new_elem_count <= array->size)
         return;
-    }
 
     if (array->chunk_size == 0) {
         CTK_FATAL("array (size=%u count=%u) cannot hold %u more element(s), and cannot be resized as it was "
@@ -774,9 +760,8 @@ static void _ctk_check_realloc(CTK_Array<Type> *array, u32 new_elem_count) {
 
 template<typename Type>
 static Type *ctk_push(CTK_Array<Type> *array, Type elem) {
-    if (array->size == 0) {
+    if (array->size == 0)
         CTK_FATAL("pushing to unallocated array (size=0)");
-    }
 
     _ctk_check_realloc(array, 1);
     Type *new_elem = ctk_get(array, array->count++);
@@ -792,10 +777,8 @@ static Type *ctk_push(CTK_Array<Type> *array) {
 template<typename Type>
 static void ctk_concat(CTK_Array<Type> *array, Type const *elems, u32 elem_count) {
     CTK_ASSERT(elems && elem_count > 0)
-
-    if (array->size == 0) {
+    if (array->size == 0)
         CTK_FATAL("pushing to unallocated array (size=0)");
-    }
 
     _ctk_check_realloc(array, elem_count);
     memcpy(ctk_get(array, array->count), elems, sizeof(Type) * elem_count);
@@ -846,15 +829,12 @@ static Type *operator+(CTK_Array<Type> &array, u32 i) {
 
 // String Comparison
 static bool ctk_strings_match(cstr a, u64 a_size, cstr b, u64 b_size) {
-    if (a_size != b_size) {
+    if (a_size != b_size)
         return false;
-    }
 
-    for (u64 i = 0; i < a_size; ++i) {
-        if (a[i] != b[i]) {
+    for (u64 i = 0; i < a_size; ++i)
+        if (a[i] != b[i])
             return false;
-        }
-    }
 
     return true;
 }
@@ -921,13 +901,11 @@ static u32 ctk_u64(cstr s) {
 }
 
 static bool ctk_bool(cstr s) {
-    if (ctk_strings_match(s, "true")) {
+    if (ctk_strings_match(s, "true"))
         return true;
-    }
 
-    if (ctk_strings_match(s, "false")) {
+    if (ctk_strings_match(s, "false"))
         return false;
-    }
 
     CTK_FATAL("string \"%s\" cannot be converted to a boolean value", s);
 }
@@ -954,9 +932,8 @@ static CTK_String ctk_create_string(cstr str, u32 chunk_size = 0) {
 // Interface
 static void _ctk_check_realloc(CTK_String *string, u32 new_char_count) {
     // Must always be room for null-terminator at the end.
-    if (string->count + new_char_count + 1 <= string->size) {
+    if (string->count + new_char_count + 1 <= string->size)
         return;
-    }
 
     if (string->chunk_size == 0) {
         CTK_FATAL("string (size=%u count=%u) including null-terminator cannot hold %u more character(s), and cannot be "
@@ -987,9 +964,8 @@ static void ctk_print(CTK_String *str, u32 tabs, cstr msg, Args... args) {
 }
 
 static char *ctk_push(CTK_String *string, char c) {
-    if (string->size == 0) {
+    if (string->size == 0)
         CTK_FATAL("pushing to unallocated string (size=0)");
-    }
 
     _ctk_check_realloc(string, 1);
     char *new_char = ctk_get(string, string->count++);
@@ -1003,10 +979,8 @@ static char *ctk_push(CTK_String *string) {
 
 static void ctk_concat(CTK_String *string, CTK_CharRange char_range) {
     CTK_ASSERT(char_range.data != NULL && char_range.size > 0);
-
-    if (string->size == 0) {
+    if (string->size == 0)
         CTK_FATAL("pushing to unallocated string (size=0)");
-    }
 
     _ctk_check_realloc(string, char_range.size);
     memcpy(ctk_get(string, string->count), char_range.data, char_range.size);
@@ -1048,13 +1022,11 @@ static u32 ctk_u64(CTK_String *s) {
 }
 
 static bool ctk_bool(CTK_String *s) {
-    if (ctk_strings_match(s->data, "true")) {
+    if (ctk_strings_match(s->data, "true"))
         return true;
-    }
 
-    if (ctk_strings_match(s->data, "false")) {
+    if (ctk_strings_match(s->data, "false"))
         return false;
-    }
 
     CTK_FATAL("string \"%s\" cannot be converted to a boolean value", s->data);
 }
@@ -1069,9 +1041,8 @@ static u32 ctk_size(CTK_StaticArray<Type, size> *_) {
 
 template<typename Type, u32 size>
 static Type *ctk_push(CTK_StaticArray<Type, size> *array, Type elem) {
-    if (array->count + 1 > ctk_size(array)) {
+    if (array->count + 1 > ctk_size(array))
         CTK_FATAL("static array (size=%u count=%u) cannot hold any more elements", ctk_size(array), array->count);
-    }
 
     Type *new_elem = ctk_get(array, array->count++);
     *new_elem = elem;
@@ -1085,9 +1056,8 @@ static Type *ctk_push(CTK_StaticArray<Type, size> *array) {
 
 template<typename Type, u32 size>
 static void ctk_push(CTK_StaticArray<Type, size> *array, Type *elems, u32 elem_count) {
-    if (elem_count == 0) {
+    if (elem_count == 0)
         return;
-    }
 
     if (array->count + elem_count > ctk_size(array)) {
         CTK_FATAL("static array (size=%u count=%u) cannot hold %u more elements", ctk_size(array), array->count,
@@ -1142,18 +1112,15 @@ static u32 ctk_size(CTK_StaticMap<Type, size, key_size> *_) {
 
 template<typename Type, u32 size, u32 key_size>
 static Type *ctk_push(CTK_StaticMap<Type, size, key_size> *map, cstr key, Type val) {
-    if (map->count + 1 > ctk_size(map)) {
+    if (map->count + 1 > ctk_size(map))
         CTK_FATAL("static map (size=%u count=%u) cannot hold any more elements", ctk_size(map), map->count);
-    }
 
-    if (strlen(key) >= key_size) {
+    if (strlen(key) >= key_size)
         CTK_FATAL("pushing key: \"%s\" (size=%u) which is longer than max key size: %u", key, strlen(key), key_size - 1);
-    }
 
     // Check if duplicate key.
-    if (ctk_find(map, key) != NULL) {
+    if (ctk_find(map, key) != NULL)
         CTK_FATAL("attempting to push key \"%s\" to static map that already has that key", key);
-    }
 
     strcpy(map->keys[map->count], key);
     map->values[map->count] = val;
@@ -1168,22 +1135,18 @@ static Type *ctk_push(CTK_StaticMap<Type, size, key_size> *map, cstr key) {
 
 template<typename Type, u32 size, u32 key_size>
 static Type *ctk_find(CTK_StaticMap<Type, size, key_size> *map, cstr key) {
-    for (u32 i = 0; i < map->count; ++i) {
-        if (ctk_strings_match(key, (cstr)(map->keys + i))) {
+    for (u32 i = 0; i < map->count; ++i)
+        if (ctk_strings_match(key, (cstr)(map->keys + i)))
             return map->values + i;
-        }
-    }
 
     return NULL;
 }
 
 template<typename Type, u32 size, u32 key_size>
 static u32 ctk_find_index(CTK_StaticMap<Type, size, key_size> *map, cstr key) {
-    for (u32 i = 0; i < map->count; ++i) {
-        if (ctk_strings_match(key, (cstr)(map->keys + i))) {
+    for (u32 i = 0; i < map->count; ++i)
+        if (ctk_strings_match(key, (cstr)(map->keys + i)))
             return i;
-        }
-    }
 
     return CTK_U32_MAX;
 }
@@ -1191,11 +1154,8 @@ static u32 ctk_find_index(CTK_StaticMap<Type, size, key_size> *map, cstr key) {
 template<typename Type, u32 size, u32 key_size>
 static Type *ctk_get(CTK_StaticMap<Type, size, key_size> *map, cstr key) {
     Type *val = ctk_find(map, key);
-
-    if (val == NULL) {
+    if (val == NULL)
         CTK_FATAL("failed to get entry for key \"%s\" in static map", key);
-    }
-
     return val;
 }
 
@@ -1216,12 +1176,10 @@ template<typename Type>
 static CTK_Array<Type> ctk_read_file(cstr path) {
     CTK_ASSERT(path != NULL);
     CTK_Array<Type> elems = {};
+
     FILE *f = fopen(path, "rb");
-
-    if (f == NULL) {
+    if (f == NULL)
         CTK_FATAL("failed to open \"%s\"", path);
-    }
-
     fseek(f, 0, SEEK_END);
     u32 fsize = ftell(f);
 
@@ -1257,11 +1215,9 @@ CTK_Optional<Type> &CTK_Optional<Type>::operator=(Type val) {
 // Pair
 template<typename Key, typename Value>
 static Value ctk_find_value(Key key, CTK_Pair<Key, Value> *pairs, u32 pair_count) {
-    for (u32 i = 0; i < pair_count; ++i) {
-        if (pairs[i].key == key) {
+    for (u32 i = 0; i < pair_count; ++i)
+        if (pairs[i].key == key)
             return pairs[i].value;
-        }
-    }
 
     return {};
 }
@@ -1269,21 +1225,16 @@ static Value ctk_find_value(Key key, CTK_Pair<Key, Value> *pairs, u32 pair_count
 template<typename Key, typename Value>
 static Value ctk_get_value(Key key, CTK_Pair<Key, Value> *pairs, u32 pair_count) {
     Value res = ctk_find_value(key, pairs, pair_count);
-
-    if (res == NULL) {
+    if (res == NULL)
         CTK_FATAL("failed to get value from pairs by key");
-    }
-
     return res;
 }
 
 template<typename Key, typename Value>
 static Key ctk_find_key(Value value, CTK_Pair<Key, Value> *pairs, u32 pair_count) {
-    for (u32 i = 0; i < pair_count; ++i) {
-        if (pairs[i].value == value) {
+    for (u32 i = 0; i < pair_count; ++i)
+        if (pairs[i].value == value)
             return pairs[i].key;
-        }
-    }
 
     return {};
 }
@@ -1291,10 +1242,7 @@ static Key ctk_find_key(Value value, CTK_Pair<Key, Value> *pairs, u32 pair_count
 template<typename Key, typename Value>
 static Key ctk_get_key(Value value, CTK_Pair<Key, Value> *pairs, u32 pair_count) {
     Key res = ctk_find_key(value, pairs, pair_count);
-
-    if (res == NULL) {
+    if (res == NULL)
         CTK_FATAL("failed to get key from pairs by value");
-    }
-
     return res;
 }
