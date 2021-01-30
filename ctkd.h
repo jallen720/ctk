@@ -240,6 +240,7 @@ static CTK_Node *ctk_push_array(CTK_Node *parent, CTK_CharRange key)
     CTK_Node *n = _ctk_push_child(parent);
     n->type = _CTK_NODE_TYPE_ARRAY;
     n->key = ctk_create_string(key);
+    return n;
 }
 
 static CTK_Node *ctk_push_array(CTK_Node *parent, cstr key)
