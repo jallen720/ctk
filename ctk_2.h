@@ -844,11 +844,58 @@ static Type *operator+(CTK_Array<Type> &array, u32 i) {
 /// String
 ////////////////////////////////////////////////////////////
 
-// cstr
-static bool ctk_strings_match(cstr a, cstr b) {
-    return strcmp(a, b) == 0;
+// String Comparison
+static bool ctk_strings_match(cstr a, u64 a_size, cstr b, u64 b_size) {
+    if (a_size != b_size) {
+        return false;
+    }
+
+    for (u64 i = 0; i < a_size; ++i) {
+        if (a[i] != b[i]) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
+static bool ctk_strings_match(cstr a, cstr b) {
+    return ctk_strings_match(a, strlen(a), b, strlen(b));
+}
+
+static bool ctk_strings_match(cstr a, CTK_String *b) {
+    return ctk_strings_match(a, strlen(a), b->data, b->count);
+}
+
+static bool ctk_strings_match(cstr a, CTK_CharRange b) {
+    return ctk_strings_match(a, strlen(a), b.data, b.size);
+}
+
+static bool ctk_strings_match(CTK_String *a, cstr b) {
+    return ctk_strings_match(a->data, a->count, b, strlen(b));
+}
+
+static bool ctk_strings_match(CTK_String *a, CTK_String *b) {
+    return ctk_strings_match(a->data, a->count, b->data, b->count);
+}
+
+static bool ctk_strings_match(CTK_String *a, CTK_CharRange b) {
+    return ctk_strings_match(a->data, a->count, b.data, b.size);
+}
+
+static bool ctk_strings_match(CTK_CharRange a, cstr b) {
+    return ctk_strings_match(a.data, a.size, b, strlen(b));
+}
+
+static bool ctk_strings_match(CTK_CharRange a, CTK_String *b) {
+    return ctk_strings_match(a.data, a.size, b->data, b->count);
+}
+
+static bool ctk_strings_match(CTK_CharRange a, CTK_CharRange b) {
+    return ctk_strings_match(a.data, a.size, b.data, b.size);
+}
+
+// cstr
 static f32 ctk_f32(cstr s) {
     return strtof(s, NULL);
 }
@@ -974,14 +1021,6 @@ static void ctk_concat(CTK_String *string, cstr other) {
 static void ctk_concat(CTK_String *string, CTK_String *other) {
     CTK_ASSERT(other != NULL);
     ctk_concat(string, { other->data, other->count });
-}
-
-static bool ctk_strings_match(CTK_String *a, cstr b) {
-    return ctk_strings_match(a->data, b);
-}
-
-static bool ctk_strings_match(CTK_String *a, CTK_String *b) {
-    return ctk_strings_match(a, b->data);
 }
 
 static f32 ctk_f32(CTK_String *s) {

@@ -230,6 +230,8 @@ s32 main() {
     ctk_clear(&output);
     ctk_print_node_children(&output, config);
     ctk_print("%.*s", output.size, output.data);
+    cstr search = "test";
+    ctk_print("%s %s", search, ctk_find(config, search)->value.data);
 
     return 0;
 }
