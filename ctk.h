@@ -611,7 +611,7 @@ static Type *ctk_realloc(Type *mem, u32 old_count, u32 new_count) {
 ////////////////////////////////////////////////////////////
 /// Stack
 ////////////////////////////////////////////////////////////
-static u8 *ctk_push(CTK_Stack *stack, u32 size) {
+static u8 *ctk_alloc(CTK_Stack *stack, u32 size) {
     CTK_ASSERT(stack->count + size <= stack->size);
     u8 *mem = stack->mem + stack->count;
     stack->count += size;
@@ -619,8 +619,8 @@ static u8 *ctk_push(CTK_Stack *stack, u32 size) {
 }
 
 template<typename Type>
-static Type *ctk_push(CTK_Stack *stack, u32 count) {
-    return (Type *)ctk_push(stack, sizeof(Type) * count);
+static Type *ctk_alloc(CTK_Stack *stack, u32 count) {
+    return (Type *)ctk_alloc(stack, sizeof(Type) * count);
 }
 
 static CTK_Stack ctk_create_stack(u32 size) {
@@ -633,7 +633,7 @@ static CTK_Stack ctk_create_stack(u32 size) {
 static CTK_Stack ctk_create_stack(CTK_Stack *parent, u32 size) {
     CTK_Stack stack = {};
     stack.size = size;
-    stack.mem = ctk_push<u8>(parent, size);
+    stack.mem = ctk_alloc<u8>(parent, size);
     return stack;
 }
 
@@ -739,7 +739,7 @@ template<typename Type>
 static CTK_Array<Type> ctk_create_array(CTK_Stack *stack, u32 size) {
     CTK_ASSERT(size > 0);
     CTK_Array<Type> array = {};
-    array.data = ctk_push<Type>(stack, size);
+    array.data = ctk_alloc<Type>(stack, size);
     array.size = size;
     return array;
 }
