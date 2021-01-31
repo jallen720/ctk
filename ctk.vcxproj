@@ -145,7 +145,8 @@
   <ItemGroup>
     <ClInclude Include="ctk.h" />
     <ClInclude Include="ctkd.h" />
-    <ClInclude Include="ctk_2.h" />
+    <ClInclude Include="ctk_new.h" />
+    <ClInclude Include="ctk_old.h" />
     <ClInclude Include="data.h" />
     <ClInclude Include="heap.h" />
     <ClInclude Include="math.h" />

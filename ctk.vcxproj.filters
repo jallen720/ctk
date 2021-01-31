@@ -30,13 +30,16 @@
     <ClInclude Include="ctkd.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="ctk_2.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="heap.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="memory.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ctk_new.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ctk_old.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
