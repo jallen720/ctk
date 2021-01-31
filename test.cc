@@ -7,10 +7,8 @@
 static void populate(CTK_Heap *heap, u32 *allocs, u32 num_allocs, void **output = NULL) {
     for (u32 i = 0; i < num_allocs; ++i) {
         void *alloc = ctk_alloc(heap, allocs[i]);
-
-        if (output) {
+        if (output)
             output[i] = alloc;
-        }
     }
 }
 
@@ -25,30 +23,29 @@ static void interactive() {
         _ctk_debug_heap(&heap);
         ctk_print("enter command: ");
 
-        if (gets_s(buf, BUF_SZ) == NULL) {
+        if (gets_s(buf, BUF_SZ) == NULL)
             continue;
-        }
 
         char *cmd = buf;
 
         if (*cmd == 'a') {
             char *arg = buf + 2;
             u32 alloc_size = strtoul(arg, NULL, 10);
-
             if (alloc_size > 0) {
                 ctk_print_line("allocationg %u bytes", alloc_size);
                 ctk_alloc(&heap, alloc_size);
             }
-        } else if (*cmd == 'f') {
+        }
+        else if (*cmd == 'f') {
             char *arg = buf + 2;
             u64 num = strtoull(arg, NULL, 16);
             auto mem_addr = (void *)num;
-
             if (mem_addr) {
                 ctk_print_line("freeing block %p", mem_addr);
                 ctk_free(&heap, mem_addr);
             }
-        } else if (*cmd == 'r') {
+        }
+        else if (*cmd == 'r') {
             char *args[2] = { buf + 2 };
 
             for (u32 i = 3; i < BUF_SZ; ++i) {
@@ -61,16 +58,17 @@ static void interactive() {
 
             if (args[1] == NULL) {
                 ctk_print_line("failed to parse second arg");
-            } else {
-                auto mem_addr = (void *)strtoull(args[0], NULL, 16);
+            }
+            else {
                 u32 realloc_size = strtoul(args[1], NULL, 10);
-
+                auto mem_addr = (void *)strtoull(args[0], NULL, 16);
                 if (mem_addr) {
                     ctk_print_line("reallocating block %p", mem_addr);
                     ctk_realloc(&heap, mem_addr, realloc_size);
                 }
             }
-        } else {
+        }
+        else {
             break;
         }
     }
@@ -184,20 +182,18 @@ static void leak_test() {
 
     while (1) {
         ctk_print("enter command: ");
-
-        if (gets_s(buf, BUF_SZ) == NULL) {
+        if (gets_s(buf, BUF_SZ) == NULL)
             continue;
-        }
 
         if (*buf == 's') {
-            if (allocated) {
+            if (allocated)
                 ctk_free(&heap);
-            } else {
+            else
                 heap = ctk_create_heap(100 * CTK_MEGABYTE);
-            }
 
             allocated = !allocated;
-        } else {
+        }
+        else {
             break;
         }
     }
