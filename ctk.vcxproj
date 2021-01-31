@@ -78,7 +78,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\joela\dev\libs\glm;..\;$(IncludePath)</IncludePath>
+    <IncludePath>$(dev_path)\lib\glm;$(dev_path)\pro;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -145,8 +145,11 @@
   <ItemGroup>
     <ClInclude Include="ctk.h" />
     <ClInclude Include="ctkd.h" />
+    <ClInclude Include="ctk_2.h" />
     <ClInclude Include="data.h" />
+    <ClInclude Include="heap.h" />
     <ClInclude Include="math.h" />
+    <ClInclude Include="memory.h" />
     <ClInclude Include="_data_debug.h" />
   </ItemGroup>
   <ItemGroup>
