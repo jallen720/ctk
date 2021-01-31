@@ -46,10 +46,7 @@ typedef char const *    cstr;
 
 #ifdef __GNUC__
     #define CTK_FATAL(MSG, ...) {\
-        ctk_print_line(CTK_ERROR_TAG CTK_ANSI_HIGHLIGHT("file", SKY) ": %s", __FILE__);\
-        ctk_print_line("       " CTK_ANSI_HIGHLIGHT("line", SKY) ": %i", __LINE__);\
-        ctk_print_line("       " CTK_ANSI_HIGHLIGHT("func", SKY) ": %s()", __FUNCTION__);\
-        ctk_print("       " CTK_ANSI_HIGHLIGHT("msg", SKY) ": ");\
+        ctk_print(CTK_ERROR_TAG);\
         ctk_print_line(MSG, ## __VA_ARGS__);\
         throw 0;\
     }
@@ -62,10 +59,7 @@ typedef char const *    cstr;
     }
 #else
     #define CTK_FATAL(MSG, ...) {\
-        ctk_print_line(CTK_ERROR_TAG CTK_ANSI_HIGHLIGHT("file", SKY) ": %s", __FILE__);\
-        ctk_print_line("       " CTK_ANSI_HIGHLIGHT("line", SKY) ": %i", __LINE__);\
-        ctk_print_line("       " CTK_ANSI_HIGHLIGHT("func", SKY) ": %s()", __FUNCTION__);\
-        ctk_print("       " CTK_ANSI_HIGHLIGHT("msg", SKY) ": ");\
+        ctk_print(CTK_ERROR_TAG);\
         ctk_print_line(MSG, __VA_ARGS__);\
         throw 0;\
     }
@@ -689,7 +683,7 @@ static void ctk_free(CTK_Pool<Type> *pool, void *mem) {
 /// Array
 ////////////////////////////////////////////////////////////
 
-// System Allocators
+// System Allocated Array
 template<typename Type>
 static CTK_Array<Type> ctk_create_array(u32 init_size, u32 chunk_size = 0) {
     CTK_ASSERT(init_size > 0);
@@ -709,24 +703,6 @@ static CTK_Array<Type> ctk_create_array_full(u32 init_size, u32 chunk_size = 0) 
     return array;
 }
 
-// Stack Allocators
-template<typename Type>
-static CTK_Array<Type> ctk_create_array(CTK_Stack *stack, u32 size) {
-    CTK_ASSERT(size > 0);
-    CTK_Array<Type> array = {};
-    array.data = ctk_push<Type>(stack, size);
-    array.size = size;
-    return array;
-}
-
-template<typename Type>
-static CTK_Array<Type> ctk_create_array_full(CTK_Stack *stack, u32 size) {
-    auto array = ctk_create_array<Type>(stack, size);
-    array.count = size;
-    return array;
-}
-
-// Interface
 template<typename Type>
 static void ctk_realloc(CTK_Array<Type> *array, u32 new_size) {
     CTK_ASSERT(new_size > 0);
@@ -758,6 +734,24 @@ static void _ctk_check_realloc(CTK_Array<Type> *array, u32 new_elem_count) {
     ctk_realloc(array, array->count + new_elem_count);
 }
 
+// Stack Allocated Array
+template<typename Type>
+static CTK_Array<Type> ctk_create_array(CTK_Stack *stack, u32 size) {
+    CTK_ASSERT(size > 0);
+    CTK_Array<Type> array = {};
+    array.data = ctk_push<Type>(stack, size);
+    array.size = size;
+    return array;
+}
+
+template<typename Type>
+static CTK_Array<Type> ctk_create_array_full(CTK_Stack *stack, u32 size) {
+    auto array = ctk_create_array<Type>(stack, size);
+    array.count = size;
+    return array;
+}
+
+// General Interface
 template<typename Type>
 static Type *ctk_push(CTK_Array<Type> *array, Type elem) {
     if (array->size == 0)
@@ -776,7 +770,7 @@ static Type *ctk_push(CTK_Array<Type> *array) {
 
 template<typename Type>
 static void ctk_concat(CTK_Array<Type> *array, Type const *elems, u32 elem_count) {
-    CTK_ASSERT(elems && elem_count > 0)
+    CTK_ASSERT(elems != NULL && elem_count > 0)
     if (array->size == 0)
         CTK_FATAL("pushing to unallocated array (size=0)");
 
@@ -1092,7 +1086,7 @@ static Type *ctk_get(CTK_StaticArray<Type, size> *array, u32 i) {
 
 template<typename Type, u32 size>
 Type &CTK_StaticArray<Type, size>::operator[](u32 i) {
-    CTK_ASSERT(i < this->size);
+    CTK_ASSERT(i < size);
     return this->data[i];
 }
 
