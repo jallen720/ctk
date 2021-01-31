@@ -18,8 +18,7 @@ struct CTK_Node {
         struct {
             CTK_Node *list;
             u32 count;
-        }
-        children;
+        } children;
     };
 };
 
@@ -496,15 +495,16 @@ static CTK_Array<_CTK_Token> _ctk_parse_tokens(CTK_String *string) {
         }
         else if (c == '"') {
             // STRING
+            u32 string_start_idx = metrics.base_idx + 1;
+            u32 str_char_idx = string_start_idx;
+
             _CTK_Token *t = ctk_push(&tokens);
             t->type = _CTK_TOKEN_TYPE_STRING;
             t->line = metrics.line;
             t->column = metrics.column;
-            u32 string_start = metrics.base_idx + 1;
-            t->char_range.data = string->data + string_start;
-            u32 str_char_idx = string_start;
-            bool next_char_escaped = false;
+            t->char_range.data = string->data + string_start_idx;
 
+            bool next_char_escaped = false;
             for (; str_char_idx < string->count; ++str_char_idx) {
                 char text_char = string->data[str_char_idx];
                 if (next_char_escaped) {
@@ -524,7 +524,7 @@ static CTK_Array<_CTK_Token> _ctk_parse_tokens(CTK_String *string) {
             if (str_char_idx >= string->count)
                 CTK_FATAL("reached end of file while parsing string: %.*s", t->char_range.size, t->char_range.data)
 
-            t->char_range.size = str_char_idx - 1 - string_start;
+            t->char_range.size = str_char_idx - 1 - string_start_idx;
             _ctk_increase_base_idx(&metrics, str_char_idx - metrics.base_idx);
         }
         else if (c == '#') {
