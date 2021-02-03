@@ -148,7 +148,7 @@
     <ClInclude Include="ctk_new.h" />
     <ClInclude Include="ctk_old.h" />
     <ClInclude Include="data.h" />
-    <ClInclude Include="heap.h" />
+    <ClInclude Include="free_list.h" />
     <ClInclude Include="math.h" />
     <ClInclude Include="memory.h" />
     <ClInclude Include="_data_debug.h" />

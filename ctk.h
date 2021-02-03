@@ -685,14 +685,19 @@ static void ctk_free(CTK_Pool<Type> *pool, void *mem) {
 
 // System Allocated Array
 template<typename Type>
-static CTK_Array<Type> ctk_create_array(u32 init_size, u32 chunk_size = 0) {
+static void ctk_alloc_array(CTK_Array<Type> *array, u32 init_size, u32 chunk_size = 0) {
     CTK_ASSERT(init_size > 0);
-    CTK_Array<Type> array = {};
     u32 total_init_size = ctk_total_chunk_size(init_size, chunk_size);
-    array.data = ctk_alloc<Type>(total_init_size);
-    array.size = total_init_size;
-    array.chunk_size = chunk_size;
-    array.freeable = true;
+    array->data = ctk_alloc<Type>(total_init_size);
+    array->size = total_init_size;
+    array->chunk_size = chunk_size;
+    array->freeable = true;
+}
+
+template<typename Type>
+static CTK_Array<Type> ctk_create_array(u32 init_size, u32 chunk_size = 0) {
+    CTK_Array<Type> array = {};
+    ctk_alloc_array(&array, init_size, chunk_size);
     return array;
 }
 
@@ -736,11 +741,16 @@ static void _ctk_check_realloc(CTK_Array<Type> *array, u32 new_elem_count) {
 
 // Stack Allocated Array
 template<typename Type>
-static CTK_Array<Type> ctk_create_array(CTK_Stack *stack, u32 size) {
+static void ctk_alloc_array(CTK_Array<Type> *array, CTK_Stack *stack, u32 size) {
     CTK_ASSERT(size > 0);
-    CTK_Array<Type> array = {};
     array.data = ctk_alloc<Type>(stack, size);
     array.size = size;
+}
+
+template<typename Type>
+static CTK_Array<Type> ctk_create_array(CTK_Stack *stack, u32 size) {
+    CTK_Array<Type> array = {};
+    ctk_alloc_array(&array, size);
     return array;
 }
 
