@@ -356,7 +356,7 @@ MigrationBackup/
 *.spv
 *.sublime-*
 *.blend1
-*.vimsession
+session.vim
 # test binary
 test
 *.swp
