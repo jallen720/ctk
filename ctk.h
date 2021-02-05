@@ -77,8 +77,7 @@ typedef char const *    cstr;
 #define CTK_NAME_VALUE_PAIR(VALUE) { #VALUE, VALUE }
 #define CTK_VALUE_NAME_PAIR(VALUE) { VALUE, #VALUE }
 #define CTK_REPEAT(COUNT) for (u32 _ = 0; _ < COUNT; ++_)
-#define CTK_RANGE(INDEX, START, LIMIT) for (u32 INDEX = start; INDEX < LIMIT; ++INDEX)
-#define CTK_EACH(TYPE, ITER, ARRAY) for (TYPE *ITER = ARRAY + 0; ITER < ARRAY.data + ARRAY.count; ++ITER)
+#define CTK_TO_CSTR(TEXT) #TEXT
 
 ////////////////////////////////////////////////////////////
 /// Data
@@ -125,6 +124,31 @@ struct CTK_Stack {
     u8 *mem;
     u32 size;
     u32 count;
+};
+
+struct alignas(CTK_CACHE_LINE) _CTK_BlockHeader {
+    u8 *mem;
+    u32 size;
+    bool free;
+    _CTK_BlockHeader *prev;
+    _CTK_BlockHeader *next;
+    _CTK_BlockHeader *prev_free;
+    _CTK_BlockHeader *next_free;
+};
+
+struct alignas(CTK_CACHE_LINE) _CTK_ChunkHeader {
+    u8 *mem;
+    u32 size;
+    _CTK_BlockHeader *block_list;
+    _CTK_ChunkHeader *next;
+};
+
+struct CTK_FreeList {
+    u32 chunk_size;
+    u32 num_chunks;
+    _CTK_ChunkHeader *chunk_list;
+    _CTK_BlockHeader *free_list;
+    _CTK_BlockHeader *largest_free;
 };
 
 template<typename Type>
@@ -740,6 +764,28 @@ static void _ctk_check_realloc(CTK_Array<Type> *array, u32 new_elem_count) {
 }
 
 // Stack Allocated Array
+template<typename Type>
+static void ctk_alloc_array(CTK_Array<Type> *array, CTK_Stack *stack, u32 size) {
+    CTK_ASSERT(size > 0);
+    array.data = ctk_alloc<Type>(stack, size);
+    array.size = size;
+}
+
+template<typename Type>
+static CTK_Array<Type> ctk_create_array(CTK_Stack *stack, u32 size) {
+    CTK_Array<Type> array = {};
+    ctk_alloc_array(&array, size);
+    return array;
+}
+
+template<typename Type>
+static CTK_Array<Type> ctk_create_array_full(CTK_Stack *stack, u32 size) {
+    auto array = ctk_create_array<Type>(stack, size);
+    array.count = size;
+    return array;
+}
+
+// FreeList Allocated Array
 template<typename Type>
 static void ctk_alloc_array(CTK_Array<Type> *array, CTK_Stack *stack, u32 size) {
     CTK_ASSERT(size > 0);

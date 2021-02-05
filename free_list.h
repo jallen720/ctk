@@ -2,31 +2,6 @@
 
 #include "ctk/ctk.h"
 
-struct alignas(CTK_CACHE_LINE) _CTK_BlockHeader {
-    u8 *mem;
-    u32 size;
-    bool free;
-    _CTK_BlockHeader *prev;
-    _CTK_BlockHeader *next;
-    _CTK_BlockHeader *prev_free;
-    _CTK_BlockHeader *next_free;
-};
-
-struct alignas(CTK_CACHE_LINE) _CTK_ChunkHeader {
-    u8 *mem;
-    u32 size;
-    _CTK_BlockHeader *block_list;
-    _CTK_ChunkHeader *next;
-};
-
-struct CTK_FreeList {
-    u32 chunk_size;
-    u32 num_chunks;
-    _CTK_ChunkHeader *chunk_list;
-    _CTK_BlockHeader *free_list;
-    _CTK_BlockHeader *largest_free;
-};
-
 static void _ctk_debug_block(u32 tab, _CTK_BlockHeader *block) {
     ctk_print/*_line*/(tab, "block %p:", block);ctk_print(" ");ctk_print_bits(block);ctk_print_line();
     ctk_print_line(tab + 1, "mem:       %p", block->mem);
