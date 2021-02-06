@@ -338,8 +338,8 @@ static CTK_Node *ctk_find(CTK_Node *parent, cstr search_str, Args... args) {
             ++term_index;
     }
 
-    // CTK_EACH(_CTK_SearchTerm, term, search_terms) {
-    //     if (term->type == _CTK_SEARCH_TERM_TYPE_KEY)
+    // for (u32 i = 0; i < search_terms.count; ++i) {
+    //     _CTK_SearchTerm *term = search_terms + i;
     //         ctk_print_line("<_CTK_SEARCH_TERM_TYPE_KEY> %.*s", term->key.size, term->key.data);
     //     else if (term->type == _CTK_SEARCH_TERM_TYPE_IDX)
     //         ctk_print_line("<_CTK_SEARCH_TERM_TYPE_IDX> %u", term->idx);
@@ -348,7 +348,8 @@ static CTK_Node *ctk_find(CTK_Node *parent, cstr search_str, Args... args) {
     // }
 
     CTK_Node *found = parent;
-    CTK_EACH(_CTK_SearchTerm, term, search_terms) {
+    for (u32 i = 0; i < search_terms.count; ++i) {
+        _CTK_SearchTerm *term = search_terms + i;
         if (term->type == _CTK_SEARCH_TERM_TYPE_IDX)
             found = ctk_get(found, term->idx);
         else
@@ -560,12 +561,17 @@ static CTK_Array<_CTK_Token> _ctk_parse_tokens(CTK_String *string) {
         }
     }
 
+    // Log Tokens
     u32 longest_token = 0;
-    CTK_EACH(_CTK_Token, t, tokens) {
+
+    for (u32 i = 0; i < tokens.count; ++i) {
+        _CTK_Token *t = tokens + i;
         if (t->char_range.size > longest_token)
             longest_token = t->char_range.size;
     }
-    CTK_EACH(_CTK_Token, t, tokens) {
+
+    for (u32 i = 0; i < tokens.count; ++i) {
+        _CTK_Token *t = tokens + i;
         cstr token_type_name = _ctk_token_type_name(t->type);
         ctk_print_line("%s %s |%.*s| %s(line=%u column=%u)",
                        _ctk_pad_remaining(12, strlen(token_type_name)), token_type_name,
