@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <ctime>
 #include "ctk/ctk.h"
-#include "ctk/free_list.h"
+#include "ctk/memory.h"
 #include "ctk/ctkd.h"
 
 static void populate(CTK_FreeList *free_list, u32 *allocs, u32 num_allocs, void **output = NULL) {
