@@ -52,6 +52,58 @@ static void ctk_visualize_stack(CTK_Stack *stack, cstr title = NULL) {
     free(buf);
 }
 
+static void _ctk_print_block(_CTK_BlockHeader *block, u32 tabs) {
+    ctk_print(tabs, "block %p - ", block);
+    ctk_print_bits(block);
+    ctk_print_line(":");
+    ctk_print_line(tabs + 1, "mem:       %p", block->mem);
+    ctk_print_line(tabs + 1, "size:      %u (total=%u)", block->size, block->size + sizeof(_CTK_BlockHeader));
+    ctk_print_line(tabs + 1, "free:      %s", block->free ? "true" : "false");
+    ctk_print_line(tabs + 1, "prev:      %p", block->prev);
+    ctk_print_line(tabs + 1, "next:      %p", block->next);
+    ctk_print_line(tabs + 1, "prev_free: %p", block->prev_free);
+    ctk_print_line(tabs + 1, "next_free: %p", block->next_free);
+}
+
+static void ctk_print_free_list(CTK_FreeList *free_list, cstr title = NULL, u32 tabs = 0) {
+    ctk_print_line(tabs, "%s:", title ? title : "free_list");
+    ctk_print_line(tabs + 1, "chunk_size: %u", free_list->chunk_size);
+    ctk_print_line(tabs + 1, "num_chunks: %u", free_list->num_chunks);
+    ctk_print_line(tabs + 1, "chunk_list:");
+    _CTK_ChunkHeader *chunk = free_list->chunk_list;
+
+    while (chunk) {
+        ctk_print(tabs + 2, "chunk %p - ", chunk);
+        ctk_print_bits(chunk);
+        ctk_print_line(":");
+        ctk_print_line(tabs + 3, "mem:       %p", chunk->mem);
+        ctk_print_line(tabs + 3, "size:      %u", chunk->size);
+        ctk_print_line(tabs + 3, "next:      %p", chunk->next);
+        ctk_print_line(tabs + 3, "block_list %p:", chunk->block_list);
+        _CTK_BlockHeader *block = chunk->block_list;
+
+        while (block) {
+            _ctk_print_block(block, tabs + 4);
+            block = block->next;
+        }
+
+        chunk = chunk->next;
+    }
+
+    ctk_print_line(tabs + 1, "free_list:");
+    _CTK_BlockHeader *free_block = free_list->free_list;
+
+    while (free_block) {
+        _ctk_print_block(free_block, tabs + 2);
+        free_block = free_block->next_free;
+    }
+
+    ctk_print_line(tabs + 1, "largest_free:");
+
+    if (free_list->largest_free)
+        _ctk_print_block(free_list->largest_free, tabs + 2);
+}
+
 ////////////////////////////////////////////////////////////
 /// System Memory
 ////////////////////////////////////////////////////////////
@@ -101,20 +153,16 @@ static Type *ctk_alloc(u32 count) {
     return (Type *)ctk_alloc(sizeof(Type) * count);
 }
 
-static void *ctk_realloc(void *mem, u32 old_size, u32 new_size) {
-    mem = realloc(mem, new_size);
+template<typename Type>
+static Type *ctk_realloc(Type *mem, u32 old_size, u32 new_size) {
+    mem = (Type *)realloc(mem, new_size * sizeof(Type));
     CTK_ASSERT(mem != NULL);
 
     // Zero newly allocated region.
     if (new_size > old_size)
-        memset((u8 *)mem + old_size, 0, new_size - old_size);
+        memset(mem + old_size, 0, (new_size - old_size) * sizeof(Type));
 
     return mem;
-}
-
-template<typename Type>
-static Type *ctk_realloc(Type *mem, u32 old_count, u32 new_count) {
-    return (Type *)ctk_realloc((void *)mem, sizeof(Type) * old_count, sizeof(Type) * new_count);
 }
 
 ////////////////////////////////////////////////////////////
@@ -157,56 +205,6 @@ static void ctk_end_region(CTK_Stack *stack, u32 region) {
 ////////////////////////////////////////////////////////////
 /// Free List
 ////////////////////////////////////////////////////////////
-static void _ctk_debug_block(u32 tab, _CTK_BlockHeader *block) {
-    ctk_print(tab, "block %p - ", block);
-    ctk_print_bits(block);
-    ctk_print_line(":");
-    ctk_print_line(tab + 1, "mem:       %p", block->mem);
-    ctk_print_line(tab + 1, "size:      %u (total=%u)", block->size, block->size + sizeof(_CTK_BlockHeader));
-    ctk_print_line(tab + 1, "free:      %s", block->free ? "true" : "false");
-    ctk_print_line(tab + 1, "prev:      %p", block->prev);
-    ctk_print_line(tab + 1, "next:      %p", block->next);
-    ctk_print_line(tab + 1, "prev_free: %p", block->prev_free);
-    ctk_print_line(tab + 1, "next_free: %p", block->next_free);
-}
-
-static void _ctk_debug_free_list(CTK_FreeList *free_list) {
-    ctk_print_line("free_list:");
-    ctk_print_line(1, "chunk_size: %u", free_list->chunk_size);
-    ctk_print_line(1, "num_chunks: %u", free_list->num_chunks);
-    ctk_print_line(1, "chunk_list:");
-    _CTK_ChunkHeader *chunk = free_list->chunk_list;
-
-    while (chunk) {
-        ctk_print/*_line*/(2, "chunk %p:", chunk);ctk_print(" ");ctk_print_bits(chunk);ctk_print_line();
-        ctk_print_line(3, "mem:       %p", chunk->mem);
-        ctk_print_line(3, "size:      %u", chunk->size);
-        ctk_print_line(3, "next:      %p", chunk->next);
-        ctk_print_line(3, "block_list %p:", chunk->block_list);
-        _CTK_BlockHeader *block = chunk->block_list;
-
-        while (block) {
-            _ctk_debug_block(4, block);
-            block = block->next;
-        }
-
-        chunk = chunk->next;
-    }
-
-    ctk_print_line(1, "free_list:");
-    _CTK_BlockHeader *free_block = free_list->free_list;
-
-    while (free_block) {
-        _ctk_debug_block(2, free_block);
-        free_block = free_block->next_free;
-    }
-
-    ctk_print_line(1, "largest_free:");
-
-    if (free_list->largest_free)
-        _ctk_debug_block(2, free_list->largest_free);
-}
-
 static void _ctk_push_free_block(CTK_FreeList *free_list, _CTK_BlockHeader *block) {
     // Find where to insert free block based on its size in ascending order.
     _CTK_BlockHeader *prev = NULL;
@@ -242,7 +240,7 @@ static void _ctk_push_free_block(CTK_FreeList *free_list, _CTK_BlockHeader *bloc
 static _CTK_ChunkHeader *_ctk_push_chunk(CTK_FreeList *free_list) {
     // Add new chunk to free-list.
     auto chunk = (_CTK_ChunkHeader *)ctk_alloc_aligned(free_list->chunk_size + sizeof(_CTK_ChunkHeader), CTK_CACHE_LINE);
-    CTK_ASSERT(chunk);
+    CTK_ASSERT(chunk != NULL);
     chunk->mem = (u8 *)(chunk + 1);
     chunk->size = free_list->chunk_size;
     chunk->next = free_list->chunk_list;
@@ -260,6 +258,7 @@ static _CTK_ChunkHeader *_ctk_push_chunk(CTK_FreeList *free_list) {
 }
 
 static CTK_FreeList ctk_create_free_list(u32 min_chunk_size) {
+
     CTK_FreeList free_list = {};
     free_list.chunk_size = ctk_total_chunk_size(min_chunk_size, CTK_CACHE_LINE);
     free_list.chunk_list = _ctk_push_chunk(&free_list);
@@ -308,28 +307,29 @@ static _CTK_BlockHeader *_ctk_shrink_allocated_block(CTK_FreeList *free_list, _C
 
 static void *ctk_alloc(CTK_FreeList *free_list, u32 min_size) {
     // Blocks are aligned with cache-lines, so the effective size of an allocation is in intervals of cache-lines.
-    u32 size = ctk_total_chunk_size(min_size, CTK_CACHE_LINE);
+    u32 total_size = ctk_total_chunk_size(min_size, CTK_CACHE_LINE);
 
     // If a large enough free block doesn't exist, allocate a new chunk to ensure a large enough block is available.
-    if (!free_list->largest_free || size > free_list->largest_free->size)
+    if (!free_list->largest_free || total_size > free_list->largest_free->size)
         _ctk_push_chunk(free_list);
 
     // Find first free block large enough to hold allocation.
     _CTK_BlockHeader *selected_block = free_list->free_list;
 
     while (selected_block) {
-        if (selected_block->size >= size)
+        if (selected_block->size >= total_size)
             break;
 
         selected_block = selected_block->next_free;
     }
 
-    CTK_ASSERT(selected_block);
+    if (selected_block == NULL)
+        CTK_FATAL("failed to find block in free-list large enough for allocation of size %u", min_size);
 
     // Allocate block by removing it from free list and shrinking it to be atleast the requested size, as well as
     // creating a new free block after it if there is sufficient space.
     _ctk_remove_free_block(free_list, selected_block);
-    _ctk_shrink_allocated_block(free_list, selected_block, size);
+    _ctk_shrink_allocated_block(free_list, selected_block, total_size);
 
     return selected_block->mem;
 }
@@ -393,22 +393,6 @@ static _CTK_BlockHeader *_ctk_merge_free_neighbors(CTK_FreeList *free_list, _CTK
     return resulting_freed_block;
 }
 
-// static void *ctk_realloc(CTK_FreeList *free_list, void *mem, u32 min_new_size) {
-//     u32 new_size = ctk_total_chunk_size(min_new_size, CTK_CACHE_LINE);
-//     _CTK_BlockHeader *block = _ctk_find_block(free_list, mem);
-
-//     if (new_size > block->size) {
-
-//     } else if (new_size < block->size) {
-//         _CTK_BlockHeader *free_block = _ctk_shrink_allocated_block(free_list, block, new_size);
-
-//         if (free_block)
-//             _ctk_merge_free_neighbors(free_list, free_block);
-//     }
-
-//     return block->mem;
-// }
-
 static void ctk_free(CTK_FreeList *free_list, void *mem) {
     _CTK_BlockHeader *block = _ctk_find_block(free_list, mem);
 
@@ -418,6 +402,12 @@ static void ctk_free(CTK_FreeList *free_list, void *mem) {
 
     // Push whatever block results from merging the freed block with its free neighbors.
     _ctk_push_free_block(free_list, block);
+}
+
+template<typename Type>
+static Type *ctk_realloc(CTK_FreeList *free_list, Type *mem, u32 new_size) {
+    ctk_free(free_list, mem);
+    return ctk_alloc<Type>(free_list, new_size);
 }
 
 static void ctk_free(CTK_FreeList *free_list) {

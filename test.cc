@@ -2,6 +2,7 @@
 #include <ctime>
 #include "ctk/ctk.h"
 #include "ctk/memory.h"
+#include "ctk/containers.h"
 #include "ctk/ctkd.h"
 
 static void populate(CTK_FreeList *free_list, u32 *allocs, u32 num_allocs, void **output = NULL) {
@@ -20,7 +21,7 @@ static void interactive() {
     // populate(&free_list, alloc_sizes, CTK_ARRAY_COUNT(alloc_sizes));
 
     while (1) {
-        _ctk_debug_free_list(&free_list);
+        ctk_print_free_list(&free_list);
         ctk_print("enter command: ");
 
         if (gets_s(buf, BUF_SZ) == NULL)
@@ -163,15 +164,15 @@ static void test_0() {
     u32 alloc_sizes[] = { 10, 20, 30, 40, 50, 60, 70 };
     void *allocs[CTK_ARRAY_COUNT(alloc_sizes)] = {};
     populate(&free_list, alloc_sizes, CTK_ARRAY_COUNT(alloc_sizes), allocs);
-    _ctk_debug_free_list(&free_list);
+    ctk_print_free_list(&free_list);
 //  allocs[0] = ctk_alloc(&free_list, 10);
-//  _ctk_debug_free_list(&free_list);
+//  ctk_print_free_list(&free_list);
 //  ctk_free(&free_list, allocs[0]);
-//  _ctk_debug_free_list(&free_list);
+//  ctk_print_free_list(&free_list);
 //  allocs[0] = ctk_alloc(&free_list, 10);
-//  _ctk_debug_free_list(&free_list);
+//  ctk_print_free_list(&free_list);
 //  ctk_free(&free_list, allocs[0]);
-//  _ctk_debug_free_list(&free_list);
+//  ctk_print_free_list(&free_list);
 }
 
 static void leak_test() {
@@ -212,23 +213,29 @@ static void print_node(CTK_Node *n, u32 tab = 0) {
 }
 
 static void print_char_array(CTK_Array<char> *a, u32 tab = 0) {
-    ctk_print("\n");
-    ctk_visualize_string(a->data, a->size);
+    ctk_print_line();
+    ctk_visualize_string(a->data.mem, a->data.size);
     ctk_print_array(a);
 }
 
-s32 main() {
-    free_list_tests();
-    // CTK_Node *config = ctk_read("data/config.ctkd");
-    // CTK_String output = ctk_create_string(CTK_KILOBYTE, CTK_KILOBYTE);
-    // ctk_print_node_children(&output, config);
-    // ctk_print("%.*s", output.size, output.data);
-    // ctk_push_f32(config, "test", 12.34f);
-    // ctk_clear(&output);
-    // ctk_print_node_children(&output, config);
-    // ctk_print("%.*s", output.size, output.data);
-    // cstr search = "test";
-    // ctk_print("%s %s", search, ctk_find(config, search)->value.data);
+static void print_block(CTK_Block<u32> *b) {
+    ctk_print_line();
+    for (u32 i = 0; i < b->size; ++i)
+        ctk_print("%u ", b->mem[i]);
+    ctk_print_line();
+}
 
+s32 main() {
+    CTK_FreeList s = ctk_create_free_list(65);
+    ctk_print_free_list(&s);
+    auto a = ctk_create_string(&s, "tes", 4);
+    print_char_array(&a);
+    ctk_print_free_list(&s);
+    ctk_push(&a, 't');
+    print_char_array(&a);
+    ctk_print_free_list(&s);
+    ctk_concat(&a, "fuc");
+    print_char_array(&a);
+    ctk_print_free_list(&s);
     return 0;
 }

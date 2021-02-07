@@ -93,7 +93,7 @@ static void _ctk_debug_node(CTK_Node *n, u32 tabs = 0) {
 
 static void ctk_print_node(CTK_Node *n, u32 tabs = 0) {
     ctk_print_tabs(tabs);
-    if (n->key.data)
+    if (n->key.data.mem)
         ctk_print("%s: ", n->key.data);
 
     if (n->type == _CTK_NODE_TYPE_SCALAR) {
@@ -126,7 +126,7 @@ static void ctk_print_node_children(CTK_String *buf, CTK_Node *n, u32 tabs = 0) 
 
 static void ctk_print_node(CTK_String *buf, CTK_Node *n, u32 tabs) {
     ctk_print_tabs(buf, tabs);
-    if (n->key.data)
+    if (n->key.data.mem)
         ctk_print(buf, "%s: ", n->key.data);
 
     if (n->type == _CTK_NODE_TYPE_SCALAR) {
@@ -319,7 +319,7 @@ static CTK_Node *ctk_find(CTK_Node *parent, cstr search_str, Args... args) {
             _CTK_SearchTerm *st = ctk_push(&search_terms);
             st->type = _CTK_SEARCH_TERM_TYPE_IDX;
             st->idx = strtoul(search + term_index, &end, 10);
-            term_index = end - search.data + 1;
+            term_index = end - search.data.mem + 1;
         }
         else {
             _CTK_SearchTerm *st = ctk_push(&search_terms);
@@ -594,10 +594,10 @@ static void _ctk_token_type_error(_CTK_Token *t, cstr msg) {
 }
 
 static void _ctk_process_struct_child_tokens(CTK_Node *parent, CTK_Array<_CTK_Token> *tokens, u32 *idx) {
-    while (*idx < tokens->count && ctk_get(tokens, *idx)->type != _CTK_TOKEN_TYPE_STRUCT_CLOSE) {
-        _CTK_Token *key = ctk_get(tokens, *idx);
+    while (*idx < tokens->count && tokens->data[*idx].type != _CTK_TOKEN_TYPE_STRUCT_CLOSE) {
+        _CTK_Token *key = &tokens->data[*idx];
         CTK_ASSERT(key->type == _CTK_TOKEN_TYPE_TEXT);
-        _CTK_Token *value = ctk_get(tokens, ++(*idx));
+        _CTK_Token *value = &tokens->data[++(*idx)];
         ++(*idx);
 
         if (value->type == _CTK_TOKEN_TYPE_STRING || value->type == _CTK_TOKEN_TYPE_TEXT) {
@@ -619,8 +619,8 @@ static void _ctk_process_struct_child_tokens(CTK_Node *parent, CTK_Array<_CTK_To
 }
 
 static void _ctk_process_array_child_tokens(CTK_Node *parent, CTK_Array<_CTK_Token> *tokens, u32 *idx) {
-    while (*idx < tokens->count && ctk_get(tokens, *idx)->type != _CTK_TOKEN_TYPE_ARRAY_CLOSE) {
-        _CTK_Token *value = ctk_get(tokens, *idx);
+    while (*idx < tokens->count && tokens->data[*idx].type != _CTK_TOKEN_TYPE_ARRAY_CLOSE) {
+        _CTK_Token *value = &tokens->data[*idx];
         ++(*idx);
 
         if (value->type == _CTK_TOKEN_TYPE_STRING || value->type == _CTK_TOKEN_TYPE_TEXT) {
@@ -644,7 +644,7 @@ static void _ctk_process_array_child_tokens(CTK_Node *parent, CTK_Array<_CTK_Tok
 static CTK_Node *ctk_read(cstr path) {
     CTK_String file_str = ctk_read_file<char>(path);
     ctk_print_line("%s:", path);
-    ctk_visualize_string(file_str.data, file_str.size, false);
+    ctk_visualize_string(&file_str, false);
     CTK_Array<_CTK_Token> tokens = _ctk_parse_tokens(&file_str);
     CTK_Node *root = ctk_create_root_node();
     u32 idx = 0;
