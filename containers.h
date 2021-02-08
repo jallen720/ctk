@@ -211,9 +211,6 @@ static Type *operator+(CTK_Block<Type> &block, u32 i) {
 ////////////////////////////////////////////////////////////
 template<typename Type>
 static CTK_Pool<Type> ctk_create_pool(u32 chunk_size) {
-    if (sizeof(Type) < sizeof(void *))
-        CTK_FATAL("size of Type for CTK_Pool must be >= 8");
-
     return { NULL, chunk_size };
 }
 

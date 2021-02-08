@@ -52,7 +52,7 @@ static void ctk_visualize_stack(CTK_Stack *stack, cstr title = NULL) {
     free(buf);
 }
 
-static void _ctk_print_block(_CTK_BlockHeader *block, u32 tabs) {
+static void ctk_print_block(_CTK_BlockHeader *block, u32 tabs) {
     ctk_print(tabs, "block %p - ", block);
     ctk_print_bits(block);
     ctk_print_line(":");
@@ -83,7 +83,7 @@ static void ctk_print_free_list(CTK_FreeList *free_list, cstr title = NULL, u32 
         _CTK_BlockHeader *block = chunk->block_list;
 
         while (block) {
-            _ctk_print_block(block, tabs + 4);
+            ctk_print_block(block, tabs + 4);
             block = block->next;
         }
 
@@ -94,14 +94,14 @@ static void ctk_print_free_list(CTK_FreeList *free_list, cstr title = NULL, u32 
     _CTK_BlockHeader *free_block = free_list->free_list;
 
     while (free_block) {
-        _ctk_print_block(free_block, tabs + 2);
+        ctk_print_block(free_block, tabs + 2);
         free_block = free_block->next_free;
     }
 
     ctk_print_line(tabs + 1, "largest_free:");
 
     if (free_list->largest_free)
-        _ctk_print_block(free_list->largest_free, tabs + 2);
+        ctk_print_block(free_list->largest_free, tabs + 2);
 }
 
 ////////////////////////////////////////////////////////////
