@@ -262,7 +262,7 @@ CTK_Optional<Type> &CTK_Optional<Type>::operator=(Type val) {
 /// Pair
 ////////////////////////////////////////////////////////////
 template<typename Key, typename Value>
-static Value ctk_find_value(Key key, CTK_Pair<Key, Value> *pairs, u32 pair_count) {
+static Value ctk_find_value(CTK_Pair<Key, Value> const *pairs, u32 pair_count, Key key) {
     for (u32 i = 0; i < pair_count; ++i)
         if (pairs[i].key == key)
             return pairs[i].value;
@@ -271,7 +271,7 @@ static Value ctk_find_value(Key key, CTK_Pair<Key, Value> *pairs, u32 pair_count
 }
 
 template<typename Key, typename Value>
-static Value ctk_get_value(Key key, CTK_Pair<Key, Value> *pairs, u32 pair_count) {
+static Value ctk_get_value(CTK_Pair<Key, Value> const *pairs, u32 pair_count, Key key) {
     Value res = ctk_find_value(key, pairs, pair_count);
     if (res == NULL)
         CTK_FATAL("failed to get value from pairs by key");
@@ -279,7 +279,7 @@ static Value ctk_get_value(Key key, CTK_Pair<Key, Value> *pairs, u32 pair_count)
 }
 
 template<typename Key, typename Value>
-static Key ctk_find_key(Value value, CTK_Pair<Key, Value> *pairs, u32 pair_count) {
+static Key ctk_find_key(CTK_Pair<Key, Value> const *pairs, u32 pair_count, Value value) {
     for (u32 i = 0; i < pair_count; ++i)
         if (pairs[i].value == value)
             return pairs[i].key;
@@ -288,7 +288,7 @@ static Key ctk_find_key(Value value, CTK_Pair<Key, Value> *pairs, u32 pair_count
 }
 
 template<typename Key, typename Value>
-static Key ctk_get_key(Value value, CTK_Pair<Key, Value> *pairs, u32 pair_count) {
+static Key ctk_get_key(CTK_Pair<Key, Value> const *pairs, u32 pair_count, Value value) {
     Key res = ctk_find_key(value, pairs, pair_count);
     if (res == NULL)
         CTK_FATAL("failed to get key from pairs by value");

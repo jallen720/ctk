@@ -93,6 +93,15 @@ static void ctk_visualize_string(CTK_String *str, bool uniform_spacing = true) {
     ctk_visualize_string(str->data, str->size, uniform_spacing);
 }
 
+static cstr ctk_allocator_name(s32 allocator) {
+    static CTK_Pair<s32, cstr> const ALLOCATOR_NAMES[] = {
+        CTK_VALUE_NAME_PAIR(CTK_ALLOCATOR_SYSTEM),
+        CTK_VALUE_NAME_PAIR(CTK_ALLOCATOR_STACK),
+        CTK_VALUE_NAME_PAIR(CTK_ALLOCATOR_FREE_LIST),
+    };
+    return ctk_find_value(ALLOCATOR_NAMES, CTK_ARRAY_COUNT(ALLOCATOR_NAMES), allocator);
+}
+
 template<typename Type>
 static void ctk_print_array(CTK_Array<Type> *array, cstr title = NULL, u32 tabs = 0) {
     ctk_print(tabs, "%s:\n", title ? title : "array");
@@ -101,11 +110,7 @@ static void ctk_print_array(CTK_Array<Type> *array, cstr title = NULL, u32 tabs 
     ctk_print(tabs + 1, "chunk_size: %u\n", array->chunk_size);
     ctk_print(tabs + 1, "count:      %u\n", array->count);
     ctk_print(tabs + 1, "free_list:  %p\n", array->free_list);
-    ctk_print(tabs + 1, "allocator:  %s\n",
-              array->allocator == CTK_ALLOCATOR_SYSTEM    ? "CTK_ALLOCATOR_SYSTEM" :
-              array->allocator == CTK_ALLOCATOR_STACK     ? "CTK_ALLOCATOR_STACK" :
-              array->allocator == CTK_ALLOCATOR_FREE_LIST ? "CTK_ALLOCATOR_FREE_LIST" :
-                                                            "unknown");
+    ctk_print(tabs + 1, "allocator:  %s\n", ctk_allocator_name(array->allocator));
 }
 
 ////////////////////////////////////////////////////////////

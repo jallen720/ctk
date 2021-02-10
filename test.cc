@@ -217,16 +217,13 @@ static void print_char_array(CTK_Array<char> *a, u32 tab = 0) {
 }
 
 s32 main() {
-    CTK_FreeList s = ctk_create_free_list(65);
-    ctk_print_free_list(&s);
-    auto a = ctk_create_string(&s, "tes", 4);
+    CTK_Stack s = ctk_create_stack(65);
+    auto a = ctk_create_string(&s, 5);
+    ctk_concat(&a, "tes");
     print_char_array(&a);
-    ctk_print_free_list(&s);
     ctk_push(&a, 't');
     print_char_array(&a);
-    ctk_print_free_list(&s);
     ctk_concat(&a, "fuc");
     print_char_array(&a);
-    ctk_print_free_list(&s);
     return 0;
 }
