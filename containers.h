@@ -15,20 +15,6 @@ enum {
 };
 
 template<typename Type>
-struct CTK_Block {
-    Type *mem;
-    u64 size;
-    u32 chunk_size;
-    s32 allocator;
-
-    // CTK_FreeList is the only allocator we have to keep track of after allocation. CTK_Stack can't be freed from, and
-    // system allocations are global.
-    CTK_FreeList *free_list;
-
-    Type &operator[](u32 i);
-};
-
-template<typename Type>
 union _CTK_PoolNode {
     Type element;
     _CTK_PoolNode *next;
@@ -42,8 +28,17 @@ struct CTK_Pool {
 
 template<typename Type>
 struct CTK_Array {
-    CTK_Block<Type> data;
+    Type *data;
+    u32 size;
+    u32 chunk_size;
+
     u32 count;
+    s32 allocator;
+
+    // CTK_FreeList is the only allocator we have to keep track of after allocation. CTK_Stack can't be freed from, and
+    // system allocations are global.
+    CTK_FreeList *free_list;
+
     Type &operator[](u32 i);
 };
 
@@ -95,115 +90,22 @@ static void ctk_visualize_string(cstr str, u32 size, bool uniform_spacing = true
 }
 
 static void ctk_visualize_string(CTK_String *str, bool uniform_spacing = true) {
-    ctk_visualize_string(str->data.mem, str->data.size, uniform_spacing);
-}
-
-template<typename Type>
-static void ctk_print_block(CTK_Block<Type> *block, cstr title = NULL, u32 tabs = 0) {
-    ctk_print(tabs, "%s:\n", title ? title : "block");
-    ctk_print(tabs + 1, "mem:        %p\n", block->mem);
-    ctk_print(tabs + 1, "size:       %u\n", block->size);
-    ctk_print(tabs + 1, "chunk_size: %u\n", block->chunk_size);
-    ctk_print(tabs + 1, "free_list:  %p\n", block->free_list);
-    ctk_print(tabs + 1, "allocator:  %s\n",
-              block->allocator == CTK_ALLOCATOR_SYSTEM    ? "CTK_ALLOCATOR_SYSTEM" :
-              block->allocator == CTK_ALLOCATOR_STACK     ? "CTK_ALLOCATOR_STACK" :
-              block->allocator == CTK_ALLOCATOR_FREE_LIST ? "CTK_ALLOCATOR_FREE_LIST" :
-                                                            "unknown");
+    ctk_visualize_string(str->data, str->size, uniform_spacing);
 }
 
 template<typename Type>
 static void ctk_print_array(CTK_Array<Type> *array, cstr title = NULL, u32 tabs = 0) {
     ctk_print(tabs, "%s:\n", title ? title : "array");
-    ctk_print(tabs + 1, "count: %u\n", array->count);
-    ctk_print_block(&array->data, "data", tabs + 1);
-}
-
-////////////////////////////////////////////////////////////
-/// Block
-////////////////////////////////////////////////////////////
-template<typename Type>
-static CTK_Block<Type> ctk_alloc_block(u32 size, u32 chunk_size = 0) {
-    CTK_ASSERT(size > 0);
-    u32 total_init_size = chunk_size ? ctk_total_chunk_size(size, chunk_size) : size;
-
-    CTK_Block<Type> block = {};
-    block.mem = ctk_alloc<Type>(total_init_size);
-    block.size = total_init_size;
-    block.chunk_size = chunk_size;
-    block.allocator = CTK_ALLOCATOR_SYSTEM;
-
-    return block;
-}
-
-template<typename Type>
-static CTK_Block<Type> ctk_alloc_block(CTK_Stack *stack, u32 size) {
-    CTK_ASSERT(size > 0);
-
-    CTK_Block<Type> block = {};
-    block.mem = ctk_alloc<Type>(stack, size);
-    block.size = size;
-    block.allocator = CTK_ALLOCATOR_STACK;
-
-    return block;
-}
-
-template<typename Type>
-static CTK_Block<Type> ctk_alloc_block(CTK_FreeList *free_list, u32 size, u32 chunk_size = 0) {
-    CTK_ASSERT(size > 0);
-    u32 total_init_size = chunk_size ? ctk_total_chunk_size(size, chunk_size) : size;
-
-    CTK_Block<Type> block = {};
-    block.mem = ctk_alloc<Type>(free_list, total_init_size);
-    block.size = total_init_size;
-    block.chunk_size = chunk_size;
-    block.allocator = CTK_ALLOCATOR_FREE_LIST;
-    block.free_list = free_list;
-
-    return block;
-}
-
-template<typename Type>
-static void ctk_realloc_block(CTK_Block<Type> *block, u32 new_size) {
-    CTK_ASSERT(new_size > 0);
-
-    if (block->chunk_size == 0)
-        CTK_FATAL("can't realloc CTK_Block where chunk_size == 0");
-
-    u32 total_realloc_size = ctk_total_chunk_size(new_size, block->chunk_size);
-    if (block->allocator == CTK_ALLOCATOR_SYSTEM) {
-        block->mem = ctk_realloc(block->mem, block->size, total_realloc_size);
-        block->size = total_realloc_size;
-    }
-    else if (block->allocator == CTK_ALLOCATOR_FREE_LIST) {
-        block->mem = ctk_realloc<Type>(block->free_list, block->mem, total_realloc_size);
-        block->size = total_realloc_size;
-    }
-    else if (block->allocator == CTK_ALLOCATOR_STACK) {
-        CTK_FATAL("can't realloc CTK_Block allocated from CTK_Stack");
-    }
-}
-
-template<typename Type>
-static void ctk_free_block(CTK_Block<Type> *block) {
-    if (block->allocator == CTK_ALLOCATOR_SYSTEM)
-        free(block->mem);
-    else if (block->allocator == CTK_ALLOCATOR_FREE_LIST)
-        ctk_free(block->free_list, block->mem);
-    else if (block->allocator == CTK_ALLOCATOR_STACK)
-        CTK_FATAL("can't free CTK_Block allocated from CTK_Stack");
-}
-
-template<typename Type>
-Type &CTK_Block<Type>::operator[](u32 i) {
-    CTK_ASSERT(i < this->size);
-    return this->mem[i];
-}
-
-template<typename Type>
-static Type *operator+(CTK_Block<Type> &block, u32 i) {
-    CTK_ASSERT(i < block.size);
-    return block.mem + i;
+    ctk_print(tabs + 1, "data:       %p\n", array->data);
+    ctk_print(tabs + 1, "size:       %u\n", array->size);
+    ctk_print(tabs + 1, "chunk_size: %u\n", array->chunk_size);
+    ctk_print(tabs + 1, "count:      %u\n", array->count);
+    ctk_print(tabs + 1, "free_list:  %p\n", array->free_list);
+    ctk_print(tabs + 1, "allocator:  %s\n",
+              array->allocator == CTK_ALLOCATOR_SYSTEM    ? "CTK_ALLOCATOR_SYSTEM" :
+              array->allocator == CTK_ALLOCATOR_STACK     ? "CTK_ALLOCATOR_STACK" :
+              array->allocator == CTK_ALLOCATOR_FREE_LIST ? "CTK_ALLOCATOR_FREE_LIST" :
+                                                            "unknown");
 }
 
 ////////////////////////////////////////////////////////////
@@ -244,23 +146,35 @@ static void ctk_free(CTK_Pool<Type> *pool, void *mem) {
 // System Allocated
 template<typename Type>
 static CTK_Array<Type> ctk_create_array(u32 init_size, u32 chunk_size = 0) {
+    CTK_ASSERT(init_size > 0);
+    u32 total_init_size = chunk_size ? ctk_total_chunk_size(init_size, chunk_size) : init_size;
+
     CTK_Array<Type> array = {};
-    array.data = ctk_alloc_block<Type>(init_size, chunk_size);
+    array.data = ctk_alloc<Type>(total_init_size);
+    array.size = total_init_size;
+    array.chunk_size = chunk_size;
+    array.allocator = CTK_ALLOCATOR_SYSTEM;
+
     return array;
 }
 
 template<typename Type>
 static CTK_Array<Type> ctk_create_array_full(u32 init_size, u32 chunk_size = 0) {
     auto array = ctk_create_array<Type>(init_size, chunk_size);
-    array.count = array.data.size;
+    array.count = array.size;
     return array;
 }
 
 // Stack Allocated
 template<typename Type>
 static CTK_Array<Type> ctk_create_array(CTK_Stack *stack, u32 size) {
+    CTK_ASSERT(size > 0);
+
     CTK_Array<Type> array = {};
-    array.data = ctk_alloc_block<Type>(stack, size);
+    array.data = ctk_alloc<Type>(stack, size);
+    array.size = size;
+    array.allocator = CTK_ALLOCATOR_STACK;
+
     return array;
 }
 
@@ -274,8 +188,16 @@ static CTK_Array<Type> ctk_create_array_full(CTK_Stack *stack, u32 size) {
 // Free List Allocated
 template<typename Type>
 static CTK_Array<Type> ctk_create_array(CTK_FreeList *free_list, u32 init_size, u32 chunk_size = 0) {
+    CTK_ASSERT(init_size > 0);
+    u32 total_init_size = chunk_size ? ctk_total_chunk_size(init_size, chunk_size) : init_size;
+
     CTK_Array<Type> array = {};
-    array.data = ctk_alloc_block<Type>(free_list, init_size, chunk_size);
+    array.data = ctk_alloc<Type>(free_list, total_init_size);
+    array.size = total_init_size;
+    array.chunk_size = chunk_size;
+    array.allocator = CTK_ALLOCATOR_FREE_LIST;
+    array.free_list = free_list;
+
     return array;
 }
 
@@ -289,31 +211,53 @@ static CTK_Array<Type> ctk_create_array_full(CTK_FreeList *free_list, u32 init_s
 // Interface
 template<typename Type>
 static void ctk_resize(CTK_Array<Type> *array, u32 new_size) {
-    ctk_realloc_block(&array->data, new_size);
+    CTK_ASSERT(new_size > 0);
+
+    if (array->chunk_size == 0)
+        CTK_FATAL("can't realloc CTK_Array where chunk_size == 0");
+
+    u32 total_realloc_size = ctk_total_chunk_size(new_size, array->chunk_size);
+    if (array->allocator == CTK_ALLOCATOR_SYSTEM) {
+        array->data = ctk_realloc(array->data, array->size, total_realloc_size);
+        array->size = total_realloc_size;
+    }
+    else if (array->allocator == CTK_ALLOCATOR_FREE_LIST) {
+        CTK_TODO("template???");
+        array->data = ctk_realloc<Type>(array->free_list, array->data, total_realloc_size);
+        array->size = total_realloc_size;
+    }
+    else if (array->allocator == CTK_ALLOCATOR_STACK) {
+        CTK_FATAL("can't realloc CTK_Array allocated from CTK_Stack");
+    }
 }
 
 template<typename Type>
 static void ctk_free(CTK_Array<Type> *array) {
-    ctk_free_block(&array->data);
+    if (array->allocator == CTK_ALLOCATOR_SYSTEM)
+        free(array->data);
+    else if (array->allocator == CTK_ALLOCATOR_FREE_LIST)
+        ctk_free(array->free_list, array->data);
+    else if (array->allocator == CTK_ALLOCATOR_STACK)
+        CTK_FATAL("can't free CTK_Array allocated from CTK_Stack");
 }
 
 template<typename Type>
 static void _ctk_resize_if_needed(CTK_Array<Type> *array, u32 elem_count) {
-    if (array->count + elem_count <= array->data.size)
+    if (array->count + elem_count <= array->size)
         return;
 
-    if (array->data.allocator == CTK_ALLOCATOR_STACK)
-        CTK_FATAL("can't resize array allocated from CTK_Stack");
+    if (array->allocator == CTK_ALLOCATOR_STACK)
+        CTK_FATAL("can't resize CTK_Array allocated from CTK_Stack");
 
-    if (array->data.chunk_size == 0)
-        CTK_FATAL("can't resize array where it's block's chunk_size == 0");
+    if (array->chunk_size == 0)
+        CTK_FATAL("can't resize CTK_Array where chunk_size == 0");
 
     ctk_resize(array, array->count + elem_count);
 }
 
 template<typename Type>
 static Type *ctk_push(CTK_Array<Type> *array, Type elem) {
-    if (array->data.size == 0)
+    if (array->size == 0)
         CTK_FATAL("pushing to unallocated array (size=0)");
 
     _ctk_resize_if_needed(array, 1);
@@ -330,7 +274,7 @@ static Type *ctk_push(CTK_Array<Type> *array) {
 template<typename Type>
 static void ctk_concat(CTK_Array<Type> *array, Type const *elems, u32 elem_count) {
     CTK_ASSERT(elems != NULL && elem_count > 0)
-    if (array->data.size == 0)
+    if (array->size == 0)
         CTK_FATAL("pushing to unallocated array (size=0)");
 
     _ctk_resize_if_needed(array, elem_count);
@@ -350,7 +294,7 @@ static void ctk_clear(CTK_Array<Type> *array) {
 
 template<typename Type>
 static u32 ctk_byte_size(CTK_Array<Type> *array) {
-    return array->data.size * sizeof(Type);
+    return array->size * sizeof(Type);
 }
 
 template<typename Type>
@@ -360,13 +304,13 @@ static u32 ctk_byte_count(CTK_Array<Type> *array) {
 
 template<typename Type>
 Type &CTK_Array<Type>::operator[](u32 i) {
-    CTK_ASSERT(i < this->data.size);
+    CTK_ASSERT(i < this->size);
     return this->data[i];
 }
 
 template<typename Type>
 static Type *operator+(CTK_Array<Type> &array, u32 i) {
-    CTK_ASSERT(i < array.data.size);
+    CTK_ASSERT(i < array.size);
     return array.data + i;
 }
 
@@ -452,7 +396,7 @@ static void ctk_print(CTK_String *str, u32 tabs, cstr msg, Args... args) {
 }
 
 static char *ctk_push(CTK_String *string, char c) {
-    if (string->data.size == 0)
+    if (string->size == 0)
         CTK_FATAL("pushing to unallocated string (size=0)");
 
     _ctk_resize_string_if_needed(string, 1);
@@ -467,7 +411,7 @@ static char *ctk_push(CTK_String *string) {
 
 static void ctk_concat(CTK_String *string, CTK_CharRange char_range) {
     CTK_ASSERT(char_range.data != NULL && char_range.size > 0);
-    if (string->data.size == 0)
+    if (string->size == 0)
         CTK_FATAL("pushing to unallocated string (size=0)");
 
     _ctk_resize_string_if_needed(string, char_range.size);
@@ -482,11 +426,11 @@ static void ctk_concat(CTK_String *string, cstr other) {
 
 static void ctk_concat(CTK_String *string, CTK_String *other) {
     CTK_ASSERT(other != NULL);
-    ctk_concat(string, { other->data.mem, other->count });
+    ctk_concat(string, { other->data, other->count });
 }
 
 static bool ctk_strings_match(cstr a, CTK_String *b) {
-    return ctk_strings_match(a, strlen(a), b->data.mem, b->count);
+    return ctk_strings_match(a, strlen(a), b->data, b->count);
 }
 
 static bool ctk_strings_match(cstr a, CTK_CharRange b) {
@@ -494,15 +438,15 @@ static bool ctk_strings_match(cstr a, CTK_CharRange b) {
 }
 
 static bool ctk_strings_match(CTK_String *a, cstr b) {
-    return ctk_strings_match(a->data.mem, a->count, b, strlen(b));
+    return ctk_strings_match(a->data, a->count, b, strlen(b));
 }
 
 static bool ctk_strings_match(CTK_String *a, CTK_String *b) {
-    return ctk_strings_match(a->data.mem, a->count, b->data.mem, b->count);
+    return ctk_strings_match(a->data, a->count, b->data, b->count);
 }
 
 static bool ctk_strings_match(CTK_String *a, CTK_CharRange b) {
-    return ctk_strings_match(a->data.mem, a->count, b.data, b.size);
+    return ctk_strings_match(a->data, a->count, b.data, b.size);
 }
 
 static bool ctk_strings_match(CTK_CharRange a, cstr b) {
@@ -510,7 +454,7 @@ static bool ctk_strings_match(CTK_CharRange a, cstr b) {
 }
 
 static bool ctk_strings_match(CTK_CharRange a, CTK_String *b) {
-    return ctk_strings_match(a.data, a.size, b->data.mem, b->count);
+    return ctk_strings_match(a.data, a.size, b->data, b->count);
 }
 
 static bool ctk_strings_match(CTK_CharRange a, CTK_CharRange b) {
@@ -518,27 +462,27 @@ static bool ctk_strings_match(CTK_CharRange a, CTK_CharRange b) {
 }
 
 static f32 ctk_f32(CTK_String *s) {
-    return strtof(s->data.mem, NULL);
+    return strtof(s->data, NULL);
 }
 
 static f32 ctk_f64(CTK_String *s) {
-    return strtod(s->data.mem, NULL);
+    return strtod(s->data, NULL);
 }
 
 static s32 ctk_s32(CTK_String *s) {
-    return strtol(s->data.mem, NULL, 10);
+    return strtol(s->data, NULL, 10);
 }
 
 static s32 ctk_s64(CTK_String *s) {
-    return strtoll(s->data.mem, NULL, 10);
+    return strtoll(s->data, NULL, 10);
 }
 
 static u32 ctk_u32(CTK_String *s) {
-    return strtoul(s->data.mem, NULL, 10);
+    return strtoul(s->data, NULL, 10);
 }
 
 static u32 ctk_u64(CTK_String *s) {
-    return strtoull(s->data.mem, NULL, 10);
+    return strtoull(s->data, NULL, 10);
 }
 
 static bool ctk_bool(CTK_String *s) {
@@ -548,7 +492,7 @@ static bool ctk_bool(CTK_String *s) {
     if (ctk_strings_match(s, "false"))
         return false;
 
-    CTK_FATAL("string \"%s\" cannot be converted to a boolean value", s->data.mem);
+    CTK_FATAL("string \"%s\" cannot be converted to a boolean value", s->data);
 }
 
 ////////////////////////////////////////////////////////////

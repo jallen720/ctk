@@ -18,7 +18,7 @@ static CTK_Array<Type> ctk_read_file(cstr path) {
     if (fsize > 0) {
         rewind(f);
         elems = ctk_create_array_full<Type>(fsize);
-        fread(elems.data.mem, fsize, 1, f);
+        fread(elems.data, fsize, 1, f);
     }
 
     fclose(f);

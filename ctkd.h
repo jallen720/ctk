@@ -93,7 +93,7 @@ static void _ctk_debug_node(CTK_Node *n, u32 tabs = 0) {
 
 static void ctk_print_node(CTK_Node *n, u32 tabs = 0) {
     ctk_print_tabs(tabs);
-    if (n->key.data.mem)
+    if (n->key.data)
         ctk_print("%s: ", n->key.data);
 
     if (n->type == _CTK_NODE_TYPE_SCALAR) {
@@ -126,7 +126,7 @@ static void ctk_print_node_children(CTK_String *buf, CTK_Node *n, u32 tabs = 0) 
 
 static void ctk_print_node(CTK_String *buf, CTK_Node *n, u32 tabs) {
     ctk_print_tabs(buf, tabs);
-    if (n->key.data.mem)
+    if (n->key.data)
         ctk_print(buf, "%s: ", n->key.data);
 
     if (n->type == _CTK_NODE_TYPE_SCALAR) {
@@ -319,7 +319,7 @@ static CTK_Node *ctk_find(CTK_Node *parent, cstr search_str, Args... args) {
             _CTK_SearchTerm *st = ctk_push(&search_terms);
             st->type = _CTK_SEARCH_TERM_TYPE_IDX;
             st->idx = strtoul(search + term_index, &end, 10);
-            term_index = end - search.data.mem + 1;
+            term_index = end - search.data + 1;
         }
         else {
             _CTK_SearchTerm *st = ctk_push(&search_terms);

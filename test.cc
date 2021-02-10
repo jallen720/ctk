@@ -97,9 +97,8 @@ static void performance() {
         // Free
         start = clock();
 
-        for (u64 i = 0; i < TEST_CYCLES; ++i) {
+        for (u64 i = 0; i < TEST_CYCLES; ++i)
             free(allocs[i]);
-        }
 
         end = clock();
         ms = (f64)(end - start) / (CLOCKS_PER_SEC / 1000.0);
@@ -129,9 +128,8 @@ static void performance() {
         // Free
         start = clock();
 
-        for (u64 i = 0; i < TEST_CYCLES; ++i) {
+        for (u64 i = 0; i < TEST_CYCLES; ++i)
             ctk_free(&free_list, allocs[i]);
-        }
 
         end = clock();
         ms = (f64)(end - start) / (CLOCKS_PER_SEC / 1000.0);
@@ -214,15 +212,8 @@ static void print_node(CTK_Node *n, u32 tab = 0) {
 
 static void print_char_array(CTK_Array<char> *a, u32 tab = 0) {
     ctk_print_line();
-    ctk_visualize_string(a->data.mem, a->data.size);
+    ctk_visualize_string(a->data, a->size);
     ctk_print_array(a);
-}
-
-static void print_block(CTK_Block<u32> *b) {
-    ctk_print_line();
-    for (u32 i = 0; i < b->size; ++i)
-        ctk_print("%u ", b->mem[i]);
-    ctk_print_line();
 }
 
 s32 main() {
