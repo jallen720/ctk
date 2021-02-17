@@ -3,6 +3,8 @@
 #include <cmath>
 #include "ctk/ctk.h"
 
+#define CTK_PI 3.141592f
+
 ////////////////////////////////////////////////////////////
 /// Data
 ////////////////////////////////////////////////////////////
@@ -43,6 +45,43 @@ struct CTK_Matrix {
     f32 data[16];
     f32 *operator[](u32 row);
 };
+
+enum {
+    CTK_AXIS_X,
+    CTK_AXIS_Y,
+    CTK_AXIS_Z,
+};
+
+////////////////////////////////////////////////////////////
+/// General
+////////////////////////////////////////////////////////////
+template<typename Type>
+static Type ctk_max(Type a, Type b) {
+    return a > b ? a : b;
+}
+
+template<typename Type>
+static Type ctk_min(Type a, Type b) {
+    return a < b ? a : b;
+}
+
+template<typename Type>
+static Type ctk_clamp(Type val, Type min, Type max) {
+    return ctk_min(ctk_max(val, min), max);
+}
+
+template<typename Type>
+static Type ctk_random_range(Type min, Type max) {
+    return (max <= min) ? min : ((rand() % (max - min)) + min);
+}
+
+static inline u32 ctk_total_chunk_size(u32 min_size, u32 chunk_size) {
+    return chunk_size ? (((min_size - 1) / chunk_size) + 1) * chunk_size : min_size;
+}
+
+static f32 ctk_rads(f32 degs) {
+    return 2 * CTK_PI * (degs / 360);
+}
 
 ////////////////////////////////////////////////////////////
 /// Vector4
@@ -197,6 +236,10 @@ static bool operator!=(CTK_Vector2<LType> const &l, CTK_Vector2<RType> const &r)
 ////////////////////////////////////////////////////////////
 /// Matrix
 ////////////////////////////////////////////////////////////
+#define _CTK_COL_ROW_LOOP(MATRIX_SIZE)\
+    for (u32 col = 0; col < MATRIX_SIZE; ++col)\
+    for (u32 row = 0; row < MATRIX_SIZE; ++row)
+
 static CTK_Matrix const CTK_MATRIX_ID = {
     1.0f, 0.0f, 0.0f, 0.0f,
     0.0f, 1.0f, 0.0f, 0.0f,
@@ -207,10 +250,18 @@ static CTK_Matrix const CTK_MATRIX_ID = {
 static CTK_Matrix operator*(CTK_Matrix &l, CTK_Matrix &r) {
     CTK_Matrix res = {};
 
-    for (u32 row = 0; row < 4; ++row)
-        for (u32 col = 0; col < 4; ++col)
-            for (u32 i = 0; i < 4; ++i)
-                res[row][col] += l[i][col] * r[row][i];
+    _CTK_COL_ROW_LOOP(4)
+        for (u32 i = 0; i < 4; ++i)
+            res[col][row] += l[i][row] * r[col][i];
+
+    return res;
+}
+
+static CTK_Matrix operator+(CTK_Matrix &l, CTK_Matrix &r) {
+    CTK_Matrix res = {};
+
+    _CTK_COL_ROW_LOOP(4)
+        res[col][row] = l[col][row] + r[col][row];
 
     return res;
 }
@@ -218,54 +269,63 @@ static CTK_Matrix operator*(CTK_Matrix &l, CTK_Matrix &r) {
 static CTK_Matrix ctk_translate(CTK_Matrix m, CTK_Vector3<f32> v) {
     CTK_Matrix res = m;
 
-    for (u32 row = 0; row < 3; ++row)
-        for (u32 col = 0; col < 3; ++col)
-            res[3][col] += v[row] * res[row][col];
+    _CTK_COL_ROW_LOOP(3)
+        res[3][row] += v[col] * res[col][row];
 
     return res;
+}
+
+static CTK_Matrix ctk_rotate_x(CTK_Matrix m, f32 degrees) {
+    f32 rads = ctk_rads(degrees);
+
+    CTK_Matrix rot_mtx = CTK_MATRIX_ID;
+    rot_mtx[1][1] = cos(rads);
+    rot_mtx[1][2] = sin(rads);
+    rot_mtx[2][1] = -sin(rads);
+    rot_mtx[2][2] = cos(rads);
+
+    return m * rot_mtx;
+}
+
+static CTK_Matrix ctk_rotate_y(CTK_Matrix m, f32 degrees) {
+    f32 rads = ctk_rads(degrees);
+
+    CTK_Matrix rot_mtx = CTK_MATRIX_ID;
+    rot_mtx[0][0] = cos(rads);
+    rot_mtx[0][2] = -sin(rads);
+    rot_mtx[2][0] = sin(rads);
+    rot_mtx[2][2] = cos(rads);
+
+    return m * rot_mtx;
+}
+
+static CTK_Matrix ctk_rotate_z(CTK_Matrix m, f32 degrees) {
+    f32 rads = ctk_rads(degrees);
+
+    CTK_Matrix rot_mtx = CTK_MATRIX_ID;
+    rot_mtx[0][0] = cos(rads);
+    rot_mtx[0][1] = sin(rads);
+    rot_mtx[1][0] = -sin(rads);
+    rot_mtx[1][1] = cos(rads);
+
+    return m * rot_mtx;
+}
+
+static CTK_Matrix ctk_rotate(CTK_Matrix m, f32 degrees, s32 axis) {
+    if (axis == CTK_AXIS_X) return ctk_rotate_x(m, degrees);
+    if (axis == CTK_AXIS_Y) return ctk_rotate_y(m, degrees);
+    if (axis == CTK_AXIS_Z) return ctk_rotate_z(m, degrees);
 }
 
 static CTK_Matrix ctk_scale(CTK_Matrix m, CTK_Vector3<f32> v) {
     CTK_Matrix res = m;
 
-    for (u32 row = 0; row < 3; ++row)
-        for (u32 col = 0; col < 3; ++col)
-            res[row][col] *= v[col];
+    _CTK_COL_ROW_LOOP(3)
+        res[col][row] *= v[col];
 
     return res;
 }
 
-static CTK_Matrix ctk_rotate(CTK_Matrix m, f32 angle, CTK_Vector3<f32> axis) {
-    // CTK_Vector3<f32> norm_axis = ctk_normalize(axis);
-}
-
 f32 *CTK_Matrix::operator[](u32 row) {
     return this->data + (row * 4);
-}
-
-////////////////////////////////////////////////////////////
-/// General
-////////////////////////////////////////////////////////////
-template<typename Type>
-static Type ctk_max(Type a, Type b) {
-    return a > b ? a : b;
-}
-
-template<typename Type>
-static Type ctk_min(Type a, Type b) {
-    return a < b ? a : b;
-}
-
-template<typename Type>
-static Type ctk_clamp(Type val, Type min, Type max) {
-    return ctk_min(ctk_max(val, min), max);
-}
-
-template<typename Type>
-static Type ctk_random_range(Type min, Type max) {
-    return (max <= min) ? min : ((rand() % (max - min)) + min);
-}
-
-static inline u32 ctk_total_chunk_size(u32 min_size, u32 chunk_size) {
-    return chunk_size ? (((min_size - 1) / chunk_size) + 1) * chunk_size : min_size;
 }
