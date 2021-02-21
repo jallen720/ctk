@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include "ctk/ctk.h"
+#include "nmmintrin.h" // SSE4.2
 
 #define CTK_PI 3.141592f
 
@@ -15,6 +16,9 @@ struct CTK_Vector4 {
     Type z;
     Type w;
     Type operator[](u32 i);
+
+    template<typename RType>
+    CTK_Vector4<Type> &operator+=(CTK_Vector4<RType> const &r);
 };
 
 template<typename Type>
@@ -42,7 +46,10 @@ struct CTK_Vector2 {
 };
 
 struct CTK_Matrix {
-    f32 data[16];
+    union {
+        f32 data[16];
+        CTK_Vector4<f32> cols[4];
+    };
     f32 *operator[](u32 row);
 };
 
@@ -84,12 +91,33 @@ static f32 ctk_rads(f32 degs) {
 }
 
 ////////////////////////////////////////////////////////////
+/// Intrinsics
+////////////////////////////////////////////////////////////
+static __m128 operator*(__m128 l, __m128 r) {
+    return _mm_mul_ps(l, r);
+}
+
+static __m128 operator+(__m128 l, __m128 r) {
+    return _mm_add_ps(l, r);
+}
+
+////////////////////////////////////////////////////////////
 /// Vector4
 ////////////////////////////////////////////////////////////
 template<typename Type>
 Type CTK_Vector4<Type>::operator[](u32 i) {
     CTK_ASSERT(i < 4);
     return *(&this->x + i);
+}
+
+template<typename Type>
+template<typename RType>
+CTK_Vector4<Type> &CTK_Vector4<Type>::operator+=(CTK_Vector4<RType> const &r) {
+    this->x += r.x;
+    this->y += r.y;
+    this->z += r.z;
+    this->w += r.w;
+    return *this;
 }
 
 template<typename LType, typename RType>
@@ -99,6 +127,16 @@ static CTK_Vector4<LType> operator*(CTK_Vector4<LType> const &l, RType r) {
         l.y * r,
         l.z * r,
         l.w * r,
+    };
+}
+
+template<typename LType, typename RType>
+static CTK_Vector4<LType> operator+(CTK_Vector4<LType> const &l, CTK_Vector4<RType> const &r) {
+    return {
+        l.x + r.x,
+        l.y + r.y,
+        l.z + r.z,
+        l.w + r.w,
     };
 }
 
@@ -250,9 +288,15 @@ static CTK_Matrix const CTK_MATRIX_ID = {
 static CTK_Matrix operator*(CTK_Matrix &l, CTK_Matrix &r) {
     CTK_Matrix res = {};
 
-    _CTK_COL_ROW_LOOP(4)
-        for (u32 i = 0; i < 4; ++i)
-            res[col][row] += l[i][row] * r[col][i];
+    for (u32 col = 0; col < 4; ++col) {
+        _mm_store_ps(
+            res[col],
+            _mm_load_ps(l[0]) * _mm_set_ps1(r[col][0]) +
+            _mm_load_ps(l[1]) * _mm_set_ps1(r[col][1]) +
+            _mm_load_ps(l[2]) * _mm_set_ps1(r[col][2]) +
+            _mm_load_ps(l[3]) * _mm_set_ps1(r[col][3])
+        );
+    }
 
     return res;
 }
@@ -266,13 +310,15 @@ static CTK_Matrix operator+(CTK_Matrix &l, CTK_Matrix &r) {
     return res;
 }
 
-static CTK_Matrix ctk_translate(CTK_Matrix m, CTK_Vector3<f32> v) {
-    CTK_Matrix res = m;
+static CTK_Matrix ctk_translate(CTK_Matrix m, CTK_Vector3<f32> trans) {
+    for (u32 col = 0; col < 3; ++col) {
+        _mm_store_ps(
+            m[3],
+            (_mm_load_ps(m[col]) * _mm_setr_ps(trans[col], trans[col], trans[col], 1.0f)) + _mm_load_ps(m[3])
+        );
+    }
 
-    _CTK_COL_ROW_LOOP(3)
-        res[3][row] += v[col] * res[col][row];
-
-    return res;
+    return m;
 }
 
 static CTK_Matrix ctk_rotate_x(CTK_Matrix m, f32 degrees) {

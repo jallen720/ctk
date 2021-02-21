@@ -126,21 +126,21 @@ static void write_multiply(MatrixGroup *a, MatrixGroup *b, MatrixGroup *res, Mat
     insert_matrix_group(mo, res);
 }
 
-static MatrixGroup translate(MatrixGroup *mg, MatrixOutput *mo, CTK_Vector3<f32> v) {
+static MatrixGroup translate(MatrixGroup *mg, CTK_Vector3<f32> v) {
     MatrixGroup res = create_matrix_group();
     res.ctk = ctk_translate(mg->ctk, v);
     res.glm = glm::translate(mg->glm, { v.x, v.y, v.z });
     return res;
 }
 
-static MatrixGroup scale(MatrixGroup *mg, MatrixOutput *mo, CTK_Vector3<f32> v) {
+static MatrixGroup scale(MatrixGroup *mg, CTK_Vector3<f32> v) {
     MatrixGroup res = create_matrix_group();
     res.ctk = ctk_scale(mg->ctk, v);
     res.glm = glm::scale(mg->glm, { v.x, v.y, v.z });
     return res;
 }
 
-static MatrixGroup rotate(MatrixGroup *mg, MatrixOutput *mo, f32 degrees, s32 axis) {
+static MatrixGroup rotate(MatrixGroup *mg, f32 degrees, s32 axis) {
     MatrixGroup res = create_matrix_group();
     res.ctk = ctk_rotate(mg->ctk, degrees, axis);
     res.glm = glm::rotate(mg->glm, glm::radians(degrees), {
@@ -210,8 +210,9 @@ static void translate_test(MatrixOutput *mo) {
 
     MatrixGroup mg = create_matrix_group();
 
-    CTK_Vector3<f32> trans = { 1, 2, 3 };
-    MatrixGroup res = translate(&mg, mo, trans);
+    CTK_Vector3<f32> trans = { 0, 0, 1 };
+    mg = rotate(&mg, 45, CTK_AXIS_Y);
+    MatrixGroup res = translate(&mg, trans);
 
     insert_matrix_group(mo, &mg);
     insert_op(mo, "TRANSLATE");
@@ -228,9 +229,9 @@ static void rotate_test(MatrixOutput *mo, s32 axis) {
     MatrixGroup mg = create_matrix_group();
 
     f32 degrees = 90;
-    mg = rotate(&mg, mo, degrees, axis);
-    mg = rotate(&mg, mo, degrees, axis);
-    MatrixGroup res = translate(&mg, mo, { 3, 1, 2 });
+    mg = rotate(&mg, degrees, axis);
+    mg = rotate(&mg, degrees, axis);
+    MatrixGroup res = translate(&mg, { 3, 1, 2 });
 
     insert_matrix_group(mo, &mg);
     insert_op(mo, "ROTATE");
@@ -254,7 +255,7 @@ static void scale_test(MatrixOutput *mo) {
     ctk_print_line("\n\n====================================== SCALE TEST ======================================");
     MatrixGroup mg = create_matrix_group();
     CTK_Vector3<f32> scl = { 1, 0, 0 };
-    MatrixGroup res = scale(&mg, mo, scl);
+    MatrixGroup res = scale(&mg, scl);
 
     insert_matrix_group(mo, &mg);
     insert_op(mo, "SCALE");
@@ -269,22 +270,28 @@ static void scale_test(MatrixOutput *mo) {
 static void matrix_tests() {
     MatrixOutput mo = create_matrix_output();
     // add_test(&mo);
-    // multiply_test(&mo);
+    multiply_test(&mo);
     translate_test(&mo);
     rotate_test(&mo, CTK_AXIS_X);
-    rotate_test(&mo, CTK_AXIS_Y);
-    rotate_test(&mo, CTK_AXIS_Z);
+    // rotate_test(&mo, CTK_AXIS_Y);
+    // rotate_test(&mo, CTK_AXIS_Z);
     // scale_test(&mo);
 }
 
 static void perf_test() {
+
+#if 1
+#if _DEBUG
+    static u32 const ROTATE_TEST_CYCLES = 1000000;
+#else
     static u32 const ROTATE_TEST_CYCLES = 100000000;
+#endif
     {
         CTK_Matrix m = CTK_MATRIX_ID;
         m = ctk_translate(m, { 1, 2, 3 });
         PROFILE_START(ctk_rotate, ROTATE_TEST_CYCLES)
             m = ctk_rotate_x(m, 90);
-            PROFILE_PROGRESS(ctk_rotate);
+            // PROFILE_PROGRESS(ctk_rotate);
         PROFILE_END(ctk_rotate)
     }
     {
@@ -293,32 +300,70 @@ static void perf_test() {
         glm::translate(m, { 1, 2, 3 });
         PROFILE_START(glm_rotate, ROTATE_TEST_CYCLES)
             m = glm::rotate(m, glm::radians(90.0f), axis);
-            PROFILE_PROGRESS(glm_rotate);
+            // PROFILE_PROGRESS(glm_rotate);
         PROFILE_END(glm_rotate)
     }
-    static u32 const TRANSLATE_TEST_CYCLES = 100000000;
+#endif
+
+#if 1
+#if _DEBUG
+    static u32 const TRANSLATE_TEST_CYCLES = 10000000;
+#else
+    static u32 const TRANSLATE_TEST_CYCLES = 1000000000;
+#endif
     {
         CTK_Matrix m = CTK_MATRIX_ID;
         PROFILE_START(ctk_translate, TRANSLATE_TEST_CYCLES)
             m = ctk_translate(m, { 1, 2, 3 });
-            PROFILE_PROGRESS(ctk_translate);
+            // PROFILE_PROGRESS(ctk_translate);
         PROFILE_END(ctk_translate)
     }
     {
         glm::mat4 m(1);
         glm::vec3 axis(1, 0, 0);
         PROFILE_START(glm_translate, TRANSLATE_TEST_CYCLES)
-            glm::translate(m, { 1, 2, 3 });
-            PROFILE_PROGRESS(glm_translate);
+            m = glm::translate(m, { 1, 2, 3 });
+            // PROFILE_PROGRESS(glm_translate);
         PROFILE_END(glm_translate)
     }
+#endif
+
+#if 1
+#if _DEBUG
+    static u32 const MULTIPLY_TEST_CYCLES = 1000000;
+#else
+    static u32 const MULTIPLY_TEST_CYCLES = 100000000;
+#endif
+    {
+        CTK_Matrix a = {{ 0,  1,  2,  3,
+                          4,  5,  6,  7,
+                          8,  9,  10, 11,
+                          12, 13, 14, 15, }};
+        CTK_Matrix b = a;
+        PROFILE_START(ctk_multiply, MULTIPLY_TEST_CYCLES)
+            a = a * b;
+            // PROFILE_PROGRESS(ctk_multiply);
+        PROFILE_END(ctk_multiply)
+    }
+    {
+        glm::mat4 a(0,  1,  2,  3,
+                    4,  5,  6,  7,
+                    8,  9,  10, 11,
+                    12, 13, 14, 15);
+        glm::mat4 b = a;
+        PROFILE_START(glm_multiply, MULTIPLY_TEST_CYCLES)
+            a = a * b;
+            // PROFILE_PROGRESS(glm_multiply);
+        PROFILE_END(glm_multiply)
+    }
+#endif
 }
 
 static void gen_tests() {
 }
 
 static void math_tests() {
-    // matrix_tests();
+    matrix_tests();
     perf_test();
     // gen_tests();
 }
