@@ -15,6 +15,7 @@ struct CTK_Vector4 {
     Type y;
     Type z;
     Type w;
+
     Type operator[](u32 i);
 
     template<typename RType>
@@ -26,6 +27,7 @@ struct CTK_Vector3 {
     Type x;
     Type y;
     Type z;
+
     Type operator[](u32 i);
 
     template<typename RType>
@@ -39,6 +41,7 @@ template<typename Type>
 struct CTK_Vector2 {
     Type x;
     Type y;
+
     Type operator[](u32 i);
 
     template<typename RType>
@@ -50,7 +53,14 @@ struct CTK_Matrix {
         f32 data[16];
         CTK_Vector4<f32> cols[4];
     };
+
     f32 *operator[](u32 row);
+};
+
+struct CTK_PerspectiveInfo {
+    f32 fov;
+    f32 z_near;
+    f32 z_far;
 };
 
 enum {
@@ -304,8 +314,8 @@ static CTK_Matrix operator*(CTK_Matrix &l, CTK_Matrix &r) {
 static CTK_Matrix operator+(CTK_Matrix &l, CTK_Matrix &r) {
     CTK_Matrix res = {};
 
-    _CTK_COL_ROW_LOOP(4)
-        res[col][row] = l[col][row] + r[col][row];
+    for (u32 col = 0; col < 4; ++col)
+        _mm_store_ps(res[col], _mm_load_ps(l[col]) + _mm_load_ps(r[col]));
 
     return res;
 }
@@ -370,6 +380,14 @@ static CTK_Matrix ctk_scale(CTK_Matrix m, CTK_Vector3<f32> v) {
         res[col][row] *= v[col];
 
     return res;
+}
+
+static CTK_Matrix ctk_create_perspective_matrix(CTK_PerspectiveInfo info) {
+    CTK_Matrix perspective = CTK_MATRIX_ID;
+
+
+
+    return perspective;
 }
 
 f32 *CTK_Matrix::operator[](u32 row) {

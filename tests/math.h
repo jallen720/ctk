@@ -269,18 +269,23 @@ static void scale_test(MatrixOutput *mo) {
 
 static void matrix_tests() {
     MatrixOutput mo = create_matrix_output();
-    // add_test(&mo);
+    add_test(&mo);
     multiply_test(&mo);
     translate_test(&mo);
     rotate_test(&mo, CTK_AXIS_X);
-    // rotate_test(&mo, CTK_AXIS_Y);
-    // rotate_test(&mo, CTK_AXIS_Z);
-    // scale_test(&mo);
+    rotate_test(&mo, CTK_AXIS_Y);
+    rotate_test(&mo, CTK_AXIS_Z);
+    scale_test(&mo);
 }
 
 static void perf_test() {
+    MatrixOutput mo = create_matrix_output();
 
-#if 1
+#if 0
+    rotate_test(&mo, CTK_AXIS_X);
+    rotate_test(&mo, CTK_AXIS_Y);
+    rotate_test(&mo, CTK_AXIS_Z);
+
 #if _DEBUG
     static u32 const ROTATE_TEST_CYCLES = 1000000;
 #else
@@ -290,13 +295,13 @@ static void perf_test() {
         CTK_Matrix m = CTK_MATRIX_ID;
         m = ctk_translate(m, { 1, 2, 3 });
         PROFILE_START(ctk_rotate, ROTATE_TEST_CYCLES)
-            m = ctk_rotate_x(m, 90);
+            m = ctk_rotate_z(m, 90);
             // PROFILE_PROGRESS(ctk_rotate);
         PROFILE_END(ctk_rotate)
     }
     {
         glm::mat4 m(1);
-        glm::vec3 axis(1, 0, 0);
+        glm::vec3 axis(0, 0, 1);
         glm::translate(m, { 1, 2, 3 });
         PROFILE_START(glm_rotate, ROTATE_TEST_CYCLES)
             m = glm::rotate(m, glm::radians(90.0f), axis);
@@ -306,8 +311,10 @@ static void perf_test() {
 #endif
 
 #if 1
+    translate_test(&mo);
+
 #if _DEBUG
-    static u32 const TRANSLATE_TEST_CYCLES = 10000000;
+    static u32 const TRANSLATE_TEST_CYCLES = 5000000;
 #else
     static u32 const TRANSLATE_TEST_CYCLES = 1000000000;
 #endif
@@ -328,7 +335,9 @@ static void perf_test() {
     }
 #endif
 
-#if 1
+#if 0
+    // multiply_test(&mo);
+
 #if _DEBUG
     static u32 const MULTIPLY_TEST_CYCLES = 1000000;
 #else
@@ -357,13 +366,45 @@ static void perf_test() {
         PROFILE_END(glm_multiply)
     }
 #endif
+
+#if 0
+    add_test(&mo);
+
+#if _DEBUG
+    static u32 const ADD_TEST_CYCLES = 4000000;
+#else
+    static u32 const ADD_TEST_CYCLES = 400000000;
+#endif
+    {
+        CTK_Matrix a = {{ 0,  1,  2,  3,
+                          4,  5,  6,  7,
+                          8,  9,  10, 11,
+                          12, 13, 14, 15, }};
+        CTK_Matrix b = a;
+        PROFILE_START(ctk_add, ADD_TEST_CYCLES)
+            a = a + b;
+            // PROFILE_PROGRESS(ctk_add);
+        PROFILE_END(ctk_add)
+    }
+    {
+        glm::mat4 a(0,  1,  2,  3,
+                    4,  5,  6,  7,
+                    8,  9,  10, 11,
+                    12, 13, 14, 15);
+        glm::mat4 b = a;
+        PROFILE_START(glm_add, ADD_TEST_CYCLES)
+            a = a + b;
+            // PROFILE_PROGRESS(glm_add);
+        PROFILE_END(glm_add)
+    }
+#endif
 }
 
 static void gen_tests() {
 }
 
 static void math_tests() {
-    matrix_tests();
+    // matrix_tests();
     perf_test();
     // gen_tests();
 }
