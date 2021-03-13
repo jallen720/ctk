@@ -7,10 +7,22 @@
 ////////////////////////////////////////////////////////////
 /// Data
 ////////////////////////////////////////////////////////////
+typedef void *(*ctk_alloc_callback)(void *data, u32 size);
+typedef void *(*ctk_realloc_callback)(void *data, void *mem, u32 old_size, u32 new_size);
+typedef void (*ctk_free_callback)(void *data, void *mem);
+
+struct CTK_Allocator {
+    void *data;
+    ctk_alloc_callback alloc;
+    ctk_realloc_callback realloc;
+    ctk_free_callback free;
+};
+
 struct CTK_Stack {
     u8 *mem;
     u32 size;
     u32 count;
+    CTK_Allocator allocator;
 };
 
 struct alignas(CTK_CACHE_LINE) _CTK_BlockHeader {
@@ -36,6 +48,17 @@ struct CTK_FreeList {
     _CTK_ChunkHeader *chunk_list;
     _CTK_BlockHeader *free_list;
     _CTK_BlockHeader *largest_free;
+};
+
+static void *_ctk_system_alloc_callback(void *_, u32 size);
+static void *_ctk_system_realloc_callback(void *_, void *mem, u32 old_size, u32 new_size);
+static void *_ctk_system_free_callback(void *_, void *mem);
+
+static CTK_Allocator const CTK_SYSTEM_ALLOCATOR = {
+    NULL,
+    _ctk_system_alloc_callback,
+    _ctk_system_realloc_callback,
+    _ctk_system_free_callback,
 };
 
 ////////////////////////////////////////////////////////////
@@ -148,21 +171,37 @@ static void *ctk_alloc(u32 size) {
     return mem;
 }
 
+static void _ctk_system_alloc_callback(void *_, u32 size) {
+    return ctk_alloc(size);
+}
+
 template<typename Type>
 static Type *ctk_alloc(u32 count) {
     return (Type *)ctk_alloc(sizeof(Type) * count);
 }
 
-template<typename Type>
-static Type *ctk_realloc(Type *mem, u32 old_size, u32 new_size) {
-    mem = (Type *)realloc(mem, new_size * sizeof(Type));
+static void *ctk_realloc(void *mem, u32 old_size, u32 new_size) {
+    mem = realloc(mem, new_size);
     CTK_ASSERT(mem != NULL);
 
-    // Zero newly allocated region.
+    // Zero newly allocated memory.
     if (new_size > old_size)
-        memset(mem + old_size, 0, (new_size - old_size) * sizeof(Type));
+        memset(mem + old_size, 0, new_size - old_size);
 
     return mem;
+}
+
+static void _ctk_system_realloc_callback(void *_, void *mem, u32 old_size, u32 new_size) {
+    return ctk_realloc(mem, old_size, new_size);
+}
+
+template<typename Type>
+static Type *ctk_realloc(Type *mem, u32 old_size, u32 new_size) {
+    return ctk_realloc(mem, old_size * sizeof(Type), new_size * sizeof(Type));
+}
+
+static void _ctk_system_free_callback(void *_, void *mem) {
+    free(mem);
 }
 
 ////////////////////////////////////////////////////////////
@@ -173,6 +212,10 @@ static u8 *ctk_alloc(CTK_Stack *stack, u32 size) {
     u8 *mem = stack->mem + stack->count;
     stack->count += size;
     return mem;
+}
+
+static void *_ctk_stack_allocate(void *data, u32 size) {
+    return ctk_alloc((CTK_Stack *)data, size);
 }
 
 template<typename Type>

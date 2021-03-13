@@ -1,8 +1,8 @@
-#include "ctk/tests/free_list.h"
-#include "ctk/tests/math.h"
+// #include "ctk/tests/free_list.h"
+// #include "ctk/tests/math.h"
+#include "ctk/tests/allocator.h"
 
 s32 main() {
-    // free_list_tests();
-    math_tests();
+    test_main();
     return 0;
 }
