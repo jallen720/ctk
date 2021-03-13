@@ -83,15 +83,6 @@ static void ctk_visualize_string(CTK_String *str, bool uniform_spacing = true) {
     ctk_visualize_string(str->data, str->size, uniform_spacing);
 }
 
-static cstr ctk_allocator_name(s32 allocator) {
-    static CTK_Pair<s32, cstr> const ALLOCATOR_NAMES[] = {
-        CTK_VALUE_NAME_PAIR(CTK_ALLOCATOR_SYSTEM),
-        CTK_VALUE_NAME_PAIR(CTK_ALLOCATOR_STACK),
-        CTK_VALUE_NAME_PAIR(CTK_ALLOCATOR_FREE_LIST),
-    };
-    return ctk_find_value(ALLOCATOR_NAMES, CTK_ARRAY_COUNT(ALLOCATOR_NAMES), allocator);
-}
-
 template<typename Type>
 static void ctk_print_array(CTK_Array<Type> *array, cstr title = NULL, u32 tabs = 0) {
     ctk_print(tabs, "%s:\n", title ? title : "array");
@@ -99,8 +90,7 @@ static void ctk_print_array(CTK_Array<Type> *array, cstr title = NULL, u32 tabs 
     ctk_print(tabs + 1, "size:       %u\n", array->size);
     ctk_print(tabs + 1, "chunk_size: %u\n", array->chunk_size);
     ctk_print(tabs + 1, "count:      %u\n", array->count);
-    ctk_print(tabs + 1, "free_list:  %p\n", array->free_list);
-    ctk_print(tabs + 1, "allocator:  %s\n", ctk_allocator_name(array->allocator));
+    ctk_print(tabs + 1, "allocator:  %p\n", array->allocator);
 }
 
 ////////////////////////////////////////////////////////////
@@ -137,103 +127,53 @@ static void ctk_free(CTK_Pool<Type> *pool, void *mem) {
 ////////////////////////////////////////////////////////////
 /// Array
 ////////////////////////////////////////////////////////////
-
-// System Allocated
 template<typename Type>
-static CTK_Array<Type> ctk_create_array(u32 init_size, u32 chunk_size = 0) {
+static CTK_Array<Type> *ctk_create_array(u32 init_size, u32 chunk_size, CTK_Allocator *allocator) {
     CTK_ASSERT(init_size > 0);
     u32 total_init_size = chunk_size ? ctk_total_chunk_size(init_size, chunk_size) : init_size;
 
-    CTK_Array<Type> array = {};
-    array.data = ctk_alloc<Type>(total_init_size);
-    array.size = total_init_size;
-    array.chunk_size = chunk_size;
-    array.allocator = CTK_ALLOCATOR_SYSTEM;
+    auto array = ctk_alloc<CTK_Array<Type>>(allocator, 1);
+    array->data = ctk_alloc<Type>(allocator, total_init_size);
+    array->size = total_init_size;
+    array->chunk_size = chunk_size;
+    array->allocator = allocator;
 
     return array;
 }
 
 template<typename Type>
-static CTK_Array<Type> ctk_create_array_full(u32 init_size, u32 chunk_size = 0) {
-    auto array = ctk_create_array<Type>(init_size, chunk_size);
-    array.count = array.size;
+static CTK_Array<Type> *ctk_create_array_full(u32 init_size, u32 chunk_size, CTK_Allocator *allocator) {
+    auto array = ctk_create_array<Type>(init_size, chunk_size, allocator);
+    array->count = array.size;
     return array;
 }
 
-// Stack Allocated
-template<typename Type>
-static CTK_Array<Type> ctk_create_array(CTK_Stack *stack, u32 size) {
-    CTK_ASSERT(size > 0);
-
-    CTK_Array<Type> array = {};
-    array.data = ctk_alloc<Type>(stack, size);
-    array.size = size;
-    array.allocator = CTK_ALLOCATOR_STACK;
-
-    return array;
-}
-
-template<typename Type>
-static CTK_Array<Type> ctk_create_array_full(CTK_Stack *stack, u32 size) {
-    auto array = ctk_create_array<Type>(stack, size);
-    array.count = size;
-    return array;
-}
-
-// Free List Allocated
-template<typename Type>
-static CTK_Array<Type> ctk_create_array(CTK_FreeList *free_list, u32 init_size, u32 chunk_size = 0) {
-    CTK_ASSERT(init_size > 0);
-    u32 total_init_size = chunk_size ? ctk_total_chunk_size(init_size, chunk_size) : init_size;
-
-    CTK_Array<Type> array = {};
-    array.data = ctk_alloc<Type>(free_list, total_init_size);
-    array.size = total_init_size;
-    array.chunk_size = chunk_size;
-    array.allocator = CTK_ALLOCATOR_FREE_LIST;
-    array.free_list = free_list;
-
-    return array;
-}
-
-template<typename Type>
-static CTK_Array<Type> ctk_create_array_full(CTK_FreeList *free_list, u32 init_size, u32 chunk_size = 0) {
-    auto array = ctk_create_array<Type>(free_list, init_size, chunk_size);
-    array.count = array.size;
-    return array;
-}
-
-// Interface
 template<typename Type>
 static void ctk_resize(CTK_Array<Type> *array, u32 new_size) {
     CTK_ASSERT(new_size > 0);
 
     if (array->chunk_size == 0)
-        CTK_FATAL("can't realloc CTK_Array where chunk_size == 0");
+        CTK_FATAL("can't resize CTK_Array where chunk_size == 0");
 
     u32 total_realloc_size = ctk_total_chunk_size(new_size, array->chunk_size);
-    if (array->allocator == CTK_ALLOCATOR_SYSTEM) {
-        array->data = ctk_realloc(array->data, array->size, total_realloc_size);
+    if (array->allocator->realloc) {
+        array->data = ctk_realloc<Type>(array->allocator, array->data, array->size, total_realloc_size);
         array->size = total_realloc_size;
     }
-    else if (array->allocator == CTK_ALLOCATOR_FREE_LIST) {
-        CTK_TODO("template???");
-        array->data = ctk_realloc<Type>(array->free_list, array->data, total_realloc_size);
-        array->size = total_realloc_size;
-    }
-    else if (array->allocator == CTK_ALLOCATOR_STACK) {
-        CTK_FATAL("can't realloc CTK_Array allocated from CTK_Stack");
+    else {
+        CTK_FATAL("can't resize CTK_Array; allocator does not provide realloc function");
     }
 }
 
 template<typename Type>
 static void ctk_free(CTK_Array<Type> *array) {
-    if (array->allocator == CTK_ALLOCATOR_SYSTEM)
-        free(array->data);
-    else if (array->allocator == CTK_ALLOCATOR_FREE_LIST)
-        ctk_free(array->free_list, array->data);
-    else if (array->allocator == CTK_ALLOCATOR_STACK)
-        CTK_FATAL("can't free CTK_Array allocated from CTK_Stack");
+    if (array->allocator->free) {
+        ctk_free(array->allocator, array->data);
+        ctk_free(array->allocator, array);
+    }
+    else {
+        CTK_FATAL("can't free CTK_Array; allocator does not provide free function");
+    }
 }
 
 template<typename Type>
@@ -241,11 +181,11 @@ static void _ctk_resize_if_needed(CTK_Array<Type> *array, u32 elem_count) {
     if (array->count + elem_count <= array->size)
         return;
 
-    if (array->allocator == CTK_ALLOCATOR_STACK)
-        CTK_FATAL("can't resize CTK_Array allocated from CTK_Stack");
-
     if (array->chunk_size == 0)
         CTK_FATAL("can't resize CTK_Array where chunk_size == 0");
+
+    if (array->allocator->realloc == NULL)
+        CTK_FATAL("can't resize CTK_Array; allocator does not provide realloc function");
 
     ctk_resize(array, array->count + elem_count);
 }
@@ -314,58 +254,25 @@ static Type *operator+(CTK_Array<Type> &array, u32 i) {
 ////////////////////////////////////////////////////////////
 static void ctk_concat(CTK_String *string, CTK_CharRange char_range);
 
-// System Allocated
-static CTK_String ctk_create_string(u32 init_size, u32 chunk_size = 0) {
-    return ctk_create_array<char>(init_size, chunk_size);
+static CTK_String *ctk_create_string(u32 init_size, u32 chunk_size, CTK_Allocator *allocator) {
+    return ctk_create_array<char>(init_size, chunk_size, allocator);
 }
 
-static CTK_String ctk_create_string(CTK_CharRange char_range, u32 chunk_size = 0) {
+static CTK_String *ctk_create_string(CTK_CharRange char_range, u32 chunk_size, CTK_Allocator *allocator) {
     CTK_ASSERT(char_range.data != NULL && char_range.size > 0);
-    CTK_String string = ctk_create_string(char_range.size + 1, chunk_size); // Include space for null-terminator.
-    ctk_concat(&string, char_range);
+
+    // Include space for null-terminator.
+    CTK_String *string = ctk_create_string(char_range.size + 1, chunk_size, allocator);
+
+    ctk_concat(string, char_range);
     return string;
 }
 
-static CTK_String ctk_create_string(cstr str, u32 chunk_size = 0) {
+static CTK_String *ctk_create_string(cstr str, u32 chunk_size, CTK_Allocator *allocator) {
     CTK_ASSERT(str != NULL);
-    return ctk_create_string({ str, strlen(str) }, chunk_size);
+    return ctk_create_string({ str, strlen(str) }, chunk_size, allocator);
 }
 
-// Stack Allocated
-static CTK_String ctk_create_string(CTK_Stack *stack, u32 size) {
-    return ctk_create_array<char>(stack, size);
-}
-
-static CTK_String ctk_create_string(CTK_Stack *stack, CTK_CharRange char_range) {
-    CTK_ASSERT(char_range.data != NULL && char_range.size > 0);
-    CTK_String string = ctk_create_string(stack, char_range.size + 1);
-    ctk_concat(&string, char_range);
-    return string;
-}
-
-static CTK_String ctk_create_string(CTK_Stack *stack, cstr str) {
-    CTK_ASSERT(str != NULL);
-    return ctk_create_string({ str, strlen(str) });
-}
-
-// Free List Allocated
-static CTK_String ctk_create_string(CTK_FreeList *free_list, u32 init_size, u32 chunk_size = 0) {
-    return ctk_create_array<char>(free_list, init_size, chunk_size);
-}
-
-static CTK_String ctk_create_string(CTK_FreeList *free_list, CTK_CharRange char_range, u32 chunk_size = 0) {
-    CTK_ASSERT(char_range.data != NULL && char_range.size > 0);
-    CTK_String string = ctk_create_string(free_list, char_range.size + 1, chunk_size);
-    ctk_concat(&string, char_range);
-    return string;
-}
-
-static CTK_String ctk_create_string(CTK_FreeList *free_list, cstr str, u32 chunk_size = 0) {
-    CTK_ASSERT(str != NULL);
-    return ctk_create_string(free_list, { str, strlen(str) }, chunk_size);
-}
-
-// Interface
 static void _ctk_resize_string_if_needed(CTK_String *string, u32 new_char_count) {
     _ctk_resize_if_needed(string, new_char_count + 1); // Include room for null-terminator.
 }
