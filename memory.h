@@ -61,6 +61,15 @@ static CTK_Allocator const CTK_SYSTEM_ALLOCATOR = {
     _ctk_system_free_callback,
 };
 
+static void *_ctk_stack_alloc_callback(void *data, u32 size);
+
+static CTK_Allocator const CTK_STACK_ALLOCATOR = {
+    NULL,
+    _ctk_stack_alloc_callback,
+    NULL,
+    NULL,
+};
+
 ////////////////////////////////////////////////////////////
 /// Debugging
 ////////////////////////////////////////////////////////////
@@ -223,17 +232,19 @@ static Type *ctk_alloc(CTK_Stack *stack, u32 count) {
     return (Type *)ctk_alloc(stack, sizeof(Type) * count);
 }
 
-static CTK_Stack ctk_create_stack(u32 size) {
-    CTK_Stack stack = {};
-    stack.size = size;
-    stack.mem = ctk_alloc<u8>(size);
+static CTK_Stack *ctk_create_stack(u32 size) {
+    auto stack = ctk_alloc<CTK_Stack>(1);
+    stack->size = size;
+    stack->mem = ctk_alloc<u8>(size);
+    stack->allocator = CTK_STACK_ALLOCATOR;
+    stack->allocator->data = stack;
     return stack;
 }
 
-static CTK_Stack ctk_create_stack(CTK_Stack *parent, u32 size) {
-    CTK_Stack stack = {};
-    stack.size = size;
-    stack.mem = ctk_alloc<u8>(parent, size);
+static CTK_Stack *ctk_create_stack(CTK_Stack *parent, u32 size) {
+    auto stack = ctk_alloc<CTK_Stack>(parent, 1);
+    stack->size = size;
+    stack->mem = ctk_alloc<u8>(parent, size);
     return stack;
 }
 

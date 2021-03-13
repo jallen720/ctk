@@ -8,12 +8,6 @@
 ////////////////////////////////////////////////////////////
 /// Data
 ////////////////////////////////////////////////////////////
-enum {
-    CTK_ALLOCATOR_SYSTEM,
-    CTK_ALLOCATOR_STACK,
-    CTK_ALLOCATOR_FREE_LIST,
-};
-
 template<typename Type>
 union _CTK_PoolNode {
     Type element;
@@ -33,11 +27,7 @@ struct CTK_Array {
     u32 chunk_size;
 
     u32 count;
-    s32 allocator;
-
-    // CTK_FreeList is the only allocator we have to keep track of after allocation. CTK_Stack can't be freed from, and
-    // system allocations are global.
-    CTK_FreeList *free_list;
+    CTK_Allocator *allocator;
 
     Type &operator[](u32 i);
 };
