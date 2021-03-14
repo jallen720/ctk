@@ -126,6 +126,8 @@ static void ctk_free(CTK_Pool<Type> *pool, void *mem) {
 ////////////////////////////////////////////////////////////
 /// Array
 ////////////////////////////////////////////////////////////
+
+// Create Empty Array Overloads
 template<typename Type>
 static CTK_Array<Type> *ctk_create_array(u32 init_size, u32 chunk_size, CTK_Allocator *allocator) {
     CTK_ASSERT(init_size > 0);
@@ -147,12 +149,44 @@ static CTK_Array<Type> *ctk_create_array(u32 init_size, u32 chunk_size, CTK_Allo
 }
 
 template<typename Type>
+static CTK_Array<Type> *ctk_create_array(u32 init_size) {
+    return ctk_create_array<Type>(init_size, 0, &CTK_SYSTEM_ALLOCATOR);
+}
+
+template<typename Type>
+static CTK_Array<Type> *ctk_create_array(u32 init_size, u32 chunk_size) {
+    return ctk_create_array<Type>(init_size, chunk_size, &CTK_SYSTEM_ALLOCATOR);
+}
+
+template<typename Type>
+static CTK_Array<Type> *ctk_create_array(u32 size, CTK_Allocator *allocator) {
+    return ctk_create_array<Type>(size, 0, allocator);
+}
+
+// Create Full Array Overloads
+template<typename Type>
 static CTK_Array<Type> *ctk_create_array_full(u32 init_size, u32 chunk_size, CTK_Allocator *allocator) {
     auto array = ctk_create_array<Type>(init_size, chunk_size, allocator);
     array->count = array->size;
     return array;
 }
 
+template<typename Type>
+static CTK_Array<Type> *ctk_create_array_full(u32 init_size) {
+    return ctk_create_array_full<Type>(init_size, 0, &CTK_SYSTEM_ALLOCATOR);
+}
+
+template<typename Type>
+static CTK_Array<Type> *ctk_create_array_full(u32 init_size, u32 chunk_size) {
+    return ctk_create_array_full<Type>(init_size, chunk_size, &CTK_SYSTEM_ALLOCATOR);
+}
+
+template<typename Type>
+static CTK_Array<Type> *ctk_create_array_full(u32 size, CTK_Allocator *allocator) {
+    return ctk_create_array_full<Type>(size, 0, allocator);
+}
+
+// Interface
 template<typename Type>
 static void ctk_resize(CTK_Array<Type> *array, u32 new_size) {
     CTK_ASSERT(new_size > 0);
@@ -259,10 +293,24 @@ static Type *operator+(CTK_Array<Type> &array, u32 i) {
 ////////////////////////////////////////////////////////////
 static void ctk_concat(CTK_String *string, CTK_CharRange char_range);
 
+// Fixed Size Overloads
 static CTK_String *ctk_create_string(u32 init_size, u32 chunk_size, CTK_Allocator *allocator) {
     return ctk_create_array<char>(init_size, chunk_size, allocator);
 }
 
+static CTK_String *ctk_create_string(u32 init_size) {
+    return ctk_create_string(init_size, 0, &CTK_SYSTEM_ALLOCATOR);
+}
+
+static CTK_String *ctk_create_string(u32 init_size, u32 chunk_size) {
+    return ctk_create_string(init_size, chunk_size, &CTK_SYSTEM_ALLOCATOR);
+}
+
+static CTK_String *ctk_create_string(u32 init_size, CTK_Allocator *allocator) {
+    return ctk_create_string(init_size, 0, allocator);
+}
+
+// CTK_CharRange Overloads
 static CTK_String *ctk_create_string(CTK_CharRange char_range, u32 chunk_size, CTK_Allocator *allocator) {
     CTK_ASSERT(char_range.data != NULL && char_range.size > 0);
 
@@ -273,11 +321,37 @@ static CTK_String *ctk_create_string(CTK_CharRange char_range, u32 chunk_size, C
     return string;
 }
 
+static CTK_String *ctk_create_string(CTK_CharRange char_range) {
+    return ctk_create_string(char_range, 0, &CTK_SYSTEM_ALLOCATOR);
+}
+
+static CTK_String *ctk_create_string(CTK_CharRange char_range, u32 chunk_size) {
+    return ctk_create_string(char_range, chunk_size, &CTK_SYSTEM_ALLOCATOR);
+}
+
+static CTK_String *ctk_create_string(CTK_CharRange char_range, CTK_Allocator *allocator) {
+    return ctk_create_string(char_range, 0, allocator);
+}
+
+// C-String Overloads
 static CTK_String *ctk_create_string(cstr str, u32 chunk_size, CTK_Allocator *allocator) {
     CTK_ASSERT(str != NULL);
     return ctk_create_string({ str, strlen(str) }, chunk_size, allocator);
 }
 
+static CTK_String *ctk_create_string(cstr str) {
+    return ctk_create_string(str, 0, &CTK_SYSTEM_ALLOCATOR);
+}
+
+static CTK_String *ctk_create_string(cstr str, u32 chunk_size) {
+    return ctk_create_string(str, chunk_size, &CTK_SYSTEM_ALLOCATOR);
+}
+
+static CTK_String *ctk_create_string(cstr str, CTK_Allocator *allocator) {
+    return ctk_create_string(str, 0, allocator);
+}
+
+// Interface
 static void _ctk_resize_string_if_needed(CTK_String *string, u32 new_char_count) {
     _ctk_resize_if_needed(string, new_char_count + 1); // Include room for null-terminator.
 }
