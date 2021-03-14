@@ -256,6 +256,7 @@ static void ctk_free(CTK_Allocator *allocator, void *mem) {
 static u8 *ctk_alloc(CTK_Stack *stack, u32 size) {
     CTK_ASSERT(stack->count + size <= stack->size);
     u8 *mem = stack->mem + stack->count;
+    memset(mem, 0, size);
     stack->count += size;
     return mem;
 }
