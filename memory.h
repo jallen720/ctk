@@ -7,8 +7,8 @@
 ////////////////////////////////////////////////////////////
 /// Data
 ////////////////////////////////////////////////////////////
-typedef void *(*ctk_allocator_alloc)(void *data, u32 size);
-typedef void *(*ctk_allocator_realloc)(void *data, void *mem, u32 old_size, u32 new_size);
+typedef u8 *(*ctk_allocator_alloc)(void *data, u32 size);
+typedef u8 *(*ctk_allocator_realloc)(void *data, void *mem, u32 old_size, u32 new_size);
 typedef void (*ctk_allocator_free)(void *data, void *mem);
 
 struct CTK_Allocator {
@@ -51,8 +51,8 @@ struct CTK_FreeList {
     u32 num_chunks;
 };
 
-static void *_ctk_system_allocator_alloc(void *_, u32 size);
-static void *_ctk_system_allocator_realloc(void *_, void *mem, u32 old_size, u32 new_size);
+static u8 *_ctk_system_allocator_alloc(void *_, u32 size);
+static u8 *_ctk_system_allocator_realloc(void *_, void *mem, u32 old_size, u32 new_size);
 static void _ctk_system_allocator_free(void *_, void *mem);
 
 static CTK_Allocator CTK_SYSTEM_ALLOCATOR = {
@@ -62,7 +62,7 @@ static CTK_Allocator CTK_SYSTEM_ALLOCATOR = {
     _ctk_system_allocator_free,
 };
 
-static void *_ctk_stack_allocator_alloc(void *stack, u32 size);
+static u8 *_ctk_stack_allocator_alloc(void *stack, u32 size);
 
 static CTK_Allocator CTK_STACK_ALLOCATOR = {
     NULL,
@@ -71,8 +71,8 @@ static CTK_Allocator CTK_STACK_ALLOCATOR = {
     NULL,
 };
 
-static void *_ctk_free_list_allocator_alloc(void *free_list, u32 size);
-// static void *_ctk_free_list_allocator_realloc(void *free_list, void *mem, u32 old_size, u32 new_size);
+static u8 *_ctk_free_list_allocator_alloc(void *free_list, u32 size);
+// static u8 *_ctk_free_list_allocator_realloc(void *free_list, void *mem, u32 old_size, u32 new_size);
 static void _ctk_free_list_allocator_free(void *free_list, void *mem);
 
 static CTK_Allocator CTK_FREE_LIST_ALLOCATOR = {
@@ -152,10 +152,10 @@ static void ctk_print_free_list(CTK_FreeList *free_list, cstr title = NULL, u32 
 /// System Memory
 ////////////////////////////////////////////////////////////
 #ifdef __GNUC__
-    static void *ctk_alloc_aligned(u32 size, u32 alignment) {
+    static u8 *ctk_alloc_aligned(u32 size, u32 alignment) {
         CTK_ASSERT(size > 0);
         CTK_ASSERT(alignment > 0);
-        void *mem = aligned_alloc(alignment, size);
+        auto mem = (u8 *)aligned_alloc(alignment, size);
         CTK_ASSERT(mem != NULL);
         memset(mem, 0, size);
         return mem;
@@ -165,10 +165,10 @@ static void ctk_print_free_list(CTK_FreeList *free_list, cstr title = NULL, u32 
         free(mem);
     }
 #else
-    static void *ctk_alloc_aligned(u32 size, u32 alignment) {
+    static u8 *ctk_alloc_aligned(u32 size, u32 alignment) {
         CTK_ASSERT(size > 0);
         CTK_ASSERT(alignment > 0);
-        void *mem = _aligned_malloc(size, alignment);
+        auto mem = (u8 *)_aligned_malloc(size, alignment);
         CTK_ASSERT(mem != NULL);
         memset(mem, 0, size);
         return mem;
@@ -184,15 +184,15 @@ static Type *ctk_alloc_aligned(u32 size, u32 alignment) {
     return (Type *)ctk_alloc_aligned(size * sizeof(Type), alignment);
 }
 
-static void *ctk_alloc(u32 size) {
+static u8 *ctk_alloc(u32 size) {
     CTK_ASSERT(size > 0);
-    void *mem = malloc(size);
+    auto mem = (u8 *)malloc(size);
     CTK_ASSERT(mem != NULL);
     memset(mem, 0, size);
     return mem;
 }
 
-static void *_ctk_system_allocator_alloc(void *_, u32 size) {
+static u8 *_ctk_system_allocator_alloc(void *_, u32 size) {
     return ctk_alloc(size);
 }
 
@@ -201,18 +201,18 @@ static Type *ctk_alloc(u32 size) {
     return (Type *)ctk_alloc(size * sizeof(Type));
 }
 
-static void *ctk_realloc(void *mem, u32 old_size, u32 new_size) {
-    mem = realloc(mem, new_size);
-    CTK_ASSERT(mem != NULL);
+static u8 *ctk_realloc(void *mem, u32 old_size, u32 new_size) {
+    auto new_mem = (u8 *)realloc(mem, new_size);
+    CTK_ASSERT(new_mem != NULL);
 
     // Zero newly allocated memory.
     if (new_size > old_size)
-        memset((u8 *)mem + old_size, 0, new_size - old_size);
+        memset(new_mem + old_size, 0, new_size - old_size);
 
-    return mem;
+    return new_mem;
 }
 
-static void *_ctk_system_allocator_realloc(void *_, void *mem, u32 old_size, u32 new_size) {
+static u8 *_ctk_system_allocator_realloc(void *_, void *mem, u32 old_size, u32 new_size) {
     return ctk_realloc(mem, old_size, new_size);
 }
 
@@ -228,7 +228,7 @@ static void _ctk_system_allocator_free(void *_, void *mem) {
 ////////////////////////////////////////////////////////////
 /// Allocator
 ////////////////////////////////////////////////////////////
-static void *ctk_alloc(CTK_Allocator *allocator, u32 size) {
+static u8 *ctk_alloc(CTK_Allocator *allocator, u32 size) {
     return allocator->alloc(allocator->data, size);
 }
 
@@ -237,7 +237,7 @@ static Type *ctk_alloc(CTK_Allocator *allocator, u32 size) {
     return (Type *)ctk_alloc(allocator, size * sizeof(Type));
 }
 
-static void *ctk_realloc(CTK_Allocator *allocator, void *mem, u32 old_size, u32 new_size) {
+static u8 *ctk_realloc(CTK_Allocator *allocator, void *mem, u32 old_size, u32 new_size) {
     return allocator->realloc(allocator->data, mem, old_size, new_size);
 }
 
@@ -261,7 +261,7 @@ static u8 *ctk_alloc(CTK_Stack *stack, u32 size) {
     return mem;
 }
 
-static void *_ctk_stack_allocator_alloc(void *stack, u32 size) {
+static u8 *_ctk_stack_allocator_alloc(void *stack, u32 size) {
     return ctk_alloc((CTK_Stack *)stack, size);
 }
 
@@ -429,7 +429,7 @@ static u8 *ctk_alloc(CTK_FreeList *free_list, u32 size) {
     return selected_block->mem;
 }
 
-static void *_ctk_free_list_allocator_alloc(void *free_list, u32 size) {
+static u8 *_ctk_free_list_allocator_alloc(void *free_list, u32 size) {
     return ctk_alloc((CTK_FreeList *)free_list, size);
 }
 
