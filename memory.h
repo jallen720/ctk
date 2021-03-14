@@ -55,7 +55,7 @@ static void *_ctk_system_allocator_alloc(void *_, u32 size);
 static void *_ctk_system_allocator_realloc(void *_, void *mem, u32 old_size, u32 new_size);
 static void _ctk_system_allocator_free(void *_, void *mem);
 
-static CTK_Allocator const CTK_SYSTEM_ALLOCATOR = {
+static CTK_Allocator CTK_SYSTEM_ALLOCATOR = {
     NULL,
     _ctk_system_allocator_alloc,
     _ctk_system_allocator_realloc,
@@ -64,7 +64,7 @@ static CTK_Allocator const CTK_SYSTEM_ALLOCATOR = {
 
 static void *_ctk_stack_allocator_alloc(void *stack, u32 size);
 
-static CTK_Allocator const CTK_STACK_ALLOCATOR = {
+static CTK_Allocator CTK_STACK_ALLOCATOR = {
     NULL,
     _ctk_stack_allocator_alloc,
     NULL,
@@ -75,7 +75,7 @@ static void *_ctk_free_list_allocator_alloc(void *free_list, u32 size);
 // static void *_ctk_free_list_allocator_realloc(void *free_list, void *mem, u32 old_size, u32 new_size);
 static void _ctk_free_list_allocator_free(void *free_list, void *mem);
 
-static CTK_Allocator const CTK_FREE_LIST_ALLOCATOR = {
+static CTK_Allocator CTK_FREE_LIST_ALLOCATOR = {
     NULL,
     _ctk_free_list_allocator_alloc,
     NULL,
@@ -234,7 +234,7 @@ static void *ctk_alloc(CTK_Allocator *allocator, u32 size) {
 
 template<typename Type>
 static Type *ctk_alloc(CTK_Allocator *allocator, u32 size) {
-    return (Type *)allocator->alloc(allocator->data, size * sizeof(Type));
+    return (Type *)ctk_alloc(allocator, size * sizeof(Type));
 }
 
 static void *ctk_realloc(CTK_Allocator *allocator, void *mem, u32 old_size, u32 new_size) {
@@ -243,7 +243,7 @@ static void *ctk_realloc(CTK_Allocator *allocator, void *mem, u32 old_size, u32 
 
 template<typename Type>
 static Type *ctk_realloc(CTK_Allocator *allocator, Type *mem, u32 old_size, u32 new_size) {
-    return (Type *)allocator->realloc(allocator->data, mem, old_size * sizeof(Type), new_size * sizeof(Type));
+    return (Type *)ctk_realloc(allocator, (void *)mem, old_size * sizeof(Type), new_size * sizeof(Type));
 }
 
 static void ctk_free(CTK_Allocator *allocator, void *mem) {
@@ -279,10 +279,10 @@ static CTK_Stack *ctk_create_stack(u32 size) {
     return stack;
 }
 
-static CTK_Stack *ctk_create_stack(CTK_Stack *parent, u32 size) {
-    auto stack = ctk_alloc<CTK_Stack>(parent, 1);
+static CTK_Stack *ctk_create_stack(u32 size, CTK_Allocator *allocator) {
+    auto stack = ctk_alloc<CTK_Stack>(allocator, 1);
     stack->size = size;
-    stack->mem = ctk_alloc<u8>(parent, size);
+    stack->mem = ctk_alloc<u8>(allocator, size);
     stack->allocator = CTK_STACK_ALLOCATOR;
     stack->allocator.data = stack;
     return stack;

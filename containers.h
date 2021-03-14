@@ -22,12 +22,11 @@ struct CTK_Pool {
 
 template<typename Type>
 struct CTK_Array {
+    CTK_Allocator *allocator;
     Type *data;
     u32 size;
     u32 chunk_size;
-
     u32 count;
-    CTK_Allocator *allocator;
 
     Type &operator[](u32 i);
 };
@@ -130,6 +129,12 @@ static void ctk_free(CTK_Pool<Type> *pool, void *mem) {
 template<typename Type>
 static CTK_Array<Type> *ctk_create_array(u32 init_size, u32 chunk_size, CTK_Allocator *allocator) {
     CTK_ASSERT(init_size > 0);
+
+    if (chunk_size > 0 && allocator->realloc == NULL) {
+        ctk_warning("chunk_size passed to ctk_create_array() is > 0, but allocator passed does not support reallocation "
+                    "so chunk_size is irrelevant");
+    }
+
     u32 total_init_size = chunk_size ? ctk_total_chunk_size(init_size, chunk_size) : init_size;
 
     auto array = ctk_alloc<CTK_Array<Type>>(allocator, 1);
@@ -144,7 +149,7 @@ static CTK_Array<Type> *ctk_create_array(u32 init_size, u32 chunk_size, CTK_Allo
 template<typename Type>
 static CTK_Array<Type> *ctk_create_array_full(u32 init_size, u32 chunk_size, CTK_Allocator *allocator) {
     auto array = ctk_create_array<Type>(init_size, chunk_size, allocator);
-    array->count = array.size;
+    array->count = array->size;
     return array;
 }
 
@@ -181,11 +186,11 @@ static void _ctk_resize_if_needed(CTK_Array<Type> *array, u32 elem_count) {
     if (array->count + elem_count <= array->size)
         return;
 
-    if (array->chunk_size == 0)
-        CTK_FATAL("can't resize CTK_Array where chunk_size == 0");
-
     if (array->allocator->realloc == NULL)
         CTK_FATAL("can't resize CTK_Array; allocator does not provide realloc function");
+
+    if (array->chunk_size == 0)
+        CTK_FATAL("can't resize CTK_Array where chunk_size == 0");
 
     ctk_resize(array, array->count + elem_count);
 }
