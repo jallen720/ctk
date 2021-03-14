@@ -198,7 +198,7 @@ static void *_ctk_system_allocator_alloc(void *_, u32 size) {
 
 template<typename Type>
 static Type *ctk_alloc(u32 size) {
-    return (Type *)ctk_alloc(sizeof(Type) * size);
+    return (Type *)ctk_alloc(size * sizeof(Type));
 }
 
 static void *ctk_realloc(void *mem, u32 old_size, u32 new_size) {
@@ -267,7 +267,7 @@ static void *_ctk_stack_allocator_alloc(void *stack, u32 size) {
 
 template<typename Type>
 static Type *ctk_alloc(CTK_Stack *stack, u32 size) {
-    return (Type *)ctk_alloc(stack, sizeof(Type) * size);
+    return (Type *)ctk_alloc(stack, size * sizeof(Type));
 }
 
 static CTK_Stack *ctk_create_stack(u32 size) {

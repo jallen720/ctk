@@ -218,7 +218,7 @@ static void ctk_concat(CTK_Array<Type> *array, Type const *elems, u32 elem_count
         CTK_FATAL("pushing to unallocated array (size=0)");
 
     _ctk_resize_if_needed(array, elem_count);
-    memcpy(array->data + array->count, elems, sizeof(Type) * elem_count);
+    memcpy(array->data + array->count, elems, elem_count * sizeof(Type));
     array->count += elem_count;
 }
 
@@ -435,7 +435,7 @@ static void ctk_push(CTK_StaticArray<Type, size> *array, Type *elems, u32 elem_c
                   elem_count);
     }
 
-    memcpy(array->data + array->count, elems, sizeof(Type) * elem_count);
+    memcpy(array->data + array->count, elems, elem_count * sizeof(Type));
     array->count += elem_count;
 }
 
