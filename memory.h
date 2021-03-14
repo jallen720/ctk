@@ -151,33 +151,28 @@ static void ctk_print_free_list(CTK_FreeList *free_list, cstr title = NULL, u32 
 ////////////////////////////////////////////////////////////
 /// System Memory
 ////////////////////////////////////////////////////////////
+static u8 *ctk_alloc_aligned(u32 size, u32 alignment) {
+    CTK_ASSERT(size > 0);
+    CTK_ASSERT(alignment > 0);
+
 #ifdef __GNUC__
-    static u8 *ctk_alloc_aligned(u32 size, u32 alignment) {
-        CTK_ASSERT(size > 0);
-        CTK_ASSERT(alignment > 0);
-        auto mem = (u8 *)aligned_alloc(alignment, size);
-        CTK_ASSERT(mem != NULL);
-        memset(mem, 0, size);
-        return mem;
-    }
-
-    static void ctk_free_aligned(void *mem) {
-        free(mem);
-    }
+    auto mem = (u8 *)aligned_alloc(alignment, size);
 #else
-    static u8 *ctk_alloc_aligned(u32 size, u32 alignment) {
-        CTK_ASSERT(size > 0);
-        CTK_ASSERT(alignment > 0);
-        auto mem = (u8 *)_aligned_malloc(size, alignment);
-        CTK_ASSERT(mem != NULL);
-        memset(mem, 0, size);
-        return mem;
-    }
-
-    static void ctk_free_aligned(void *mem) {
-        _aligned_free(mem);
-    }
+    auto mem = (u8 *)_aligned_malloc(size, alignment);
 #endif
+
+    CTK_ASSERT(mem != NULL);
+    memset(mem, 0, size);
+    return mem;
+}
+
+static void ctk_free_aligned(void *mem) {
+#ifdef __GNUC__
+    free(mem);
+#else
+    _aligned_free(mem);
+#endif
+}
 
 template<typename Type>
 static Type *ctk_alloc_aligned(u32 size, u32 alignment) {
