@@ -370,37 +370,12 @@ static void _ctk_remove_free_block(CTK_FreeList *free_list, _CTK_BlockHeader *fr
     free_block->free = false;
 }
 
-static _CTK_BlockHeader *_ctk_shrink_allocated_block(CTK_FreeList *free_list, _CTK_BlockHeader *block,
-                                                     u32 new_block_size) {
-    // Shrinking a free block would simply cause the new free block added after it to be merged back into it.
-    CTK_ASSERT(!block->free);
-
-    // If space remaining after block shrinks isn't enough to hold a block header and >0 bytes of data, shrinking the
-    // block is pointless.
-    if (block->size - new_block_size < sizeof(_CTK_BlockHeader) + CTK_CACHE_LINE)
-        return NULL;
-
-    // Create free block to manage space after shrunk block.
-    auto free_block = (_CTK_BlockHeader *)(block->mem + new_block_size);
-    free_block->mem = (u8 *)(free_block + 1);
-    free_block->size = block->size - new_block_size - sizeof(_CTK_BlockHeader);
-    free_block->prev = block;
-    free_block->next = block->next;
-    _ctk_push_free_block(free_list, free_block);
-
-    // Update block.
-    block->size = new_block_size;
-    block->next = free_block;
-
-    return free_block;
-}
-
 static u8 *ctk_alloc(CTK_FreeList *free_list, u32 size) {
     // Blocks are aligned with cache-lines, so the effective size of an allocation is in intervals of cache-lines.
     u32 total_size = ctk_total_chunk_size(size, CTK_CACHE_LINE);
 
     // If a large enough free block doesn't exist, allocate a new chunk to ensure a large enough block is available.
-    if (!free_list->largest_free || total_size > free_list->largest_free->size)
+    if (free_list->largest_free == NULL || total_size > free_list->largest_free->size)
         _ctk_push_chunk(free_list);
 
     // Find first free block large enough to hold allocation.
@@ -419,7 +394,21 @@ static u8 *ctk_alloc(CTK_FreeList *free_list, u32 size) {
     // Allocate block by removing it from free list and shrinking it to be atleast the requested size, as well as
     // creating a new free block after it if there is sufficient space.
     _ctk_remove_free_block(free_list, selected_block);
-    _ctk_shrink_allocated_block(free_list, selected_block, total_size);
+
+    // Resize selected block and add new free block after if there is enough room for a block header and a reasonable
+    // amount of memory after. Otherwise the entire selected block is allocated.
+    if (selected_block->size - total_size >= sizeof(_CTK_BlockHeader) + CTK_CACHE_LINE) {
+        auto free_block = (_CTK_BlockHeader *)(selected_block->mem + total_size);
+        free_block->mem = (u8 *)(free_block + 1);
+        free_block->size = selected_block->size - total_size - sizeof(_CTK_BlockHeader);
+        free_block->prev = selected_block;
+        free_block->next = selected_block->next;
+        _ctk_push_free_block(free_list, free_block);
+
+        // Update selected_block.
+        selected_block->size = total_size;
+        selected_block->next = free_block;
+    }
 
     return selected_block->mem;
 }
