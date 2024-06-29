@@ -1,0 +1,272 @@
+/// Data
+////////////////////////////////////////////////////////////
+struct TestingState
+{
+    uint32 tabs;
+    uint32 total_tests;
+    uint32 passed_tests;
+    uint32 failed_tests;
+    bool   show_passed_tests;
+};
+
+static TestingState g_testing_state;
+
+/// Interface
+////////////////////////////////////////////////////////////
+
+/// Logging
+////////////////////////////////////////////////////////////
+template<typename... Args>
+static void TestPrintLine(const char* msg, Args... args)
+{
+    PrintTabs(g_testing_state.tabs);
+    PrintLine(msg, args...);
+}
+
+static void PrintExpectedTag()
+{
+    PrintTabs(g_testing_state.tabs);
+    Print(OutputColor::GREEN, "Expected");
+    Print(": ");
+}
+
+template<typename... Args>
+static void PrintExpected(const char* msg, Args... args)
+{
+    PrintExpectedTag();
+    PrintLine(msg, args...);
+}
+
+static void PrintActualTag(bool pass)
+{
+    PrintTabs(g_testing_state.tabs);
+    if (pass)
+    {
+        Print(OutputColor::GREEN, "Actual");
+        Print(":   ");
+    }
+    else
+    {
+        Print(OutputColor::RED, "Actual");
+        Print(":   ");
+    }
+}
+
+template<typename... Args>
+static void PrintActual(bool pass, const char* msg, Args... args)
+{
+    PrintActualTag(pass);
+    PrintLine(msg, args...);
+}
+
+/// Test Runners
+////////////////////////////////////////////////////////////
+template<typename... Args>
+static void RunTest(const char* description, uint32 description_size, bool* parent_pass, Func<bool, Args...> func,
+                    Args... args)
+{
+    TestPrintLine(CTK_ANSI_HIGHLIGHT(SKY, "Test") ": %.*s", description_size, description);
+
+    // Run test function at 1 extra tab level.
+    g_testing_state.tabs += 1;
+    bool test_passed = func(args...);
+    g_testing_state.tabs -= 1;
+
+    // Update test stats.
+    ++g_testing_state.total_tests;
+    if (test_passed)
+    {
+        ++g_testing_state.passed_tests;
+    }
+    else
+    {
+        ++g_testing_state.failed_tests;
+    }
+
+    // Only update parent's pass flag if the test func failed.
+    if (parent_pass != NULL && !test_passed)
+    {
+        *parent_pass = false;
+    }
+
+    // Output pass/fail based on test function result (not parent_pass).
+    if (test_passed)
+    {
+        TestPrintLine(CTK_ANSI_HIGHLIGHT(GREEN, "Pass"));
+    }
+    else
+    {
+        TestPrintLine(CTK_ANSI_HIGHLIGHT(RED, "Fail"));
+    }
+}
+
+template<typename... Args>
+static void RunTest(const char* description, bool* parent_pass, Func<bool, Args...> func, Args... args)
+{
+    RunTest(description, StringSize(description), parent_pass, func, args...);
+}
+
+template<uint32 description_size, typename... Args>
+static void RunTest(FString<description_size>* description, bool* parent_pass, Func<bool, Args...> func, Args... args)
+{
+    RunTest(description->data, description_size, parent_pass, func, args...);
+}
+
+template<typename ReturnType, typename ...Args>
+static bool ExpectFatalError(Func<ReturnType, Args...> TestFunc, Args... args)
+{
+    bool pass = false;
+    const char* actual = NULL;
+    try
+    {
+        TestFunc(args...);
+        actual = "No Fatal Error";
+    }
+    catch (sint32 e)
+    {
+        pass = true;
+        actual = "Fatal Error";
+    }
+
+    if (g_testing_state.show_passed_tests || !pass)
+    {
+        PrintExpected("Fatal Error");
+        PrintActual(pass, actual);
+    }
+
+    return pass;
+}
+
+/// Explicitly sized char arrays
+////////////////////////////////////////////////////////////
+static bool ExpectEqual(const char* expected, uint32 expected_size, const char* actual, uint32 actual_size)
+{
+    bool pass = StringsMatch(expected, expected_size, actual, actual_size);
+
+    if (g_testing_state.show_passed_tests || !pass)
+    {
+        PrintExpectedTag();
+        Print('\"');
+        PrintASCIIString(expected, expected_size, 128);
+        Print('\"');
+        PrintLine();
+
+        PrintActualTag(pass);
+        Print('\"');
+        PrintASCIIString(actual, actual_size, 128);
+        Print('\"');
+        PrintLine();
+    }
+
+    return pass;
+}
+
+/// String
+////////////////////////////////////////////////////////////
+static bool ExpectEqual(const char* expected, const char* actual)
+{
+    return ExpectEqual(expected, StringSize(expected), actual, StringSize(actual));
+}
+
+static bool ExpectEqual(const char* expected, uint32 expected_count, String* actual)
+{
+    return ExpectEqual(expected, expected_count, actual->data, actual->count);
+}
+
+static bool ExpectEqual(const char* expected, String* actual)
+{
+    return ExpectEqual(expected, StringSize(expected), actual->data, actual->count);
+}
+
+static bool ExpectEqualFull(const char* expected, uint32 expected_count, String* actual)
+{
+    return ExpectEqual(expected, expected_count, actual->data, actual->size);
+}
+
+static bool ExpectEqualFull(const char* expected, String* actual)
+{
+    return ExpectEqual(expected, StringSize(expected), actual->data, actual->size);
+}
+
+/// FString
+////////////////////////////////////////////////////////////
+template<uint32 size>
+static bool ExpectEqual(const char* expected, uint32 expected_count, FString<size>* actual)
+{
+    return ExpectEqual(expected, expected_count, actual->data, actual->count);
+}
+
+template<uint32 size>
+static bool ExpectEqual(const char* expected, FString<size>* actual)
+{
+    return ExpectEqual(expected, StringSize(expected), actual->data, actual->count);
+}
+
+template<uint32 size>
+static bool ExpectEqualFull(const char* expected, uint32 expected_count, FString<size>* actual)
+{
+    return ExpectEqual(expected, expected_count, actual->data, size);
+}
+
+template<uint32 size>
+static bool ExpectEqualFull(const char* expected, FString<size>* actual)
+{
+    return ExpectEqual(expected, StringSize(expected), actual->data, size);
+}
+
+/// Scalars
+////////////////////////////////////////////////////////////
+#define CTK_COMPARISON_FNS(TYPE, FORMAT, COMPARISON, COMPARISON_NAME, EXPECTED_VALUE_PRINT_ARG, ACTUAL_VALUE_PRINT_ARG) \
+static bool Expect##COMPARISON_NAME##(const char* name, TYPE expected_value, TYPE actual_value) \
+{ \
+    bool pass = actual_value COMPARISON expected_value; \
+    if (g_testing_state.show_passed_tests || !pass) \
+    { \
+        PrintExpected("%s "#COMPARISON" " FORMAT, name, EXPECTED_VALUE_PRINT_ARG); \
+        PrintActual(pass, "%s == " FORMAT, name, ACTUAL_VALUE_PRINT_ARG); \
+    } \
+    return pass; \
+} \
+template<uint32 size> \
+static bool Expect##COMPARISON_NAME##(FString<size>* name, TYPE expected_value, TYPE actual_value) \
+{ \
+    return Expect##COMPARISON_NAME##(name->data, expected_value, actual_value); \
+} \
+static bool Expect##COMPARISON_NAME##(TYPE expected_value, TYPE actual_value) \
+{ \
+    return Expect##COMPARISON_NAME##(#TYPE " value", expected_value, actual_value); \
+}
+
+#define CTK_EXPECT_FNS(TYPE, FORMAT, EXPECTED_VALUE_PRINT_ARG, ACTUAL_VALUE_PRINT_ARG) \
+CTK_COMPARISON_FNS(TYPE, FORMAT, >,  GT,       EXPECTED_VALUE_PRINT_ARG, ACTUAL_VALUE_PRINT_ARG) \
+CTK_COMPARISON_FNS(TYPE, FORMAT, <,  LT,       EXPECTED_VALUE_PRINT_ARG, ACTUAL_VALUE_PRINT_ARG) \
+CTK_COMPARISON_FNS(TYPE, FORMAT, >=, GTEqual,  EXPECTED_VALUE_PRINT_ARG, ACTUAL_VALUE_PRINT_ARG) \
+CTK_COMPARISON_FNS(TYPE, FORMAT, <=, LTEqual,  EXPECTED_VALUE_PRINT_ARG, ACTUAL_VALUE_PRINT_ARG) \
+CTK_COMPARISON_FNS(TYPE, FORMAT, ==, Equal,    EXPECTED_VALUE_PRINT_ARG, ACTUAL_VALUE_PRINT_ARG) \
+CTK_COMPARISON_FNS(TYPE, FORMAT, !=, NotEqual, EXPECTED_VALUE_PRINT_ARG, ACTUAL_VALUE_PRINT_ARG)
+
+CTK_EXPECT_FNS(uint64,  "%llu", expected_value, actual_value)
+CTK_EXPECT_FNS(uint32,  "%u",   expected_value, actual_value)
+CTK_EXPECT_FNS(uint16,  "%u",   expected_value, actual_value)
+CTK_EXPECT_FNS(uint8,   "%u",   expected_value, actual_value)
+CTK_EXPECT_FNS(sint64,  "%lli", expected_value, actual_value)
+CTK_EXPECT_FNS(sint32,  "%i",   expected_value, actual_value)
+CTK_EXPECT_FNS(sint16,  "%i",   expected_value, actual_value)
+CTK_EXPECT_FNS(sint8,   "%i",   expected_value, actual_value)
+CTK_EXPECT_FNS(float32, "%f",   expected_value, actual_value)
+CTK_EXPECT_FNS(float64, "%f",   expected_value, actual_value)
+CTK_EXPECT_FNS(bool,    "%s",   (expected_value ? "true" : "false"), (actual_value ? "true" : "false"))
+
+static void SetShowPassedTests(bool show_passed_tests)
+{
+    g_testing_state.show_passed_tests = show_passed_tests;
+}
+
+static void ShowTestStats()
+{
+    PrintLine();
+    PrintLine("Total Tests:  %u", g_testing_state.total_tests);
+    PrintLine(CTK_ANSI_HIGHLIGHT(GREEN, "Passed") " Tests: %u", g_testing_state.passed_tests);
+    PrintLine(CTK_ANSI_HIGHLIGHT(RED, "Failed") " Tests: %u", g_testing_state.failed_tests);
+}
+

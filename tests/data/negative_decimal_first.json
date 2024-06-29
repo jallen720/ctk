@@ -1,0 +1,41 @@
+{
+    "uint32": 1,
+    "sint32": -1,
+    "float32": -.3,
+    "string": "this is a \"test\"",
+    "bool": true,
+    "null": null,
+    "empty array": [],
+    "empty object": {},
+    "array": [
+        1,
+        -1,
+        2.3,
+        "array string",
+        true,
+        null,
+        [],
+        {},
+        [
+            "array array",
+        ],
+        {
+            "name": "array object",
+        },
+    ],
+    "object": {
+        "uint32": 4,
+        "sint32": -4,
+        "float32": 5.6,
+        "string": "object string",
+        "null": null,
+        "empty array": [],
+        "empty object": {},
+        "object array": [
+            "object array",
+        ],
+        "object object": {
+            "name": "object object",
+        },
+    },
+},
