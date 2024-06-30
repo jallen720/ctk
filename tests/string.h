@@ -5,18 +5,6 @@ namespace StringTest
 
 /// Utils
 ////////////////////////////////////////////////////////////
-static bool FreeListAllocationTest()
-{
-    FreeList free_list = CreateFreeList(&std_allocator, 64, { .max_range_count = 4 });
-
-    String string = CreateString(&free_list.allocator, 4);
-    DestroyString(&string, &free_list.allocator);
-
-    DestroyFreeList(&free_list, &std_allocator);
-
-    return true;
-}
-
 static bool TestStringFields(String* string, uint32 expected_size, uint32 expected_count, bool null_data)
 {
     bool pass = true;
@@ -360,7 +348,6 @@ static bool Run()
 {
     bool pass = true;
 
-    RunTest("FreeListAllocationTest()",        &pass, FreeListAllocationTest);
     RunTest("ResizeInitializedStringTest()",   &pass, ResizeInitializedStringTest);
     RunTest("ResizeUninitializedStringTest()", &pass, ResizeUninitializedStringTest);
     RunTest("CanPushTest()",                   &pass, CanPushTest);

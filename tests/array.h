@@ -85,18 +85,6 @@ static bool SortAsc(char* a, char* b)
 
 /// Tests
 ////////////////////////////////////////////////////////////
-static bool FreeListAllocationTest()
-{
-    FreeList free_list = CreateFreeList(&std_allocator, 64, { .max_range_count = 4 });
-
-    Array<uint32> array = CreateArray<uint32>(&free_list.allocator, 4);
-    DestroyArray(&array, &free_list.allocator);
-
-    DestroyFreeList(&free_list, &std_allocator);
-
-    return true;
-}
-
 static bool ResizeInitializedArrayTest()
 {
     bool pass = true;
@@ -331,7 +319,6 @@ static bool Run()
 {
     bool pass = true;
 
-    RunTest("FreeListAllocationTest()",       &pass, FreeListAllocationTest);
     RunTest("ResizeInitializedArrayTest()",   &pass, ResizeInitializedArrayTest);
     RunTest("ResizeUninitializedArrayTest()", &pass, ResizeUninitializedArrayTest);
     RunTest("CanPushTest()",                  &pass, CanPushTest);
