@@ -37,8 +37,9 @@ static Type* Push(FArray<Type, size>* array, Type elem)
         CTK_FATAL("can't push element to array: no space available");
     }
 
-    Type* new_elem = array->data + array->count++;
+    Type* new_elem = array->data + array->count;
     *new_elem = elem;
+    array->count += 1;
     return new_elem;
 }
 

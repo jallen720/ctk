@@ -92,7 +92,7 @@ static bool CanPushTest()
         pass = false;
     }
 
-    Push(&string, (char)'1&');
+    Push(&string, '1');
     if (!ExpectEqual("string(size=2,count=1); CanPush(&string, 2)", false, CanPush(&string, 2)))
     {
         pass = false;

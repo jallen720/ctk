@@ -290,29 +290,29 @@ static bool StringsMatch(String* str_a, String* str_b, uint32 match_size, uint32
 }
 
 template<typename FloatType>
-static FloatType ToFloat(String* s)
+static FloatType ToFloat(String* string)
 {
-    return ToFloat<FloatType>(s->data, s->count);
+    return ToFloat<FloatType>(string->data, string->count);
 }
 
 #define STRING_TO_FLOAT_FUNC(BITS) \
-static float##BITS ToFloat##BITS(String* s) \
+static float##BITS ToFloat##BITS(String* string) \
 { \
-    return ToFloat##BITS(s->data, s->count); \
+    return ToFloat##BITS(string->data, string->count); \
 }
 STRING_TO_FLOAT_FUNC(32)
 STRING_TO_FLOAT_FUNC(64)
 
 template<typename IntType>
-static IntType ToInt(String* s)
+static IntType ToInt(String* string)
 {
-    return ToInt<IntType>(s->data, s->count);
+    return ToInt<IntType>(string->data, string->count);
 }
 
 #define STRING_TO_INT_FUNC(SIGN, SIGN_UPPER, BITS) \
-static SIGN##int##BITS To##SIGN_UPPER##Int##BITS(String* s) \
+static SIGN##int##BITS To##SIGN_UPPER##Int##BITS(String* string) \
 { \
-    return To##SIGN_UPPER##Int##BITS(s->data, s->count); \
+    return To##SIGN_UPPER##Int##BITS(string->data, string->count); \
 }
 STRING_TO_INT_FUNC(s, S, 8)
 STRING_TO_INT_FUNC(s, S, 16)
@@ -323,11 +323,11 @@ STRING_TO_INT_FUNC(u, U, 16)
 STRING_TO_INT_FUNC(u, U, 32)
 STRING_TO_INT_FUNC(u, U, 64)
 
-static bool ToBool(String* s)
+static bool ToBool(String* string)
 {
-    if (StringsMatch(s, "true"))  { return true;  }
-    if (StringsMatch(s, "false")) { return false; }
+    if (StringsMatch(string, "true"))  { return true;  }
+    if (StringsMatch(string, "false")) { return false; }
 
-    CTK_FATAL("string '%.*s' can't be converted to a boolean value: must be 'true' or 'false'", s->data, s->count);
+    CTK_FATAL("string '%.*s' can't be converted to a boolean value: must be 'true' or 'false'", string->data, string->count);
 }
 

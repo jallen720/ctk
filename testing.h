@@ -62,14 +62,14 @@ static void PrintActual(bool pass, const char* msg, Args... args)
 /// Test Runners
 ////////////////////////////////////////////////////////////
 template<typename... Args>
-static void RunTest(const char* description, uint32 description_size, bool* parent_pass, Func<bool, Args...> func,
+static void RunTest(const char* description, uint32 description_size, bool* parent_pass, Func<bool, Args...> TestFunc,
                     Args... args)
 {
     TestPrintLine(CTK_ANSI_HIGHLIGHT(SKY, "Test") ": %.*s", description_size, description);
 
     // Run test function at 1 extra tab level.
     g_testing_state.tabs += 1;
-    bool test_passed = func(args...);
+    bool test_passed = TestFunc(args...);
     g_testing_state.tabs -= 1;
 
     // Update test stats.
@@ -101,15 +101,15 @@ static void RunTest(const char* description, uint32 description_size, bool* pare
 }
 
 template<typename... Args>
-static void RunTest(const char* description, bool* parent_pass, Func<bool, Args...> func, Args... args)
+static void RunTest(const char* description, bool* parent_pass, Func<bool, Args...> TestFunc, Args... args)
 {
-    RunTest(description, StringSize(description), parent_pass, func, args...);
+    RunTest(description, StringSize(description), parent_pass, TestFunc, args...);
 }
 
 template<uint32 description_size, typename... Args>
-static void RunTest(FString<description_size>* description, bool* parent_pass, Func<bool, Args...> func, Args... args)
+static void RunTest(FString<description_size>* description, bool* parent_pass, Func<bool, Args...> TestFunc, Args... args)
 {
-    RunTest(description->data, description_size, parent_pass, func, args...);
+    RunTest(description->data, description_size, parent_pass, TestFunc, args...);
 }
 
 template<typename ReturnType, typename ...Args>

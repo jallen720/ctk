@@ -18,12 +18,10 @@ struct Array
 template<typename Type>
 static void Reverse(Type* array, uint32 size)
 {
-    CTK_TODO("optimize")
-    Type temp = {};
     for (uint32 index = 0; index < size / 2; index += 1)
     {
         uint32 inverse_index = size - 1 - index;
-        temp = array[index];
+        Type temp = array[index];
         array[index] = array[inverse_index];
         array[inverse_index] = temp;
     }
@@ -71,13 +69,13 @@ static Array<Type> CreateArray(Allocator* allocator, uint32 size)
 }
 
 template<typename Type>
-static Array<Type> CreateArray(Allocator* allocator, const Type* data, uint32 size)
+static Array<Type> CreateArray(Allocator* allocator, const Type* src_array, uint32 size)
 {
     Array<Type> array = {};
     array.data  = size > 0 ? Allocate<Type>(allocator, size) : NULL;
     array.size  = size;
     array.count = size;
-    memcpy(array.data, data, size * sizeof(Type));
+    memcpy(array.data, src_array, size * sizeof(Type));
     return array;
 }
 
