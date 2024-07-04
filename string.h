@@ -72,7 +72,10 @@ static FloatType ToFloat(const char* string, uint32 size)
     uint32 index = 0;
     while (index < size)
     {
-        if (string[index] != ' ') { break; }
+        if (string[index] != ' ')
+        {
+            break;
+        }
         index += 1;
     }
 
@@ -92,7 +95,10 @@ static FloatType ToFloat(const char* string, uint32 size)
 
         if (c == '.')
         {
-            if (decimal_found) { CTK_FATAL("invalid string for parsing float: multiple decimals found"); }
+            if (decimal_found)
+            {
+                CTK_FATAL("invalid string for parsing float: multiple decimals found");
+            }
             decimal_found = true;
         }
         else if (!IS_NUMERIC[c])
@@ -101,7 +107,10 @@ static FloatType ToFloat(const char* string, uint32 size)
         }
         else
         {
-            if (decimal_found) { base *= 10; }
+            if (decimal_found)
+            {
+                base *= 10;
+            }
             value *= 10;
             value += c - 48;
         }
@@ -137,7 +146,10 @@ static IntType ToInt(const char* string, uint32 size)
     uint32 index = 0;
     while (index < size)
     {
-        if (string[index] != ' ') { break; }
+        if (string[index] != ' ')
+        {
+            break;
+        }
         index += 1;
     }
 
@@ -152,7 +164,11 @@ static IntType ToInt(const char* string, uint32 size)
     while (index < size)
     {
         char c = string[index];
-        if (!IS_NUMERIC[c]) { break; } // Skip all non-numeric characters at end of string, including trailing spaces.
+        if (!IS_NUMERIC[c])
+        {
+            // Skip all non-numeric characters at end of string, including trailing spaces.
+            break;
+        }
 
         value *= 10;
         value += c - 48;

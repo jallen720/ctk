@@ -177,7 +177,10 @@ static Type* PushResize(Array<Type>* array, Allocator* allocator, uint32 additio
 template<typename Type>
 static void PushRange(Array<Type>* array, const Type* data, uint32 data_size)
 {
-    if (data_size == 0) { return; }
+    if (data_size == 0)
+    {
+        return;
+    }
 
     uint32 available_space = array->size - array->count;
     if (available_space < data_size)

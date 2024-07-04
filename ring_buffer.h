@@ -48,7 +48,10 @@ template<typename Type>
 static Type* Next(RingBuffer<Type>* ring_buffer)
 {
     ring_buffer->index += 1;
-    if (ring_buffer->index >= ring_buffer->size) { ring_buffer->index = 0; }
+    if (ring_buffer->index >= ring_buffer->size)
+    {
+        ring_buffer->index = 0;
+    }
     return ring_buffer->data + ring_buffer->index;
 }
 

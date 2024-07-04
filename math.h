@@ -157,7 +157,10 @@ static uint64 GetAlignment(uint64 value)
     for (uint32 i = 0; i < 64; ++i)
     {
         uint64 alignment = 1 << i;
-        if (alignment & value) { return alignment; }
+        if (alignment & value)
+        {
+            return alignment;
+        }
     }
     return 0;
 }

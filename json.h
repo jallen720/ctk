@@ -377,7 +377,10 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
                     while (parse_state.char_index < json_file->count)
                     {
                         num_char = json_file->data[parse_state.char_index];
-                        if (!IS_NUMERIC[num_char]) { break; }
+                        if (!IS_NUMERIC[num_char])
+                        {
+                            break;
+                        }
                         parse_state.char_index += 1;
                         parse_state.column += 1;
                     }
@@ -421,7 +424,10 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
                 token_type == JSONTokenType::OPEN_CURLY_BRACKET)
             {
                 depth += 1;
-                if (depth > max_depth) { max_depth = depth; }
+                if (depth > max_depth)
+                {
+                    max_depth = depth;
+                }
             }
             else if (token_type == JSONTokenType::CLOSE_SQUARE_BRACKET ||
                      token_type == JSONTokenType::CLOSE_CURLY_BRACKET)
@@ -437,7 +443,10 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
             }
 
             // Every key has a colon following it.
-            if (token_type == JSONTokenType::COLON) { json->max_keys += 1; }
+            if (token_type == JSONTokenType::COLON)
+            {
+                json->max_keys += 1;
+            }
 
             // Parsing ends on last char of token; skip to next.
             parse_state.char_index += 1;
@@ -451,7 +460,10 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
                       c);
         }
     }
-    if (max_tokens == 0) { return {}; }
+    if (max_tokens == 0)
+    {
+        return {};
+    }
 
     // Parse tokens.
     parse_state.char_index = 0;
@@ -468,7 +480,11 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
         char c = json_file->data[parse_state.char_index];
         if (c == '\"')
         {
-            if (is_array) { json->nodes.size += 1; } // Every string token will have its own node.
+            // Every string token will have its own node.
+            if (is_array)
+            {
+                json->nodes.size += 1;
+            }
 
             parse_state.char_index += 1; // Skip opening quotation mark.
 
@@ -501,7 +517,11 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
         }
         else if (c == 'n')
         {
-            if (is_array) { json->nodes.size += 1; } // Every literal token will have its own node.
+            // Every literal token will have its own node.
+            if (is_array)
+            {
+                json->nodes.size += 1;
+            }
 
             JSONToken* token = Push(&tokens);
             token->type  = JSONTokenType::NULL_;
@@ -514,7 +534,11 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
         }
         else if (c == 't')
         {
-            if (is_array) { json->nodes.size += 1; } // Every literal token will have its own node.
+            // Every literal token will have its own node.
+            if (is_array)
+            {
+                json->nodes.size += 1;
+            }
 
             JSONToken* token = Push(&tokens);
             token->type  = JSONTokenType::BOOLEAN;
@@ -527,7 +551,11 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
         }
         else if (c == 'f')
         {
-            if (is_array) { json->nodes.size += 1; } // Every literal token will have its own node.
+            // Every literal token will have its own node.
+            if (is_array)
+            {
+                json->nodes.size += 1;
+            }
 
             JSONToken* token = Push(&tokens);
             token->type  = JSONTokenType::BOOLEAN;
@@ -540,7 +568,11 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
         }
         else if (IS_NUMERIC[c] || c == '-')
         {
-            if (is_array) { json->nodes.size += 1; } // Every numeric token will have its own node.
+            // Every numeric token will have its own node.
+            if (is_array)
+            {
+                json->nodes.size += 1;
+            }
 
             JSONToken* token = Push(&tokens);
             token->type  = JSONTokenType::UINT32;
@@ -578,7 +610,10 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
                     while (parse_state.char_index < json_file->count)
                     {
                         num_char = json_file->data[parse_state.char_index];
-                        if (!IS_NUMERIC[num_char]) { break; }
+                        if (!IS_NUMERIC[num_char])
+                        {
+                            break;
+                        }
                         parse_state.char_index += 1;
                         parse_state.column += 1;
                     }
@@ -609,14 +644,20 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
             // Track if token is in array or object for calculating node count.
             if (token->type == JSONTokenType::OPEN_SQUARE_BRACKET)
             {
-                if (is_array) { json->nodes.size += 1; }
+                if (is_array)
+                {
+                    json->nodes.size += 1;
+                }
 
                 Push(&is_array_stack, true);
                 is_array = true;
             }
             else if (token->type == JSONTokenType::OPEN_CURLY_BRACKET)
             {
-                if (is_array) { json->nodes.size += 1; }
+                if (is_array)
+                {
+                    json->nodes.size += 1;
+                }
 
                 Push(&is_array_stack, false);
                 is_array = false;
@@ -1173,7 +1214,10 @@ JSON LoadJSON(Allocator* allocator, const char* path)
     // Load File
     String json_file = {};
     ReadFile(&json_file, json.allocator, path);
-    if (json_file.count == 0) { return {}; }
+    if (json_file.count == 0)
+    {
+        return {};
+    }
 
     Array<JSONToken> tokens = ParseTokens(&json, &json_file);
     if (tokens.count == 0)

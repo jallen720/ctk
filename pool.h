@@ -97,7 +97,10 @@ static bool IsFree(Pool<Type>* pool, PoolHnd<Type> hnd)
     PoolHnd<Type> next_free = pool->next_free;
     while (!IsNull(next_free))
     {
-        if (IsEqual(next_free, hnd)) { return true; }
+        if (IsEqual(next_free, hnd))
+        {
+            return true;
+        }
         next_free = pool->nodes[GetHndIndex(next_free)].next_free;
     }
 

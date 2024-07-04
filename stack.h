@@ -12,7 +12,10 @@ struct Stack
     ~Stack()
     {
         // "Deallocate" stack from parent stack.
-        if (parent != NULL) { parent->count -= this->size; }
+        if (parent != NULL)
+        {
+            parent->count -= this->size;
+        }
     }
 };
 
