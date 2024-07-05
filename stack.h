@@ -121,13 +121,13 @@ static Type* Allocate(Stack* stack, uint32 count)
 static Stack CreateFrame(Stack* parent)
 {
     uint32 size = parent->size - parent->count;
-    return
-    {
-        .allocator = STACK_ALLOCATOR,
-        .parent    = parent,
-        .mem       = Allocate<uint8>(parent, size),
-        .size      = size,
-        .count     = 0,
-    };
+
+    Stack frame = {};
+    frame.allocator = STACK_ALLOCATOR;
+    frame.parent    = parent;
+    frame.mem       = Allocate<uint8>(parent, size);
+    frame.size      = size;
+    frame.count     = 0;
+    return frame;
 }
 
