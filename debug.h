@@ -101,7 +101,7 @@ template<typename Type, typename ...Args>
 void PrintBitsLine(Type data, const char* fmt, Args... args)
 {
     Print(fmt, args...);
-    PrintBitsLine(data, fmt, args...);
+    PrintBitsLine(data);
 }
 
 static void PrintBytes(uint8* bytes, uint32 size, uint32 width = 32)
