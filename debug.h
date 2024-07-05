@@ -77,30 +77,31 @@ void PrintBits(Type data)
 }
 
 template<typename ...Args>
+void PrintBitsLine(void* bytes, uint32 size)
+{
+    PrintBits(bytes, size);
+    PrintLine();
+}
+
+template<typename ...Args>
 void PrintBitsLine(void* bytes, uint32 size, const char* fmt, Args... args)
 {
     Print(fmt, args...);
-    PrintBits(bytes, size);
+    PrintBitsLine(bytes, size);
+}
+
+template<typename Type, typename ...Args>
+void PrintBitsLine(Type data)
+{
+    PrintBits(&data, sizeof(Type));
     PrintLine();
 }
 
 template<typename Type, typename ...Args>
 void PrintBitsLine(Type data, const char* fmt, Args... args)
 {
-    PrintBitsLine((uint8*)&data, sizeof(Type), fmt, args...);
-}
-
-template<typename ...Args>
-void PrintBitsLine(uint8* bytes, uint32 size)
-{
-    PrintBits(bytes, size);
-    PrintLine();
-}
-
-template<typename Type, typename ...Args>
-void PrintBitsLine(Type data)
-{
-    PrintBitsLine((uint8*)&data, sizeof(Type));
+    Print(fmt, args...);
+    PrintBitsLine(data, fmt, args...);
 }
 
 static void PrintBytes(uint8* bytes, uint32 size, uint32 width = 32)
