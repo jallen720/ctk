@@ -120,7 +120,7 @@ static uint32 AddUsedRange(FreeList* free_list, Range range, RangeKey range_key)
     uint32 range_index = free_list->used_range_count;
     free_list->ranges    [range_index] = range;
     free_list->range_keys[range_index] = range_key;
-    ++free_list->used_range_count;
+    free_list->used_range_count += 1;
 
     return range_index;
 }
@@ -136,7 +136,7 @@ static uint32 AddFreeRange(FreeList* free_list, Range range)
     uint32 range_index = free_list->max_range_count - free_list->free_range_count - 1;
     free_list->ranges    [range_index] = range;
     free_list->range_keys[range_index] = { .byte_index = range.byte_index, .byte_size = range.byte_size };
-    ++free_list->free_range_count;
+    free_list->free_range_count += 1;
 
     return range_index;
 }
