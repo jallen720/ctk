@@ -30,7 +30,6 @@ namespace CTK
 
 // Collections
 #include "ctk/array.h"
-#include "ctk/array2d.h"
 #include "ctk/farray.h"
 #include "ctk/string.h"
 #include "ctk/fstring.h"

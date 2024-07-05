@@ -679,7 +679,7 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
             parse_state.char_index += 1;
         }
     }
-    DestroyArray(&is_array_stack, json->allocator);
+    DestroyArray(&is_array_stack);
     return tokens;
 }
 
@@ -1020,7 +1020,7 @@ void ParseNodes(JSON* json, String* json_file, Array<JSONToken>* tokens)
         }
     }
 
-    DestroyArray(&parse_state.list_states, json->allocator);
+    DestroyArray(&parse_state.list_states);
 }
 
 /// Debug
@@ -1222,7 +1222,7 @@ JSON LoadJSON(Allocator* allocator, const char* path)
     Array<JSONToken> tokens = ParseTokens(&json, &json_file);
     if (tokens.count == 0)
     {
-        DestroyString(&json_file, json.allocator);
+        DestroyString(&json_file);
         return {};
     }
 // for (uint32 i = 0; i < tokens.count; i += 1)
@@ -1242,15 +1242,15 @@ JSON LoadJSON(Allocator* allocator, const char* path)
 // Print("\n\n");
 
     // Cleanup
-    DestroyString(&json_file, json.allocator);
-    DestroyArray(&tokens, json.allocator);
+    DestroyString(&json_file);
+    DestroyArray(&tokens);
 
     return json;
 }
 
 void DestroyJSON(JSON* json)
 {
-    DestroyArray(&json->nodes, json->allocator);
+    DestroyArray(&json->nodes);
     if (json->string_buffer != NULL) { Deallocate(json->allocator, json->string_buffer); }
     if (json->key_sizes     != NULL) { Deallocate(json->allocator, json->key_sizes);     }
     if (json->key_offsets   != NULL) { Deallocate(json->allocator, json->key_offsets);   }

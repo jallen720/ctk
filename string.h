@@ -230,7 +230,7 @@ static sint32 Write(char* string, uint32 max_string_size, const char* fmt_string
 
 /// String Interface
 ////////////////////////////////////////////////////////////
-static String CreateString(Allocator* allocator, uint32 size)
+static String CreateString(Allocator* allocator, uint32 size = 0)
 {
     return CreateArray<char>(allocator, size);
 }
@@ -255,9 +255,9 @@ static String CreateStringFull(Allocator* allocator, uint32 size)
     return CreateArrayFull<char>(allocator, size);
 }
 
-static void DestroyString(String* string, Allocator* allocator)
+static void DestroyString(String* string)
 {
-    DestroyArray(string, allocator);
+    DestroyArray(string);
 }
 
 static String WrapString(char* string, uint32 size)

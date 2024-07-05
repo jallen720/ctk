@@ -8,9 +8,10 @@
 template<typename Type>
 struct Array
 {
-    Type*  data;
-    uint32 size;
-    uint32 count;
+    Allocator* allocator;
+    Type*      data;
+    uint32     size;
+    uint32     count;
 };
 
 /// C-Array Interface
@@ -59,12 +60,13 @@ static Type* IterEnd(Array<Type>* array)
 /// Array Interface
 ////////////////////////////////////////////////////////////
 template<typename Type>
-static Array<Type> CreateArray(Allocator* allocator, uint32 size)
+static Array<Type> CreateArray(Allocator* allocator, uint32 size = 0)
 {
     Array<Type> array = {};
-    array.data  = size > 0 ? Allocate<Type>(allocator, size) : NULL;
-    array.size  = size;
-    array.count = 0;
+    array.allocator = allocator;
+    array.data      = size > 0 ? Allocate<Type>(allocator, size) : NULL;
+    array.size      = size;
+    array.count     = 0;
     return array;
 }
 
@@ -72,9 +74,10 @@ template<typename Type>
 static Array<Type> CreateArray(Allocator* allocator, const Type* src_array, uint32 size)
 {
     Array<Type> array = {};
-    array.data  = size > 0 ? Allocate<Type>(allocator, size) : NULL;
-    array.size  = size;
-    array.count = size;
+    array.allocator = allocator;
+    array.data      = size > 0 ? Allocate<Type>(allocator, size) : NULL;
+    array.size      = size;
+    array.count     = size;
     memcpy(array.data, src_array, size * sizeof(Type));
     return array;
 }
@@ -89,33 +92,39 @@ template<typename Type>
 static Array<Type> CreateArrayFull(Allocator* allocator, uint32 size)
 {
     Array<Type> array = {};
-    array.data  = size > 0 ? Allocate<Type>(allocator, size) : NULL;
-    array.size  = size;
-    array.count = size;
+    array.allocator = allocator;
+    array.data      = size > 0 ? Allocate<Type>(allocator, size) : NULL;
+    array.size      = size;
+    array.count     = size;
     return array;
 }
 
 template<typename Type>
-static void DestroyArray(Array<Type>* array, Allocator* allocator)
+static void DestroyArray(Array<Type>* array)
 {
-    if (array->data != NULL)
+    if (array->allocator != NULL && array->data != NULL)
     {
-        Deallocate(allocator, array->data);
+        Deallocate(array->allocator, array->data);
     }
     *array = {};
 }
 
 #define CTK_ARRAY_RESIZE_FUNC(NAME, REALLOCATE_FUNC) \
 template<typename Type> \
-static void NAME(Array<Type>* array, Allocator* allocator, uint32 new_size) \
+static void NAME(Array<Type>* array, uint32 new_size) \
 { \
     if (array->size > 0 && new_size == 0) \
     { \
-        DestroyArray(array, allocator); \
+        Deallocate(array->allocator, array->data); \
+        array->data  = NULL; \
+        array->size  = 0; \
+        array->count = 0; \
     } \
     else if (array->size == 0 && new_size > 0) \
     { \
-        *array = CreateArray<Type>(allocator, new_size); \
+        array->data  = Allocate<Type>(array->allocator, new_size); \
+        array->size  = new_size; \
+        array->count = 0; \
     } \
     else \
     { \
@@ -125,7 +134,7 @@ static void NAME(Array<Type>* array, Allocator* allocator, uint32 new_size) \
             array->count = new_size; \
         } \
  \
-        array->data = REALLOCATE_FUNC(allocator, array->data, new_size); \
+        array->data = REALLOCATE_FUNC(array->allocator, array->data, new_size); \
     } \
 }
 
@@ -159,19 +168,19 @@ static Type* Push(Array<Type>* array)
 }
 
 template<typename Type>
-static Type* PushResize(Array<Type>* array, Type elem, Allocator* allocator, uint32 additional_space)
+static Type* PushResize(Array<Type>* array, Type elem, uint32 additional_space)
 {
     if (!CanPush(array, 1))
     {
-        Resize(array, allocator, array->size + additional_space);
+        Resize(array, array->size + additional_space);
     }
     return Push(array, elem);
 }
 
 template<typename Type>
-static Type* PushResize(Array<Type>* array, Allocator* allocator, uint32 additional_space)
+static Type* PushResize(Array<Type>* array, uint32 additional_space)
 {
-    return PushResize(array, {}, allocator, additional_space);
+    return PushResize(array, {}, additional_space);
 }
 
 template<typename Type>
@@ -205,20 +214,19 @@ static void PushRange(Array<Type>* array, Array<Type> other)
 }
 
 template<typename Type>
-static void PushRangeResize(Array<Type>* array, const Type* data, uint32 data_size, Allocator* allocator,
-                            uint32 additional_space)
+static void PushRangeResize(Array<Type>* array, const Type* data, uint32 data_size, uint32 additional_space)
 {
     if (!CanPush(array, data_size))
     {
-        Resize(array, allocator, array->size + Max(data_size, additional_space));
+        Resize(array, array->size + Max(data_size, additional_space));
     }
     PushRange(array, data, data_size);
 }
 
 template<typename Type>
-static void PushRangeResize(Array<Type>* array, Array<Type>* other, Allocator* allocator, uint32 additional_space)
+static void PushRangeResize(Array<Type>* array, Array<Type>* other, uint32 additional_space)
 {
-    PushRangeResize(array, other->data, other->count, allocator, additional_space);
+    PushRangeResize(array, other->data, other->count, additional_space);
 }
 
 template<typename Type>

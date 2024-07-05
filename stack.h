@@ -2,7 +2,8 @@
 ////////////////////////////////////////////////////////////
 struct Stack
 {
-    Allocator allocator;
+    Allocator  allocator;
+    Allocator* parent_allocator;
 
     Stack* parent;
     uint8* mem;
@@ -50,17 +51,18 @@ static Stack CreateStack(Allocator* allocator, uint32 size)
     CTK_ASSERT(size > 0);
 
     Stack stack = {};
-    stack.allocator = STACK_ALLOCATOR;
-    stack.parent    = NULL;
-    stack.mem       = Allocate<uint8>(allocator, size);
-    stack.size      = size;
-    stack.count     = 0;
+    stack.allocator        = STACK_ALLOCATOR;
+    stack.parent_allocator = allocator;
+    stack.parent           = NULL;
+    stack.mem              = Allocate<uint8>(allocator, size);
+    stack.size             = size;
+    stack.count            = 0;
     return stack;
 }
 
-static void DestroyStack(Stack* stack, Allocator* allocator)
+static void DestroyStack(Stack* stack)
 {
-    Deallocate(allocator, stack->mem);
+    Deallocate(stack->parent_allocator, stack->mem);
     *stack = {};
 }
 

@@ -89,18 +89,18 @@ static bool ResizeInitializedArrayTest()
 {
     bool pass = true;
 
-    Array<uint32> array = CreateArray<uint32>(&std_allocator, 6);
+    auto array = CreateArray<uint32>(&std_allocator, 6);
     Push(&array, 1u);
     Push(&array, 2u);
     Push(&array, 3u);
 
-    ResizeNZ(&array, &std_allocator, array.size - 2);
-    RunTest("ResizeNZ(array, &std_allocator, &array->size - 2)", &pass, TestArrayFields, &array, 4u, 3u, false);
+    ResizeNZ(&array, array.size - 2);
+    RunTest("ResizeNZ(&array, array.size - 2)", &pass, TestArrayFields, &array, 4u, 3u, false);
 
-    ResizeNZ(&array, &std_allocator, array.size - 2);
-    RunTest("ResizeNZ(array, &std_allocator, &array->size - 2)", &pass, TestArrayFields, &array, 2u, 2u, false);
+    ResizeNZ(&array, array.size - 2);
+    RunTest("ResizeNZ(&array, array.size - 2)", &pass, TestArrayFields, &array, 2u, 2u, false);
 
-    DestroyArray(&array, &std_allocator);
+    DestroyArray(&array);
 
     return pass;
 }
@@ -109,19 +109,19 @@ static bool ResizeUninitializedArrayTest()
 {
     bool pass = true;
 
-    Array<uint32> array = {};
+    auto array = CreateArray<uint32>(&std_allocator);
     RunTest("Uninitialized Array", &pass, TestArrayFields, &array, 0u, 0u, true);
 
-    ResizeNZ(&array, &std_allocator, 1);
-    RunTest("ResizeNZ(&array, &std_allocator, 1) (initializes the array)", &pass,
+    ResizeNZ(&array, 1);
+    RunTest("ResizeNZ(&array, 1) (initializes the array)", &pass,
             TestArrayFields, &array, 1u, 0u, false);
 
-    ResizeNZ(&array, &std_allocator, 2);
-    RunTest("ResizeNZ(&array, &std_allocator, 2)", &pass,
+    ResizeNZ(&array, 2);
+    RunTest("ResizeNZ(&array, 2)", &pass,
             TestArrayFields, &array, 2u, 0u, false);
 
-    ResizeNZ(&array, &std_allocator, 0);
-    RunTest("ResizeNZ(&array, &std_allocator, 0) (de-initializes the array)", &pass,
+    ResizeNZ(&array, 0);
+    RunTest("ResizeNZ(&array, 0) (de-initializes the array)", &pass,
             TestArrayFields, &array, 0u, 0u, true);
 
     return pass;
@@ -150,7 +150,7 @@ static bool CanPushTest()
         pass = false;
     }
 
-    DestroyArray(&array, &std_allocator);
+    DestroyArray(&array);
 
     return pass;
 }
@@ -279,7 +279,7 @@ static bool ReverseTest()
     Reverse(&array);
     RunTest("Reverse()", &pass, ExpectEqual, "this is a test2", &array);
 
-    DestroyArray(&array, &std_allocator);
+    DestroyArray(&array);
 
     return pass;
 }
@@ -310,7 +310,7 @@ static bool InsertionSortTest()
     InsertionSort(&array, SortAsc);
     RunTest("InsertionSort() ascending", &pass, ExpectEqual, "111123", &array);
 
-    DestroyArray(&array, &std_allocator);
+    DestroyArray(&array);
 
     return pass;
 }

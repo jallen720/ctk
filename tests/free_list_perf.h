@@ -95,7 +95,7 @@ static float64 Test(Array<Operation>* ops, Array<Allocation>* allocations, Alloc
         PrintLine("running warmup pass...");
     }
 
-    for (uint32 i = 0; i < ops->count; ++i)
+    for (uint32 i = 0; i < ops->count; i += 1)
     {
         Operation* op = GetPtr(ops, i);
         if (op->type == OperationType::ALLOCATE)
@@ -159,7 +159,7 @@ static void Run()
     uint32 deallocate_op_count  = 0;
     uint32 allocation_count     = 0;
     uint32 max_allocation_count = 0;
-    for (uint32 i = 0; i < OP_COUNT; ++i)
+    for (uint32 i = 0; i < OP_COUNT; i += 1)
     {
         Operation* op = Push(&ops);
 
@@ -191,8 +191,8 @@ static void Run()
 
         if (op->type == OperationType::ALLOCATE)
         {
-            ++allocate_op_count;
-            ++allocation_count;
+            allocate_op_count += 1;
+            allocation_count += 1;
             if (allocation_count > max_allocation_count)
             {
                 max_allocation_count = allocation_count;
@@ -201,15 +201,15 @@ static void Run()
         }
         else if (op->type == OperationType::REALLOCATE)
         {
-            ++reallocate_op_count;
+            reallocate_op_count += 1;
             op->reallocate_operation.index    = RandomRange(0u, allocation_count);
             op->reallocate_operation.new_size = RandomRange(1u, MAX_ALLOCATION_SIZE + 1);
         }
         else if (op->type == OperationType::DEALLOCATE)
         {
-            ++deallocate_op_count;
+            deallocate_op_count += 1;
             op->deallocate_operation.index = RandomRange(0u, allocation_count);
-            --allocation_count;
+            allocation_count -= 1;
         }
     }
     PrintLine("allocations:     %u", allocate_op_count);
@@ -230,18 +230,18 @@ static void Run()
 
         // Run warmup test then free/clear allocations.
         Test(&ops, &allocations, &std_allocator, WARMUP_PASS);
-        for (uint32 allocation_index = 0; allocation_index < allocations.count; ++allocation_index)
+        for (uint32 allocation_index = 0; allocation_index < allocations.count; allocation_index += 1)
         {
             Deallocate(GetPtr(&allocations, allocation_index)->ptr);
         }
         Clear(&allocations);
 
         float64 total_ms = 0.0;
-        for (uint32 pass = 0; pass < TEST_PASSES; ++pass)
+        for (uint32 pass = 0; pass < TEST_PASSES; pass += 1)
         {
             // Run test then free/clear allocations.
             total_ms += Test(&ops, &allocations, &std_allocator, pass);
-            for (uint32 allocation_index = 0; allocation_index < allocations.count; ++allocation_index)
+            for (uint32 allocation_index = 0; allocation_index < allocations.count; allocation_index += 1)
             {
                 Deallocate(GetPtr(&allocations, allocation_index)->ptr);
             }
@@ -267,7 +267,7 @@ static void Run()
 
         // Run all test passes.
         float64 total_ms = 0.0;
-        for (uint32 pass = 0; pass < TEST_PASSES; ++pass)
+        for (uint32 pass = 0; pass < TEST_PASSES; pass += 1)
         {
             // Run test then cleanup free_list and allocations for next test.
             free_list = CreateFreeList(&std_allocator, FREE_LIST_BYTE_SIZE, { max_allocation_count * 2 });
@@ -279,8 +279,8 @@ static void Run()
     }
 #endif
 
-    DestroyArray(&ops, &std_allocator);
-    DestroyArray(&allocations, &std_allocator);
+    DestroyArray(&ops);
+    DestroyArray(&allocations);
 }
 
 }

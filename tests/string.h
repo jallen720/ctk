@@ -40,16 +40,16 @@ static bool ResizeInitializedStringTest()
     RunTest("Initialized String", &pass, ExpectEqual, "123", 3u, &string);
     RunTest("Initialized String", &pass, TestStringFields, &string, 6u, 3u, false);
 
-    ResizeNZ(&string, &std_allocator, 4u);
-    RunTest("ResizeNZ(string, &std_allocator, 4u)", &pass, TestStringFields, &string, 4u, 3u, false);
+    ResizeNZ(&string, 4u);
+    RunTest("ResizeNZ(&string, 4u)", &pass, TestStringFields, &string, 4u, 3u, false);
 
-    ResizeNZ(&string, &std_allocator, 2u);
-    RunTest("ResizeNZ(string, &std_allocator, 2u)", &pass, TestStringFields, &string, 2u, 2u, false);
+    ResizeNZ(&string, 2u);
+    RunTest("ResizeNZ(&string, 2u)", &pass, TestStringFields, &string, 2u, 2u, false);
 
-    ResizeNZ(&string, &std_allocator, 0u);
-    RunTest("ResizeNZ(string, &std_allocator, 0u)", &pass, TestStringFields, &string, 0u, 0u, true);
+    ResizeNZ(&string, 0u);
+    RunTest("ResizeNZ(&string, 0u)", &pass, TestStringFields, &string, 0u, 0u, true);
 
-    DestroyString(&string, &std_allocator);
+    DestroyString(&string);
 
     return pass;
 }
@@ -58,19 +58,19 @@ static bool ResizeUninitializedStringTest()
 {
     bool pass = true;
 
-    String string = {};
+    String string = CreateString(&std_allocator);
     RunTest("Uninitialized String", &pass, TestStringFields, &string, 0u, 0u, true);
 
-    ResizeNZ(&string, &std_allocator, 1);
-    RunTest("ResizeNZ(&string, &std_allocator, 1) (initializes the string)", &pass,
+    ResizeNZ(&string, 1);
+    RunTest("ResizeNZ(&string, 1) (initializes the string)", &pass,
             TestStringFields, &string, 1u, 0u, false);
 
-    ResizeNZ(&string, &std_allocator, 2);
-    RunTest("ResizeNZ(&string, &std_allocator, 2)", &pass,
+    ResizeNZ(&string, 2);
+    RunTest("ResizeNZ(&string, 2)", &pass,
             TestStringFields, &string, 2u, 0u, false);
 
-    ResizeNZ(&string, &std_allocator, 0);
-    RunTest("ResizeNZ(&string, &std_allocator, 0) (de-initializes the string)", &pass,
+    ResizeNZ(&string, 0);
+    RunTest("ResizeNZ(&string, 0) (de-initializes the string)", &pass,
             TestStringFields, &string, 0u, 0u, true);
 
     return pass;
@@ -98,7 +98,7 @@ static bool CanPushTest()
         pass = false;
     }
 
-    DestroyString(&string, &std_allocator);
+    DestroyString(&string);
 
     return pass;
 }
@@ -122,7 +122,7 @@ static bool RemoveTest()
     Remove(&string, 0);
     RunTest("Remove(string, 0)", &pass, ExpectEqual, "", &string);
 
-    DestroyString(&string, &std_allocator);
+    DestroyString(&string);
     return pass;
 }
 
@@ -145,7 +145,7 @@ static bool RemoveRangeTest()
     RemoveRange(&string, 0, 2);
     RunTest("RemoveRange(string, 0, 2)", &pass, ExpectEqual, "", &string);
 
-    DestroyString(&string, &std_allocator);
+    DestroyString(&string);
     return pass;
 }
 
@@ -163,7 +163,7 @@ static bool WriteTest()
         RunTest("Write(string, \"test\") (equal up to string.count)", &pass,
                 TestStringFields, &string, STRING_SIZE, 4u, false);
 
-        DestroyString(&string, &std_allocator);
+        DestroyString(&string);
     }
     {
         static constexpr uint32 STRING_SIZE = 8;
@@ -177,7 +177,7 @@ static bool WriteTest()
         RunTest("Write(string, \"test\") (equal up to string.size)", &pass,
                 TestStringFields, &string, STRING_SIZE, 4u, false);
 
-        DestroyString(&string, &std_allocator);
+        DestroyString(&string);
     }
 
     return pass;
@@ -213,7 +213,7 @@ static bool AppendTest()
         RunTest("Append(string, \"test4\")", &pass, ExpectEqualFull, (const char*)expected[3], STRING_SIZE, &string);
         RunTest("Append(string, \"test4\")", &pass, TestStringFields, &string, STRING_SIZE, STRING_SIZE, false);
 
-        DestroyString(&string, &std_allocator);
+        DestroyString(&string);
     }
 
     return pass;
@@ -241,7 +241,7 @@ static bool ContainsTest()
         pass = false;
     }
 
-    DestroyString(&string, &std_allocator);
+    DestroyString(&string);
 
     return pass;
 }
@@ -274,7 +274,7 @@ static bool ReverseTest()
     Reverse(&string);
     RunTest("Reverse()", &pass, ExpectEqual, "this is a test2", &string);
 
-    DestroyString(&string, &std_allocator);
+    DestroyString(&string);
 
     return pass;
 }

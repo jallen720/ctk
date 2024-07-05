@@ -31,11 +31,12 @@ struct FreeListInfo
 
 struct FreeList
 {
-    Allocator allocator;
+    Allocator  allocator;
+    Allocator* parent_allocator;
 
-    uint8*    mem;
-    uint32    byte_size;
-    uint32    first_range_index;
+    uint8* mem;
+    uint32 byte_size;
+    uint32 first_range_index;
 
     Range*    ranges;
     RangeKey* range_keys;
@@ -46,11 +47,11 @@ struct FreeList
 
 /// Allocator
 ////////////////////////////////////////////////////////////
-static uint8* AllocateNZ(FreeList* free_list, uint32 size, uint32 alignment);
-static uint8* Allocate(FreeList* free_list, uint32 size, uint32 alignment);
+static uint8* AllocateNZ  (FreeList* free_list, uint32 size, uint32 alignment);
+static uint8* Allocate    (FreeList* free_list, uint32 size, uint32 alignment);
 static uint8* ReallocateNZ(FreeList* free_list, void* mem, uint32 new_size, uint32 alignment);
-static uint8* Reallocate(FreeList* free_list, void* mem, uint32 new_size, uint32 alignment);
-static void Deallocate(FreeList* free_list, void* mem);
+static uint8* Reallocate  (FreeList* free_list, void* mem, uint32 new_size, uint32 alignment);
+static void   Deallocate  (FreeList* free_list, void* mem);
 
 static uint8* FreeList_AllocateNZ(void* data, uint32 size, uint32 alignment)
 {
@@ -505,8 +506,6 @@ static FreeList CreateFreeList(Allocator* allocator, uint32 min_byte_size, FreeL
     CTK_ASSERT(min_byte_size > 0);
     CTK_ASSERT(info.max_range_count > 0);
 
-    FreeList free_list = {};
-
     // Max free-range count is half max-total-range-count if max range count is even: FUFU or UFUF
     // Or it is half + 1 if max-total-range-count is odd: FUFUF
     uint32 max_free_range_count = (info.max_range_count / 2) + ((info.max_range_count % 2) == 0 ? 0 : 1);
@@ -524,6 +523,8 @@ static FreeList CreateFreeList(Allocator* allocator, uint32 min_byte_size, FreeL
     uint32 free_space_byte_size = min_byte_size;
 
     // Init free list.
+    FreeList free_list = {};
+    free_list.parent_allocator = allocator;
     free_list.allocator        = FREE_LIST_ALLOCATOR;
     free_list.mem              = Allocate<uint8>(allocator, range_data_byte_size + free_space_byte_size);
     free_list.byte_size        = range_data_byte_size + free_space_byte_size;
@@ -569,9 +570,9 @@ static FreeList CreateFreeList(Allocator* allocator, uint32 min_byte_size, FreeL
     return free_list;
 }
 
-static void DestroyFreeList(FreeList* free_list, Allocator* allocator)
+static void DestroyFreeList(FreeList* free_list)
 {
-    Deallocate(allocator, free_list->mem);
+    Deallocate(free_list->parent_allocator, free_list->mem);
     *free_list = {};
 }
 

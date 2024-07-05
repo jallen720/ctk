@@ -20,22 +20,23 @@ static void Thread(void* data)
 static void ThreadPoolTest()
 {
     static constexpr uint32 THREAD_COUNT = 4;
-    ThreadPool* thread_pool = CreateThreadPool(&std_allocator, THREAD_COUNT);
+    ThreadPool thread_pool = {};
+    InitThreadPool(&thread_pool, &std_allocator, THREAD_COUNT);
     InitializeCriticalSection(&print_lock);
 
     TaskHnd tasks[THREAD_COUNT] = {};
     for (uint32 i = 0; i < THREAD_COUNT; i += 1)
     {
-        tasks[i] = SubmitTask(thread_pool, (void*)i, Thread);
+        tasks[i] = SubmitTask(&thread_pool, (void*)i, Thread);
     }
     for (uint32 i = 0; i < THREAD_COUNT; i += 1)
     {
-        Wait(thread_pool, tasks[i]);
+        Wait(&thread_pool, tasks[i]);
     }
 
     PrintLine("done");
 
-    DestroyThreadPool(thread_pool, &std_allocator);
+    DestroyThreadPool(&thread_pool);
 }
 
 static void DebugGetBatchRange(uint32 thread_index, uint32 total_thread_count, uint32 total_batch_size)

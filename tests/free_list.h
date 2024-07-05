@@ -192,10 +192,10 @@ static bool AllocateMultiple()
         Write(&description, "Allocate<uint8>(&free_list, %u)", test_allocs[curr_alloc_index]);
         RunTest(&description, &pass, ExpectLayout, &free_list, layout);
 
-        DestroyArray(&layout, &std_allocator);
+        DestroyArray(&layout);
     }
 
-    DestroyFreeList(&free_list, &std_allocator);
+    DestroyFreeList(&free_list);
     return pass;
 }
 
@@ -249,7 +249,7 @@ static bool AllocateFullFreeList()
         RunTest("Deallocate(&free_list, alloc)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
 
-    DestroyFreeList(&free_list, &std_allocator);
+    DestroyFreeList(&free_list);
     return pass;
 }
 
@@ -313,7 +313,7 @@ static bool DeallocateDoubleMerge()
         RunTest(&description, &pass, ExpectLayout, &free_list, expected_layout);
     }
 
-    DestroyFreeList(&free_list, &std_allocator);
+    DestroyFreeList(&free_list);
     return pass;
 }
 
@@ -369,7 +369,7 @@ static bool DeallocatePrevMerge()
         RunTest("Deallocate(&free_list, allocs[1])", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
 
-    DestroyFreeList(&free_list, &std_allocator);
+    DestroyFreeList(&free_list);
     return pass;
 }
 
@@ -425,7 +425,7 @@ static bool DeallocateNextMerge()
         RunTest("Deallocate(&free_list, allocs[0])", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
 
-    DestroyFreeList(&free_list, &std_allocator);
+    DestroyFreeList(&free_list);
     return pass;
 }
 
@@ -466,7 +466,7 @@ static bool ReallocateSameSize()
         RunTest("Reallocate(&free_list, alloc, 1)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
 
-    DestroyFreeList(&free_list, &std_allocator);
+    DestroyFreeList(&free_list);
     return pass;
 }
 
@@ -516,7 +516,7 @@ static bool ReallocateSmallerNoNextHeader()
         RunTest("Allocate<uint8>(&free_list, 2)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
 
-    DestroyFreeList(&free_list, &std_allocator);
+    DestroyFreeList(&free_list);
     return pass;
 }
 
@@ -560,7 +560,7 @@ static bool ReallocateSmallerNextHeaderIsUsed()
         RunTest("Reallocate(&free_list, alloc, 1)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
 
-    DestroyFreeList(&free_list, &std_allocator);
+    DestroyFreeList(&free_list);
     return pass;
 }
 
@@ -641,7 +641,7 @@ static bool ReallocateSmallerNextHeaderIsFree()
         RunTest("Allocate<uint8>(&free_list, 2)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
 
-    DestroyFreeList(&free_list, &std_allocator);
+    DestroyFreeList(&free_list);
     return pass;
 }
 
@@ -680,7 +680,7 @@ static bool ReallocateLargerMergeEntireNextFreeRange()
         RunTest("Reallocate(&free_list, alloc, 6)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
 
-    DestroyFreeList(&free_list, &std_allocator);
+    DestroyFreeList(&free_list);
     return pass;
 }
 
@@ -760,7 +760,7 @@ static bool ReallocateLargerMergePartialNextFreeRange()
         RunTest("Reallocate(&free_list, alloc, 6)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
 
-    DestroyFreeList(&free_list, &std_allocator);
+    DestroyFreeList(&free_list);
     return pass;
 }
 
@@ -798,7 +798,7 @@ static bool ReallocateLargerNewAllocationPostRange()
         RunTest("Reallocate(&free_list, allocs[0], 2)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
 
-    DestroyFreeList(&free_list, &std_allocator);
+    DestroyFreeList(&free_list);
     return pass;
 }
 
@@ -838,7 +838,7 @@ static bool ReallocateLargerNewAllocationPreRange()
         RunTest("Reallocate(&free_list, allocs[2], 2)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
 
-    DestroyFreeList(&free_list, &std_allocator);
+    DestroyFreeList(&free_list);
     return pass;
 }
 
@@ -889,7 +889,7 @@ static bool ZeroAllocatedMemory()
                 (const char*)alloc,    ALLOC_SIZE);
     }
 
-    DestroyFreeList(&free_list, &std_allocator);
+    DestroyFreeList(&free_list);
     return pass;
 }
 
@@ -981,7 +981,7 @@ static bool ZeroReallocatedMemory()
                 (const char*)allocs[0], REALLOC_BYTE_SIZE);
     }
 
-    DestroyFreeList(&free_list, &std_allocator);
+    DestroyFreeList(&free_list);
     return pass;
 }
 
@@ -1038,7 +1038,7 @@ static bool NonZeroAllocatedMemory()
                 (const char*)alloc,    ALLOC_SIZE);
     }
 
-    DestroyFreeList(&free_list, &std_allocator);
+    DestroyFreeList(&free_list);
     return pass;
 }
 
@@ -1133,7 +1133,7 @@ static bool NonZeroReallocatedMemory()
                 (const char*)allocs[0], REALLOC_BYTE_SIZE);
     }
 
-    DestroyFreeList(&free_list, &std_allocator);
+    DestroyFreeList(&free_list);
     return pass;
 }
 
@@ -1160,7 +1160,7 @@ static bool AllocateAlignmentTest()
     // Cleanup.
     CTK_ITER_PTR(free_list, free_lists, FREE_LIST_COUNT)
     {
-        DestroyFreeList(free_list, &std_allocator);
+        DestroyFreeList(free_list);
     }
 
     return pass;
@@ -1191,7 +1191,7 @@ static bool ReallocateAlignmentTest()
     // Cleanup.
     CTK_ITER_PTR(free_list, free_lists, FREE_LIST_COUNT)
     {
-        DestroyFreeList(free_list, &std_allocator);
+        DestroyFreeList(free_list);
     }
 
     return pass;

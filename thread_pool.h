@@ -38,11 +38,19 @@ static constexpr TaskHnd NO_TASK = UINT32_MAX;
 
 /// Utils
 ////////////////////////////////////////////////////////////
-static void InitTaskList(TaskList* task_list)
+static TaskList CreateTaskList()
 {
-    task_list->head = NO_TASK;
-    InitializeCriticalSection(&task_list->lock);
-    InitializeConditionVariable(&task_list->available);
+    TaskList task_list = {};
+    task_list.head = NO_TASK;
+    InitializeCriticalSection(&task_list.lock);
+    InitializeConditionVariable(&task_list.available);
+    return task_list;
+}
+
+static void DestroyTaskList(TaskList* task_list)
+{
+    task_list->head = 0;
+    DeleteCriticalSection(&task_list->lock);
 }
 
 static TaskHnd PopTask(ThreadPool* thread_pool, TaskList* task_list)
@@ -80,8 +88,6 @@ static void PushTask(ThreadPool* thread_pool, TaskList* task_list, TaskHnd task_
     WakeConditionVariable(&task_list->available);
 }
 
-/// Interface
-////////////////////////////////////////////////////////////
 static DWORD ThreadFunc(void* data)
 {
     auto thread_pool = (ThreadPool*)data;
@@ -106,15 +112,17 @@ static DWORD ThreadFunc(void* data)
     return 0;
 }
 
+/// Interface
+////////////////////////////////////////////////////////////
 static void InitThreadPool(ThreadPool* thread_pool, Allocator* allocator, uint32 thread_count)
 {
     CTK_ASSERT(thread_count > 0);
 
-    thread_pool->size    = thread_count;
-    thread_pool->threads = CreateArray<HANDLE>(allocator, thread_count);
-    thread_pool->tasks   = CreateArrayFull<Task>(allocator, thread_count);
-    InitTaskList(&thread_pool->idle_tasks);
-    InitTaskList(&thread_pool->ready_tasks);
+    thread_pool->size        = thread_count;
+    thread_pool->threads     = CreateArray<HANDLE>(allocator, thread_count);
+    thread_pool->tasks       = CreateArrayFull<Task>(allocator, thread_count);
+    thread_pool->idle_tasks  = CreateTaskList();
+    thread_pool->ready_tasks = CreateTaskList();
 
     // Create threads.
     for (uint32 i = 0; i < thread_count; ++i)
@@ -153,25 +161,22 @@ static void InitThreadPool(ThreadPool* thread_pool, Allocator* allocator, uint32
     thread_pool->idle_tasks.head = 0;
 }
 
-static void DeinitThreadPool(ThreadPool* thread_pool, Allocator* allocator)
+static void DestroyThreadPool(ThreadPool* thread_pool)
 {
-    DestroyArray(&thread_pool->threads, allocator);
-    DestroyArray(&thread_pool->tasks, allocator);
-}
-
-static ThreadPool* CreateThreadPool(Allocator* allocator, uint32 thread_count)
-{
-    CTK_ASSERT(thread_count > 0);
-
-    auto thread_pool = Allocate<ThreadPool>(allocator, 1);
-    InitThreadPool(thread_pool, allocator, thread_count);
-    return thread_pool;
-}
-
-static void DestroyThreadPool(ThreadPool* thread_pool, Allocator* allocator)
-{
-    DeinitThreadPool(thread_pool, allocator);
-    Deallocate(allocator, thread_pool);
+    CTK_ITER(thread, &thread_pool->threads)
+    {
+        if (!TerminateThread(*thread, 0))
+        {
+            Win32Error e = {};
+            GetWin32Error(&e);
+            CTK_FATAL("TerminateThread() failed: %.*s", e.message_length, e.message);
+        }
+    }
+    thread_pool->size = 0;
+    DestroyArray(&thread_pool->threads);
+    DestroyArray(&thread_pool->tasks);
+    DestroyTaskList(&thread_pool->idle_tasks);
+    DestroyTaskList(&thread_pool->ready_tasks);
 }
 
 static TaskHnd SubmitTask(ThreadPool* thread_pool, void* data, Func<void, void*> func)

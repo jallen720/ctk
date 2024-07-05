@@ -74,7 +74,7 @@ static bool AllocateTest()
         RunTest(&description, &pass, ExpectBytes, &stack, expected_bytes);
     }
 
-    DestroyStack(&stack, &std_allocator);
+    DestroyStack(&stack);
     return pass;
 }
 
@@ -145,7 +145,7 @@ static bool CreateFrameTest()
         RunTest("Frame leaves scope", &pass, TestStackFields, "&stack", &stack, STACK_BYTE_SIZE, count_before_frame);
     }
 
-    DestroyStack(&stack, &std_allocator);
+    DestroyStack(&stack);
     return pass;
 }
 
@@ -172,7 +172,7 @@ static bool AlignmentTest()
     // Cleanup.
     CTK_ITER_PTR(stack, stacks, STACK_COUNT)
     {
-        DestroyStack(stack, &std_allocator);
+        DestroyStack(stack);
     }
 
     return pass;
