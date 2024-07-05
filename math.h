@@ -258,96 +258,89 @@ static Type Set(Vec4<Type>* vec, uint32 index, Type value)
 template<typename Type>
 static Vec4<Type> operator+(Vec4<Type> a, Vec4<Type> b)
 {
-    return
-    {
-        .x = a.x + b.x,
-        .y = a.y + b.y,
-        .z = a.z + b.z,
-        .w = a.w + b.w,
-    };
+    Vec4<Type> vec4 = {};
+    vec4.x = a.x + b.x;
+    vec4.y = a.y + b.y;
+    vec4.z = a.z + b.z;
+    vec4.w = a.w + b.w;
+    return vec4;
 }
 
 template<typename Type>
 static Vec4<Type> operator-(Vec4<Type> a, Vec4<Type> b)
 {
-    return
-    {
-        .x = a.x - b.x,
-        .y = a.y - b.y,
-        .z = a.z - b.z,
-        .w = a.w - b.w,
-    };
+    Vec4<Type> vec4 = {};
+    vec4.x = a.x - b.x;
+    vec4.y = a.y - b.y;
+    vec4.z = a.z - b.z;
+    vec4.w = a.w - b.w;
+    return vec4;
 }
 
 template<typename Type>
 static Vec4<Type> operator*(Vec4<Type> a, Vec4<Type> b)
 {
-    return
-    {
-        .x = a.x * b.x,
-        .y = a.y * b.y,
-        .z = a.z * b.z,
-        .w = a.w * b.w,
-    };
+    Vec4<Type> vec4 = {};
+    vec4.x = a.x * b.x;
+    vec4.y = a.y * b.y;
+    vec4.z = a.z * b.z;
+    vec4.w = a.w * b.w;
+    return vec4;
 }
 
 template<typename Type>
 static Vec4<Type> operator/(Vec4<Type> a, Vec4<Type> b)
 {
-    return
-    {
-        .x = a.x / b.x,
-        .y = a.y / b.y,
-        .z = a.z / b.z,
-        .w = a.w / b.w,
-    };
+    Vec4<Type> vec4 = {};
+    vec4.x = a.x / b.x;
+    vec4.y = a.y / b.y;
+    vec4.z = a.z / b.z;
+    vec4.w = a.w / b.w;
+    return vec4;
 }
+
 template<typename Type>
 static Vec4<Type> operator+(Vec4<Type> vec, Type scalar)
 {
-    return
-    {
-        .x = vec.x + scalar,
-        .y = vec.y + scalar,
-        .z = vec.z + scalar,
-        .w = vec.w + scalar,
-    };
+    Vec4<Type> vec4 = {};
+    vec4.x = vec.x + scalar;
+    vec4.y = vec.y + scalar;
+    vec4.z = vec.z + scalar;
+    vec4.w = vec.w + scalar;
+    return vec4;
 }
 
 template<typename Type>
 static Vec4<Type> operator-(Vec4<Type> vec, Type scalar)
 {
-    return
-    {
-        .x = vec.x - scalar,
-        .y = vec.y - scalar,
-        .z = vec.z - scalar,
-        .w = vec.w - scalar,
-    };
+    Vec4<Type> vec4 = {};
+    vec4.x = vec.x - scalar;
+    vec4.y = vec.y - scalar;
+    vec4.z = vec.z - scalar;
+    vec4.w = vec.w - scalar;
+    return vec4;
 }
 
 template<typename Type>
 static Vec4<Type> operator*(Vec4<Type> vec, Type scalar)
 {
-    return
-    {
-        .x = vec.x * scalar,
-        .y = vec.y * scalar,
-        .z = vec.z * scalar,
-        .w = vec.w * scalar,
-    };
+    Vec4<Type> vec4 = {};
+    vec4.x = vec.x * scalar;
+    vec4.y = vec.y * scalar;
+    vec4.z = vec.z * scalar;
+    vec4.w = vec.w * scalar;
+    return vec4;
 }
 
 template<typename Type>
 static Vec4<Type> operator/(Vec4<Type> vec, Type scalar)
 {
-    return
-    {
-        .x = vec.x / scalar,
-        .y = vec.y / scalar,
-        .z = vec.z / scalar,
-        .w = vec.w / scalar,
-    };
+    Vec4<Type> vec4 = {};
+    vec4.x = vec.x / scalar;
+    vec4.y = vec.y / scalar;
+    vec4.z = vec.z / scalar;
+    vec4.w = vec.w / scalar;
+    return vec4;
 }
 
 template<typename Type>
@@ -395,88 +388,81 @@ static void Set(Vec3<Type>* vec, uint32 index, Type value)
 template<typename Type>
 static Vec3<Type> operator+(Vec3<Type> a, Vec3<Type> b)
 {
-    return
-    {
-        .x = a.x + b.x,
-        .y = a.y + b.y,
-        .z = a.z + b.z,
-    };
+    Vec3<Type> vec3 = {};
+    vec3.x = a.x + b.x;
+    vec3.y = a.y + b.y;
+    vec3.z = a.z + b.z;
+    return vec3;
 }
 
 template<typename Type>
 static Vec3<Type> operator-(Vec3<Type> a, Vec3<Type> b)
 {
-    return
-    {
-        .x = a.x - b.x,
-        .y = a.y - b.y,
-        .z = a.z - b.z,
-    };
+    Vec3<Type> vec3 = {};
+    vec3.x = a.x - b.x;
+    vec3.y = a.y - b.y;
+    vec3.z = a.z - b.z;
+    return vec3;
 }
 
 template<typename Type>
 static Vec3<Type> operator*(Vec3<Type> a, Vec3<Type> b)
 {
-    return
-    {
-        .x = a.x * b.x,
-        .y = a.y * b.y,
-        .z = a.z * b.z,
-    };
+    Vec3<Type> vec3 = {};
+    vec3.x = a.x * b.x;
+    vec3.y = a.y * b.y;
+    vec3.z = a.z * b.z;
+    return vec3;
 }
 
 template<typename Type>
 static Vec3<Type> operator/(Vec3<Type> a, Vec3<Type> b)
 {
-    return
-    {
-        .x = a.x / b.x,
-        .y = a.y / b.y,
-        .z = a.z / b.z,
-    };
+    Vec3<Type> vec3 = {};
+    vec3.x = a.x / b.x;
+    vec3.y = a.y / b.y;
+    vec3.z = a.z / b.z;
+    return vec3;
 }
+
 template<typename Type>
 static Vec3<Type> operator+(Vec3<Type> vec, Type scalar)
 {
-    return
-    {
-        .x = vec.x + scalar,
-        .y = vec.y + scalar,
-        .z = vec.z + scalar,
-    };
+    Vec3<Type> vec3 = {};
+    vec3.x = vec.x + scalar;
+    vec3.y = vec.y + scalar;
+    vec3.z = vec.z + scalar;
+    return vec3;
 }
 
 template<typename Type>
 static Vec3<Type> operator-(Vec3<Type> vec, Type scalar)
 {
-    return
-    {
-        .x = vec.x - scalar,
-        .y = vec.y - scalar,
-        .z = vec.z - scalar,
-    };
+    Vec3<Type> vec3 = {};
+    vec3.x = vec.x - scalar;
+    vec3.y = vec.y - scalar;
+    vec3.z = vec.z - scalar;
+    return vec3;
 }
 
 template<typename Type>
 static Vec3<Type> operator*(Vec3<Type> vec, Type scalar)
 {
-    return
-    {
-        .x = vec.x * scalar,
-        .y = vec.y * scalar,
-        .z = vec.z * scalar,
-    };
+    Vec3<Type> vec3 = {};
+    vec3.x = vec.x * scalar;
+    vec3.y = vec.y * scalar;
+    vec3.z = vec.z * scalar;
+    return vec3;
 }
 
 template<typename Type>
 static Vec3<Type> operator/(Vec3<Type> vec, Type scalar)
 {
-    return
-    {
-        .x = vec.x / scalar,
-        .y = vec.y / scalar,
-        .z = vec.z / scalar,
-    };
+    Vec3<Type> vec3 = {};
+    vec3.x = vec.x / scalar;
+    vec3.y = vec.y / scalar;
+    vec3.z = vec.z / scalar;
+    return vec3;
 }
 
 template<typename Type>
@@ -504,12 +490,11 @@ static Vec3<Type> Normalize(Vec3<Type> vec)
 template<typename Type>
 static Vec3<Type> Cross(Vec3<Type> a, Vec3<Type> b)
 {
-    return
-    {
-        .x = (a.y * b.z) - (b.y * a.z),
-        .y = (a.z * b.x) - (b.z * a.x),
-        .z = (a.x * b.y) - (b.x * a.y),
-    };
+    Vec3<Type> vec3 = {};
+    vec3.x = (a.y * b.z) - (b.y * a.z);
+    vec3.y = (a.z * b.x) - (b.z * a.x);
+    vec3.z = (a.x * b.y) - (b.x * a.y);
+    return vec3;
 }
 
 /// Vec2
@@ -533,80 +518,73 @@ static void Set(Vec2<Type>* vec, uint32 index, Type value)
 template<typename Type>
 static Vec2<Type> operator+(Vec2<Type> a, Vec2<Type> b)
 {
-    return
-    {
-        .x = a.x + b.x,
-        .y = a.y + b.y,
-    };
+    Vec2<Type> vec2 = {};
+    vec2.x = a.x + b.x;
+    vec2.y = a.y + b.y;
+    return vec2;
 }
 
 template<typename Type>
 static Vec2<Type> operator-(Vec2<Type> a, Vec2<Type> b)
 {
-    return
-    {
-        .x = a.x - b.x,
-        .y = a.y - b.y,
-    };
+    Vec2<Type> vec2 = {};
+    vec2.x = a.x - b.x;
+    vec2.y = a.y - b.y;
+    return vec2;
 }
 
 template<typename Type>
 static Vec2<Type> operator*(Vec2<Type> a, Vec2<Type> b)
 {
-    return
-    {
-        .x = a.x * b.x,
-        .y = a.y * b.y,
-    };
+    Vec2<Type> vec2 = {};
+    vec2.x = a.x * b.x;
+    vec2.y = a.y * b.y;
+    return vec2;
 }
 
 template<typename Type>
 static Vec2<Type> operator/(Vec2<Type> a, Vec2<Type> b)
 {
-    return
-    {
-        .x = a.x / b.x,
-        .y = a.y / b.y,
-    };
+    Vec2<Type> vec2 = {};
+    vec2.x = a.x / b.x;
+    vec2.y = a.y / b.y;
+    return vec2;
 }
+
 template<typename Type>
 static Vec2<Type> operator+(Vec2<Type> vec, Type scalar)
 {
-    return
-    {
-        .x = vec.x + scalar,
-        .y = vec.y + scalar,
-    };
+    Vec2<Type> vec2 = {};
+    vec2.x = vec.x + scalar;
+    vec2.y = vec.y + scalar;
+    return vec2;
 }
 
 template<typename Type>
 static Vec2<Type> operator-(Vec2<Type> vec, Type scalar)
 {
-    return
-    {
-        .x = vec.x - scalar,
-        .y = vec.y - scalar,
-    };
+    Vec2<Type> vec2 = {};
+    vec2.x = vec.x - scalar;
+    vec2.y = vec.y - scalar;
+    return vec2;
 }
 
 template<typename Type>
 static Vec2<Type> operator*(Vec2<Type> vec, Type scalar)
 {
-    return
-    {
-        .x = vec.x * scalar,
-        .y = vec.y * scalar,
-    };
+    Vec2<Type> vec2 = {};
+    vec2.x = vec.x * scalar;
+    vec2.y = vec.y * scalar;
+    return vec2;
 }
 
 template<typename Type>
 static Vec2<Type> operator/(Vec2<Type> vec, Type scalar)
 {
-    return
-    {
-        .x = vec.x / scalar,
-        .y = vec.y / scalar,
-    };
+    Vec2<Type> vec2 = {};
+    vec2.x = vec.x / scalar;
+    vec2.y = vec.y / scalar;
+    return vec2;
 }
 
 template<typename Type>

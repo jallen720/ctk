@@ -218,11 +218,10 @@ static BatchRange GetBatchRange(uint32 region_index, uint32 region_count, uint32
     uint32 large_part_size = small_part_size + 1;
     uint32 large_part_count = batch_size % region_count;
 
-    return
-    {
-        .start = (region_index * small_part_size) + Min(large_part_count, region_index),
-        .size  = region_index < large_part_count ? large_part_size : small_part_size,
-    };
+    BatchRange batch_range = {};
+    batch_range.start = (region_index * small_part_size) + Min(large_part_count, region_index);
+    batch_range.size  = region_index < large_part_count ? large_part_size : small_part_size;
+    return batch_range;
 }
 
 static void GetBatchRanges(Array<BatchRange>* batch_ranges, uint32 total_batch_size)

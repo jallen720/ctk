@@ -314,12 +314,12 @@ template<typename Type>
 static Array<Type> WrapArray(Type* data, uint32 size)
 {
     CTK_ASSERT(size > 0);
-    return
-    {
-        .data  = data,
-        .size  = size,
-        .count = size,
-    };
+
+    Array<Type> array = {};
+    array.data  = data;
+    array.size  = size;
+    array.count = size;
+    return array;
 }
 
 template<typename Type, typename ...Args>
