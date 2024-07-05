@@ -14,7 +14,7 @@
 
 /// Data
 ////////////////////////////////////////////////////////////
-static constexpr uint32 MOUSE_BUTTON_COUNT = 8;
+constexpr uint32 MOUSE_BUTTON_COUNT = 8;
 
 struct WindowInfo
 {
@@ -48,12 +48,12 @@ struct Input
 
 /// Globals
 ////////////////////////////////////////////////////////////
-static Window g_window;
-static Input  g_input;
+Window g_window;
+Input  g_input;
 
 /// Interface
 ////////////////////////////////////////////////////////////
-static LRESULT CALLBACK DefaultWindowCallback(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
+LRESULT CALLBACK DefaultWindowCallback(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 {
     if (g_window.is_open && g_window.hnd == hwnd)
     {
@@ -148,7 +148,7 @@ static LRESULT CALLBACK DefaultWindowCallback(HWND hwnd, UINT msg, WPARAM w_para
     return DefWindowProc(hwnd, msg, w_param, l_param);
 }
 
-static void OpenWindow(WindowInfo* info)
+void OpenWindow(WindowInfo* info)
 {
     if (g_window.is_open)
     {
@@ -169,7 +169,7 @@ static void OpenWindow(WindowInfo* info)
     HMODULE instance = GetModuleHandle(NULL);
 
     // Register and create window.
-    static constexpr const char* CLASS_NAME = "Win32 Window";
+    constexpr const char* CLASS_NAME = "Win32 Window";
     WNDCLASS win_class =
     {
         .lpfnWndProc   = info->callback,
@@ -209,7 +209,7 @@ static void OpenWindow(WindowInfo* info)
     ShowWindow(g_window.hnd, SW_SHOW);
 }
 
-static void ProcessWindowEvents()
+void ProcessWindowEvents()
 {
     // Clear key events.
     g_input.keys_pressed.count = 0;
@@ -233,12 +233,12 @@ static void ProcessWindowEvents()
     }
 }
 
-static bool KeyDown(Key key)
+bool KeyDown(Key key)
 {
     return Get(&g_input.key_down, (uint32)key);
 }
 
-static bool KeyPressed(Key key)
+bool KeyPressed(Key key)
 {
     for (uint32 i = 0; i < g_input.keys_pressed.count; ++i)
     {
@@ -251,7 +251,7 @@ static bool KeyPressed(Key key)
     return false;
 }
 
-static bool KeyReleased(Key key)
+bool KeyReleased(Key key)
 {
     for (uint32 i = 0; i < g_input.keys_released.count; ++i)
     {
@@ -264,12 +264,12 @@ static bool KeyReleased(Key key)
     return false;
 }
 
-static bool MouseButtonDown(uint32 button)
+bool MouseButtonDown(uint32 button)
 {
     return Get(&g_input.mouse_button_down, button);
 }
 
-static Vec2<sint32> GetMousePosition()
+Vec2<sint32> GetMousePosition()
 {
     POINT mouse_position = {};
     Win32Error e = {};
@@ -289,7 +289,7 @@ static Vec2<sint32> GetMousePosition()
     return { mouse_position.x, mouse_position.y };
 }
 
-static void SetMousePosition(Vec2<sint32> position)
+void SetMousePosition(Vec2<sint32> position)
 {
     POINT p = { position.x, position.y };
     Win32Error e = {};
@@ -307,32 +307,32 @@ static void SetMousePosition(Vec2<sint32> position)
     }
 }
 
-static void SetMouseVisible(bool visible)
+void SetMouseVisible(bool visible)
 {
     ShowCursor(visible);
 }
 
-static void SetWindowTitle(const char* title)
+void SetWindowTitle(const char* title)
 {
     SetWindowTextA(g_window.hnd, title);
 }
 
-static bool WindowIsActive()
+bool WindowIsActive()
 {
     return GetActiveWindow() == g_window.hnd;
 }
 
-static bool WindowIsOpen()
+bool WindowIsOpen()
 {
     return g_window.is_open;
 }
 
-static void CloseWindow()
+void CloseWindow()
 {
     g_window.is_open = false;
 }
 
-static Window* GetWindow()
+Window* GetWindow()
 {
     if (!WindowIsOpen())
     {

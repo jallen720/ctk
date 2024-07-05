@@ -31,7 +31,7 @@ enum struct OutputColor
 
 /// Interface
 ////////////////////////////////////////////////////////////
-static void PrintColor(OutputColor output_color)
+void PrintColor(OutputColor output_color)
 {
     constexpr const char* COLOR_CODES[(uint32)OutputColor::COUNT] =
     {
@@ -45,17 +45,17 @@ static void PrintColor(OutputColor output_color)
     printf(COLOR_CODES[(uint32)output_color]);
 }
 
-static void PrintColorReset()
+void PrintColorReset()
 {
     printf(CTK_ANSI_RESET);
 }
 
-static void Print(char c)
+void Print(char c)
 {
     putchar(c);
 }
 
-static void Print(OutputColor output_color, char c)
+void Print(OutputColor output_color, char c)
 {
     PrintColor(output_color);
     putchar(c);
@@ -63,42 +63,42 @@ static void Print(OutputColor output_color, char c)
 }
 
 template<typename ...Args>
-static void Print(const char* msg, Args... args)
+void Print(const char* msg, Args... args)
 {
     printf(msg, args...);
 }
 
 template<typename ...Args>
-static void Print(OutputColor output_color, const char* msg, Args... args)
+void Print(OutputColor output_color, const char* msg, Args... args)
 {
     PrintColor(output_color);
     printf(msg, args...);
     PrintColorReset();
 }
 
-static void PrintLine()
+void PrintLine()
 {
     Print("\n");
 }
 
 template<typename ...Args>
-static void PrintLine(const char* msg, Args... args)
+void PrintLine(const char* msg, Args... args)
 {
     Print(msg, args...);
     PrintLine();
 }
 
 template<typename ...Args>
-static void PrintLine(OutputColor output_color, const char* msg, Args... args)
+void PrintLine(OutputColor output_color, const char* msg, Args... args)
 {
     Print(output_color, msg, args...);
     PrintLine();
 }
 
 template<typename ...Args>
-static void PrintInline(const char* msg, Args... args)
+void PrintInline(const char* msg, Args... args)
 {
-    static constexpr sint32 BUFFER_SIZE = 128;
+    constexpr sint32 BUFFER_SIZE = 128;
     char buffer[BUFFER_SIZE] = {};
     sint32 chars_written = snprintf(buffer, BUFFER_SIZE, msg, args...);
     memset(buffer + chars_written, ' ', BUFFER_SIZE - chars_written);
@@ -107,9 +107,9 @@ static void PrintInline(const char* msg, Args... args)
 }
 
 template<typename ...Args>
-static void PrintInline(OutputColor output_color, const char* msg, Args... args)
+void PrintInline(OutputColor output_color, const char* msg, Args... args)
 {
-    static constexpr sint32 BUFFER_SIZE = 128;
+    constexpr sint32 BUFFER_SIZE = 128;
     char buffer[BUFFER_SIZE] = {};
     sint32 chars_written = snprintf(buffer, BUFFER_SIZE, msg, args...);
     memset(buffer + chars_written, ' ', BUFFER_SIZE - chars_written);
@@ -117,7 +117,7 @@ static void PrintInline(OutputColor output_color, const char* msg, Args... args)
     Print(output_color, "%.*s", BUFFER_SIZE, buffer);
 }
 
-static void PrintLines(uint32 count)
+void PrintLines(uint32 count)
 {
     CTK_REPEAT(count)
     {
@@ -125,7 +125,7 @@ static void PrintLines(uint32 count)
     }
 }
 
-static void PrintTabs(uint32 count)
+void PrintTabs(uint32 count)
 {
     CTK_REPEAT(count)
     {
@@ -133,7 +133,7 @@ static void PrintTabs(uint32 count)
     }
 }
 
-static void PrintSpaces(uint32 count)
+void PrintSpaces(uint32 count)
 {
     CTK_REPEAT(count)
     {
@@ -142,21 +142,21 @@ static void PrintSpaces(uint32 count)
 }
 
 template<typename ...Args>
-static void PrintError(const char* msg, Args... args)
+void PrintError(const char* msg, Args... args)
 {
     Print(CTK_ERROR_TAG);
     PrintLine(msg, args...);
 }
 
 template<typename ...Args>
-static void PrintInfo(const char* msg, Args... args)
+void PrintInfo(const char* msg, Args... args)
 {
     Print(CTK_INFO_TAG);
     PrintLine(msg, args...);
 }
 
 template<typename ...Args>
-static void PrintWarning(const char* msg, Args... args)
+void PrintWarning(const char* msg, Args... args)
 {
     Print(CTK_WARNING_TAG);
     PrintLine(msg, args...);

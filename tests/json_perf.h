@@ -3,13 +3,13 @@
 namespace JSONPerfTest
 {
 
-static void Run()
+void Run()
 {
     PrintLine("\nJSON Performance Test");
 
     Profile prof = {};
     float64 file_size_gb = GetFileSize("tests/data/large.json") / 1000000000.0;
-    static constexpr uint32 TEST_PASSES = 10;
+    constexpr uint32 TEST_PASSES = 10;
     float64 total_ms = 0;
     for (uint32 pass = 0; pass < TEST_PASSES; ++pass)
     {

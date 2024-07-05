@@ -47,38 +47,38 @@ struct FreeList
 
 /// Allocator
 ////////////////////////////////////////////////////////////
-static uint8* AllocateNZ  (FreeList* free_list, uint32 size, uint32 alignment);
-static uint8* Allocate    (FreeList* free_list, uint32 size, uint32 alignment);
-static uint8* ReallocateNZ(FreeList* free_list, void* mem, uint32 new_size, uint32 alignment);
-static uint8* Reallocate  (FreeList* free_list, void* mem, uint32 new_size, uint32 alignment);
-static void   Deallocate  (FreeList* free_list, void* mem);
+uint8* AllocateNZ  (FreeList* free_list, uint32 size, uint32 alignment);
+uint8* Allocate    (FreeList* free_list, uint32 size, uint32 alignment);
+uint8* ReallocateNZ(FreeList* free_list, void* mem, uint32 new_size, uint32 alignment);
+uint8* Reallocate  (FreeList* free_list, void* mem, uint32 new_size, uint32 alignment);
+void   Deallocate  (FreeList* free_list, void* mem);
 
-static uint8* FreeList_AllocateNZ(void* data, uint32 size, uint32 alignment)
+uint8* FreeList_AllocateNZ(void* data, uint32 size, uint32 alignment)
 {
     return AllocateNZ((FreeList*)data, size, alignment);
 }
 
-static uint8* FreeList_Allocate(void* data, uint32 size, uint32 alignment)
+uint8* FreeList_Allocate(void* data, uint32 size, uint32 alignment)
 {
     return Allocate((FreeList*)data, size, alignment);
 }
 
-static uint8* FreeList_ReallocateNZ(void* data, void* mem, uint32 new_size, uint32 alignment)
+uint8* FreeList_ReallocateNZ(void* data, void* mem, uint32 new_size, uint32 alignment)
 {
     return ReallocateNZ((FreeList*)data, mem, new_size, alignment);
 }
 
-static uint8* FreeList_Reallocate(void* data, void* mem, uint32 new_size, uint32 alignment)
+uint8* FreeList_Reallocate(void* data, void* mem, uint32 new_size, uint32 alignment)
 {
     return Reallocate((FreeList*)data, mem, new_size, alignment);
 }
 
-static void FreeList_Deallocate(void* data, void* mem)
+void FreeList_Deallocate(void* data, void* mem)
 {
     Deallocate((FreeList*)data, mem);
 }
 
-static constexpr Allocator FREE_LIST_ALLOCATOR =
+constexpr Allocator FREE_LIST_ALLOCATOR =
 {
     .AllocateNZ   = FreeList_AllocateNZ,
     .Allocate     = FreeList_Allocate,
@@ -89,27 +89,27 @@ static constexpr Allocator FREE_LIST_ALLOCATOR =
 
 /// Utils
 ////////////////////////////////////////////////////////////
-static uint32 GetFreeRangesFirstIndex(FreeList* free_list)
+uint32 GetFreeRangesFirstIndex(FreeList* free_list)
 {
     return free_list->max_range_count - free_list->free_range_count;
 }
 
-static bool IsFreeRangeIndex(FreeList* free_list, uint32 range_index)
+bool IsFreeRangeIndex(FreeList* free_list, uint32 range_index)
 {
     return range_index >= GetFreeRangesFirstIndex(free_list);
 }
 
-static bool IsUsedRangeIndex(FreeList* free_list, uint32 range_index)
+bool IsUsedRangeIndex(FreeList* free_list, uint32 range_index)
 {
     return range_index < free_list->used_range_count;
 }
 
-static uint8* GetRangeMem(FreeList* free_list, uint32 range_byte_index)
+uint8* GetRangeMem(FreeList* free_list, uint32 range_byte_index)
 {
     return &free_list->mem[range_byte_index];
 }
 
-static uint32 AddUsedRange(FreeList* free_list, Range range, RangeKey range_key)
+uint32 AddUsedRange(FreeList* free_list, Range range, RangeKey range_key)
 {
     if (free_list->used_range_count + free_list->free_range_count >= free_list->max_range_count)
     {
@@ -125,7 +125,7 @@ static uint32 AddUsedRange(FreeList* free_list, Range range, RangeKey range_key)
     return range_index;
 }
 
-static uint32 AddFreeRange(FreeList* free_list, Range range)
+uint32 AddFreeRange(FreeList* free_list, Range range)
 {
     if (free_list->used_range_count + free_list->free_range_count >= free_list->max_range_count)
     {
@@ -141,7 +141,7 @@ static uint32 AddFreeRange(FreeList* free_list, Range range)
     return range_index;
 }
 
-static void UpdateNeighborLinks(FreeList* free_list, uint32 range_index)
+void UpdateNeighborLinks(FreeList* free_list, uint32 range_index)
 {
     Range* range = &free_list->ranges[range_index];
     if (range->prev_range_index != UINT32_MAX)
@@ -154,7 +154,7 @@ static void UpdateNeighborLinks(FreeList* free_list, uint32 range_index)
     }
 }
 
-static void LinkInsertedPrevRange(FreeList* free_list, Range* range, uint32 inserted_prev_range_index)
+void LinkInsertedPrevRange(FreeList* free_list, Range* range, uint32 inserted_prev_range_index)
 {
     if (range->prev_range_index != UINT32_MAX)
     {
@@ -163,7 +163,7 @@ static void LinkInsertedPrevRange(FreeList* free_list, Range* range, uint32 inse
     range->prev_range_index = inserted_prev_range_index;
 }
 
-static void LinkInsertedNextRange(FreeList* free_list, Range* range, uint32 inserted_next_range_index)
+void LinkInsertedNextRange(FreeList* free_list, Range* range, uint32 inserted_next_range_index)
 {
     if (range->next_range_index != UINT32_MAX)
     {
@@ -172,7 +172,7 @@ static void LinkInsertedNextRange(FreeList* free_list, Range* range, uint32 inse
     range->next_range_index = inserted_next_range_index;
 }
 
-static void LinkNextRange(FreeList* free_list, Range* range, uint32 range_index, uint32 next_range_index)
+void LinkNextRange(FreeList* free_list, Range* range, uint32 range_index, uint32 next_range_index)
 {
     if (next_range_index != UINT32_MAX)
     {
@@ -181,7 +181,7 @@ static void LinkNextRange(FreeList* free_list, Range* range, uint32 range_index,
     range->next_range_index = next_range_index;
 }
 
-static void RemoveUsedRange(FreeList* free_list, uint32 used_range_index)
+void RemoveUsedRange(FreeList* free_list, uint32 used_range_index)
 {
     uint32 used_ranges_last_index = free_list->used_range_count - 1;
     if (free_list->used_range_count > 1 && used_range_index != used_ranges_last_index)
@@ -197,7 +197,7 @@ static void RemoveUsedRange(FreeList* free_list, uint32 used_range_index)
     --free_list->used_range_count;
 }
 
-static void RemoveFreeRange(FreeList* free_list, uint32 free_range_index)
+void RemoveFreeRange(FreeList* free_list, uint32 free_range_index)
 {
     uint32 free_ranges_first_index = GetFreeRangesFirstIndex(free_list);
     if (free_list->free_range_count > 1 && free_range_index != free_ranges_first_index)
@@ -213,7 +213,7 @@ static void RemoveFreeRange(FreeList* free_list, uint32 free_range_index)
     --free_list->free_range_count;
 }
 
-static uint32 FindUsedRangeIndex(FreeList* free_list, void* mem)
+uint32 FindUsedRangeIndex(FreeList* free_list, void* mem)
 {
     // Verify mem is owned by free-list.
     if (mem < free_list->mem)
@@ -244,7 +244,7 @@ static uint32 FindUsedRangeIndex(FreeList* free_list, void* mem)
 
 /// Internals
 ////////////////////////////////////////////////////////////
-static uint8* InternalAllocate(FreeList* free_list, uint32 mem_byte_size, uint32 alignment)
+uint8* InternalAllocate(FreeList* free_list, uint32 mem_byte_size, uint32 alignment)
 {
     // Ensure there is atleast 1 free-range available for search.
     if (free_list->free_range_count == 0)
@@ -256,6 +256,7 @@ static uint8* InternalAllocate(FreeList* free_list, uint32 mem_byte_size, uint32
     uint32 free_range_index = UINT32_MAX;
     uint32 mem_byte_index   = 0;
     uint32 range_byte_size  = 0;
+
     CTK_ITER_PTR(free_range_key, &free_list->range_keys[GetFreeRangesFirstIndex(free_list)],
                  free_list->free_range_count)
     {
@@ -322,7 +323,7 @@ static uint8* InternalAllocate(FreeList* free_list, uint32 mem_byte_size, uint32
     return GetRangeMem(free_list, mem_byte_index);
 }
 
-static void InternalDeallocate(FreeList* free_list, Range* used_range, uint32 used_range_index)
+void InternalDeallocate(FreeList* free_list, Range* used_range, uint32 used_range_index)
 {
     // Deallocate used-range.
     uint32 prev_range_index = used_range->prev_range_index;
@@ -382,7 +383,7 @@ static void InternalDeallocate(FreeList* free_list, Range* used_range, uint32 us
     }
 }
 
-static void MoveToNewAllocation(FreeList* free_list, Range* used_range, uint32 used_range_index,
+void MoveToNewAllocation(FreeList* free_list, Range* used_range, uint32 used_range_index,
                                 uint32 reallocate_byte_size, uint32 alignment, uint8* mem, uint8** reallocated_mem)
 {
     // Cache used-range byte size before it gets deallocated for moving memory to newly allocated range.
@@ -394,7 +395,7 @@ static void MoveToNewAllocation(FreeList* free_list, Range* used_range, uint32 u
     memmove(*reallocated_mem, mem, original_used_range_byte_size);
 }
 
-static uint8* InternalReallocate(FreeList* free_list, uint32 used_range_index, uint32 reallocate_byte_size,
+uint8* InternalReallocate(FreeList* free_list, uint32 used_range_index, uint32 reallocate_byte_size,
                                  uint32 alignment, uint8* mem)
 {
     Range* used_range = &free_list->ranges[used_range_index];
@@ -501,7 +502,7 @@ static uint8* InternalReallocate(FreeList* free_list, uint32 used_range_index, u
 
 /// Interface
 ////////////////////////////////////////////////////////////
-static FreeList CreateFreeList(Allocator* allocator, uint32 min_byte_size, FreeListInfo info)
+FreeList CreateFreeList(Allocator* allocator, uint32 min_byte_size, FreeListInfo info)
 {
     CTK_ASSERT(min_byte_size > 0);
     CTK_ASSERT(info.max_range_count > 0);
@@ -570,13 +571,13 @@ static FreeList CreateFreeList(Allocator* allocator, uint32 min_byte_size, FreeL
     return free_list;
 }
 
-static void DestroyFreeList(FreeList* free_list)
+void DestroyFreeList(FreeList* free_list)
 {
     Deallocate(free_list->parent_allocator, free_list->mem);
     *free_list = {};
 }
 
-static uint8* AllocateNZ(FreeList* free_list, uint32 size, uint32 alignment)
+uint8* AllocateNZ(FreeList* free_list, uint32 size, uint32 alignment)
 {
     CTK_ASSERT(size > 0);
 
@@ -585,18 +586,18 @@ static uint8* AllocateNZ(FreeList* free_list, uint32 size, uint32 alignment)
 }
 
 template<typename Type>
-static Type* AllocateNZ(FreeList* free_list, uint32 count, uint32 alignment)
+Type* AllocateNZ(FreeList* free_list, uint32 count, uint32 alignment)
 {
     return (Type*)AllocateNZ(free_list, SizeOf32<Type>() * count, alignment);
 }
 
 template<typename Type>
-static Type* AllocateNZ(FreeList* free_list, uint32 count)
+Type* AllocateNZ(FreeList* free_list, uint32 count)
 {
     return AllocateNZ<Type>(free_list, count, alignof(Type));
 }
 
-static uint8* Allocate(FreeList* free_list, uint32 size, uint32 alignment)
+uint8* Allocate(FreeList* free_list, uint32 size, uint32 alignment)
 {
     // Allocate and zero memory.
     uint8* allocated_mem = AllocateNZ(free_list, size, alignment);
@@ -605,18 +606,18 @@ static uint8* Allocate(FreeList* free_list, uint32 size, uint32 alignment)
 }
 
 template<typename Type>
-static Type* Allocate(FreeList* free_list, uint32 count, uint32 alignment)
+Type* Allocate(FreeList* free_list, uint32 count, uint32 alignment)
 {
     return (Type*)Allocate(free_list, SizeOf32<Type>() * count, alignment);
 }
 
 template<typename Type>
-static Type* Allocate(FreeList* free_list, uint32 count)
+Type* Allocate(FreeList* free_list, uint32 count)
 {
     return Allocate<Type>(free_list, count, alignof(Type));
 }
 
-static uint8* Reallocate(FreeList* free_list, void* mem, uint32 new_size, uint32 alignment)
+uint8* Reallocate(FreeList* free_list, void* mem, uint32 new_size, uint32 alignment)
 {
     CTK_ASSERT(new_size > 0);
 
@@ -641,18 +642,18 @@ static uint8* Reallocate(FreeList* free_list, void* mem, uint32 new_size, uint32
 }
 
 template<typename Type>
-static Type* Reallocate(FreeList* free_list, Type* mem, uint32 new_count, uint32 alignment)
+Type* Reallocate(FreeList* free_list, Type* mem, uint32 new_count, uint32 alignment)
 {
     return (Type*)Reallocate(free_list, (void*)mem, SizeOf32<Type>() * new_count, alignment);
 }
 
 template<typename Type>
-static Type* Reallocate(FreeList* free_list, Type* mem, uint32 new_count)
+Type* Reallocate(FreeList* free_list, Type* mem, uint32 new_count)
 {
     return Reallocate(free_list, mem, new_count, alignof(Type));
 }
 
-static uint8* ReallocateNZ(FreeList* free_list, void* mem, uint32 new_size, uint32 alignment)
+uint8* ReallocateNZ(FreeList* free_list, void* mem, uint32 new_size, uint32 alignment)
 {
     CTK_ASSERT(new_size > 0);
 
@@ -668,18 +669,18 @@ static uint8* ReallocateNZ(FreeList* free_list, void* mem, uint32 new_size, uint
 }
 
 template<typename Type>
-static Type* ReallocateNZ(FreeList* free_list, Type* mem, uint32 new_count, uint32 alignment)
+Type* ReallocateNZ(FreeList* free_list, Type* mem, uint32 new_count, uint32 alignment)
 {
     return (Type*)ReallocateNZ(free_list, (void*)mem, SizeOf32<Type>() * new_count, alignment);
 }
 
 template<typename Type>
-static Type* ReallocateNZ(FreeList* free_list, Type* mem, uint32 new_count)
+Type* ReallocateNZ(FreeList* free_list, Type* mem, uint32 new_count)
 {
     return ReallocateNZ(free_list, mem, new_count, alignof(Type));
 }
 
-static void Deallocate(FreeList* free_list, void* mem)
+void Deallocate(FreeList* free_list, void* mem)
 {
     // Find used-range belonging to mem and deallocate it.
     uint32 used_range_index = FindUsedRangeIndex(free_list, mem);

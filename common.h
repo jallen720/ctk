@@ -33,44 +33,44 @@ using float64 = double;
 
 /// Constants
 ////////////////////////////////////////////////////////////
-static constexpr sint8  SINT8_MIN  = SCHAR_MIN;
-static constexpr sint8  SINT8_MAX  = SCHAR_MAX;
-static constexpr sint16 SINT16_MIN = SHRT_MIN;
-static constexpr sint16 SINT16_MAX = SHRT_MAX;
-static constexpr sint32 SINT32_MIN = INT_MIN;
-static constexpr sint32 SINT32_MAX = INT_MAX;
-static constexpr sint64 SINT64_MIN = LLONG_MIN;
-static constexpr sint64 SINT64_MAX = LLONG_MAX;
+constexpr sint8  SINT8_MIN  = SCHAR_MIN;
+constexpr sint8  SINT8_MAX  = SCHAR_MAX;
+constexpr sint16 SINT16_MIN = SHRT_MIN;
+constexpr sint16 SINT16_MAX = SHRT_MAX;
+constexpr sint32 SINT32_MIN = INT_MIN;
+constexpr sint32 SINT32_MAX = INT_MAX;
+constexpr sint64 SINT64_MIN = LLONG_MIN;
+constexpr sint64 SINT64_MAX = LLONG_MAX;
 
 // Defined in stdint.h
-// static constexpr uint8  UINT8_MAX  = UCHAR_MAX;
-// static constexpr uint16 UINT16_MAX = USHRT_MAX;
-// static constexpr uint32 UINT32_MAX = UINT_MAX;
-// static constexpr uint64 UINT64_MAX = ULLONG_MAX;
+// constexpr uint8  UINT8_MAX  = UCHAR_MAX;
+// constexpr uint16 UINT16_MAX = USHRT_MAX;
+// constexpr uint32 UINT32_MAX = UINT_MAX;
+// constexpr uint64 UINT64_MAX = ULLONG_MAX;
 
 template<uint32 num>
-static constexpr uint32 Kilobyte32()
+constexpr uint32 Kilobyte32()
 {
     static_assert(num <= 4000000);
     return num * 1000;
 }
 
 template<uint32 num>
-static constexpr uint32 Megabyte32()
+constexpr uint32 Megabyte32()
 {
     static_assert(num <= 4000);
     return num * Kilobyte32<1000>();
 }
 
 template<uint32 num>
-static constexpr uint32 Gigabyte32()
+constexpr uint32 Gigabyte32()
 {
     static_assert(num <= 4);
     return num * Megabyte32<1000>();
 }
 
 template<typename Type>
-static constexpr uint32 SizeOf32()
+constexpr uint32 SizeOf32()
 {
     static_assert(sizeof(Type) <= UINT32_MAX);
     return (uint32)sizeof(Type);

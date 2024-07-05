@@ -9,7 +9,7 @@ struct TestingState
     bool   show_passed_tests;
 };
 
-static TestingState g_testing_state;
+TestingState g_testing_state;
 
 /// Interface
 ////////////////////////////////////////////////////////////
@@ -17,13 +17,13 @@ static TestingState g_testing_state;
 /// Logging
 ////////////////////////////////////////////////////////////
 template<typename... Args>
-static void TestPrintLine(const char* msg, Args... args)
+void TestPrintLine(const char* msg, Args... args)
 {
     PrintTabs(g_testing_state.tabs);
     PrintLine(msg, args...);
 }
 
-static void PrintExpectedTag()
+void PrintExpectedTag()
 {
     PrintTabs(g_testing_state.tabs);
     Print(OutputColor::GREEN, "Expected");
@@ -31,13 +31,13 @@ static void PrintExpectedTag()
 }
 
 template<typename... Args>
-static void PrintExpected(const char* msg, Args... args)
+void PrintExpected(const char* msg, Args... args)
 {
     PrintExpectedTag();
     PrintLine(msg, args...);
 }
 
-static void PrintActualTag(bool pass)
+void PrintActualTag(bool pass)
 {
     PrintTabs(g_testing_state.tabs);
     if (pass)
@@ -53,7 +53,7 @@ static void PrintActualTag(bool pass)
 }
 
 template<typename... Args>
-static void PrintActual(bool pass, const char* msg, Args... args)
+void PrintActual(bool pass, const char* msg, Args... args)
 {
     PrintActualTag(pass);
     PrintLine(msg, args...);
@@ -62,7 +62,7 @@ static void PrintActual(bool pass, const char* msg, Args... args)
 /// Test Runners
 ////////////////////////////////////////////////////////////
 template<typename... Args>
-static void RunTest(const char* description, uint32 description_size, bool* parent_pass, Func<bool, Args...> TestFunc,
+void RunTest(const char* description, uint32 description_size, bool* parent_pass, Func<bool, Args...> TestFunc,
                     Args... args)
 {
     TestPrintLine(CTK_ANSI_HIGHLIGHT(SKY, "Test") ": %.*s", description_size, description);
@@ -101,19 +101,19 @@ static void RunTest(const char* description, uint32 description_size, bool* pare
 }
 
 template<typename... Args>
-static void RunTest(const char* description, bool* parent_pass, Func<bool, Args...> TestFunc, Args... args)
+void RunTest(const char* description, bool* parent_pass, Func<bool, Args...> TestFunc, Args... args)
 {
     RunTest(description, StringSize(description), parent_pass, TestFunc, args...);
 }
 
 template<uint32 description_size, typename... Args>
-static void RunTest(FString<description_size>* description, bool* parent_pass, Func<bool, Args...> TestFunc, Args... args)
+void RunTest(FString<description_size>* description, bool* parent_pass, Func<bool, Args...> TestFunc, Args... args)
 {
     RunTest(description->data, description_size, parent_pass, TestFunc, args...);
 }
 
 template<typename ReturnType, typename ...Args>
-static bool ExpectFatalError(Func<ReturnType, Args...> TestFunc, Args... args)
+bool ExpectFatalError(Func<ReturnType, Args...> TestFunc, Args... args)
 {
     bool pass = false;
     const char* actual = NULL;
@@ -139,7 +139,7 @@ static bool ExpectFatalError(Func<ReturnType, Args...> TestFunc, Args... args)
 
 /// Explicitly sized char arrays
 ////////////////////////////////////////////////////////////
-static bool ExpectEqual(const char* expected, uint32 expected_size, const char* actual, uint32 actual_size)
+bool ExpectEqual(const char* expected, uint32 expected_size, const char* actual, uint32 actual_size)
 {
     bool pass = StringsMatch(expected, expected_size, actual, actual_size);
 
@@ -163,27 +163,27 @@ static bool ExpectEqual(const char* expected, uint32 expected_size, const char* 
 
 /// String
 ////////////////////////////////////////////////////////////
-static bool ExpectEqual(const char* expected, const char* actual)
+bool ExpectEqual(const char* expected, const char* actual)
 {
     return ExpectEqual(expected, StringSize(expected), actual, StringSize(actual));
 }
 
-static bool ExpectEqual(const char* expected, uint32 expected_count, String* actual)
+bool ExpectEqual(const char* expected, uint32 expected_count, String* actual)
 {
     return ExpectEqual(expected, expected_count, actual->data, actual->count);
 }
 
-static bool ExpectEqual(const char* expected, String* actual)
+bool ExpectEqual(const char* expected, String* actual)
 {
     return ExpectEqual(expected, StringSize(expected), actual->data, actual->count);
 }
 
-static bool ExpectEqualFull(const char* expected, uint32 expected_count, String* actual)
+bool ExpectEqualFull(const char* expected, uint32 expected_count, String* actual)
 {
     return ExpectEqual(expected, expected_count, actual->data, actual->size);
 }
 
-static bool ExpectEqualFull(const char* expected, String* actual)
+bool ExpectEqualFull(const char* expected, String* actual)
 {
     return ExpectEqual(expected, StringSize(expected), actual->data, actual->size);
 }
@@ -191,25 +191,25 @@ static bool ExpectEqualFull(const char* expected, String* actual)
 /// FString
 ////////////////////////////////////////////////////////////
 template<uint32 size>
-static bool ExpectEqual(const char* expected, uint32 expected_count, FString<size>* actual)
+bool ExpectEqual(const char* expected, uint32 expected_count, FString<size>* actual)
 {
     return ExpectEqual(expected, expected_count, actual->data, actual->count);
 }
 
 template<uint32 size>
-static bool ExpectEqual(const char* expected, FString<size>* actual)
+bool ExpectEqual(const char* expected, FString<size>* actual)
 {
     return ExpectEqual(expected, StringSize(expected), actual->data, actual->count);
 }
 
 template<uint32 size>
-static bool ExpectEqualFull(const char* expected, uint32 expected_count, FString<size>* actual)
+bool ExpectEqualFull(const char* expected, uint32 expected_count, FString<size>* actual)
 {
     return ExpectEqual(expected, expected_count, actual->data, size);
 }
 
 template<uint32 size>
-static bool ExpectEqualFull(const char* expected, FString<size>* actual)
+bool ExpectEqualFull(const char* expected, FString<size>* actual)
 {
     return ExpectEqual(expected, StringSize(expected), actual->data, size);
 }
@@ -217,7 +217,7 @@ static bool ExpectEqualFull(const char* expected, FString<size>* actual)
 /// Scalars
 ////////////////////////////////////////////////////////////
 #define CTK_COMPARISON_FNS(TYPE, FORMAT, COMPARISON, COMPARISON_NAME, EXPECTED_VALUE_PRINT_ARG, ACTUAL_VALUE_PRINT_ARG) \
-static bool Expect##COMPARISON_NAME##(const char* name, TYPE expected_value, TYPE actual_value) \
+bool Expect##COMPARISON_NAME##(const char* name, TYPE expected_value, TYPE actual_value) \
 { \
     bool pass = actual_value COMPARISON expected_value; \
     if (g_testing_state.show_passed_tests || !pass) \
@@ -228,11 +228,11 @@ static bool Expect##COMPARISON_NAME##(const char* name, TYPE expected_value, TYP
     return pass; \
 } \
 template<uint32 size> \
-static bool Expect##COMPARISON_NAME##(FString<size>* name, TYPE expected_value, TYPE actual_value) \
+bool Expect##COMPARISON_NAME##(FString<size>* name, TYPE expected_value, TYPE actual_value) \
 { \
     return Expect##COMPARISON_NAME##(name->data, expected_value, actual_value); \
 } \
-static bool Expect##COMPARISON_NAME##(TYPE expected_value, TYPE actual_value) \
+bool Expect##COMPARISON_NAME##(TYPE expected_value, TYPE actual_value) \
 { \
     return Expect##COMPARISON_NAME##(#TYPE " value", expected_value, actual_value); \
 }
@@ -257,12 +257,12 @@ CTK_EXPECT_FNS(float32, "%f",   expected_value, actual_value)
 CTK_EXPECT_FNS(float64, "%f",   expected_value, actual_value)
 CTK_EXPECT_FNS(bool,    "%s",   (expected_value ? "true" : "false"), (actual_value ? "true" : "false"))
 
-static void SetShowPassedTests(bool show_passed_tests)
+void SetShowPassedTests(bool show_passed_tests)
 {
     g_testing_state.show_passed_tests = show_passed_tests;
 }
 
-static void ShowTestStats()
+void ShowTestStats()
 {
     PrintLine();
     PrintLine("Total Tests:  %u", g_testing_state.total_tests);

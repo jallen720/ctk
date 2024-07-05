@@ -10,7 +10,7 @@ struct Pair
 /// Interface
 ////////////////////////////////////////////////////////////
 template<typename Key, typename Value>
-static bool FindValuePtr(const Pair<Key, Value>* pairs, uint32 pair_count, Key key, Value** value)
+bool FindValuePtr(const Pair<Key, Value>* pairs, uint32 pair_count, Key key, Value** value)
 {
     for (uint32 i = 0; i < pair_count; ++i)
     {
@@ -25,7 +25,7 @@ static bool FindValuePtr(const Pair<Key, Value>* pairs, uint32 pair_count, Key k
 }
 
 template<typename Key, typename Value>
-static bool FindValue(const Pair<Key, Value>* pairs, uint32 pair_count, Key key, Value* value)
+bool FindValue(const Pair<Key, Value>* pairs, uint32 pair_count, Key key, Value* value)
 {
     for (uint32 i = 0; i < pair_count; ++i)
     {
@@ -40,7 +40,7 @@ static bool FindValue(const Pair<Key, Value>* pairs, uint32 pair_count, Key key,
 }
 
 template<typename Key, typename Value>
-static bool FindKeyPtr(const Pair<Key, Value>* pairs, uint32 pair_count, Value value, Key** key)
+bool FindKeyPtr(const Pair<Key, Value>* pairs, uint32 pair_count, Value value, Key** key)
 {
     for (uint32 i = 0; i < pair_count; ++i)
     {
@@ -55,7 +55,7 @@ static bool FindKeyPtr(const Pair<Key, Value>* pairs, uint32 pair_count, Value v
 }
 
 template<typename Key, typename Value>
-static bool FindKey(const Pair<Key, Value>* pairs, uint32 pair_count, Value value, Key* key)
+bool FindKey(const Pair<Key, Value>* pairs, uint32 pair_count, Value value, Key* key)
 {
     for (uint32 i = 0; i < pair_count; ++i)
     {

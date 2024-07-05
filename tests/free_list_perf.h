@@ -52,7 +52,7 @@ struct Operation
 
 /// Debugging
 ////////////////////////////////////////////////////////////
-static void PrintOperation(Operation* op)
+void PrintOperation(Operation* op)
 {
     if (op->type == OperationType::ALLOCATE)
     {
@@ -78,9 +78,9 @@ static void PrintOperation(Operation* op)
 
 /// Tests
 ////////////////////////////////////////////////////////////
-static constexpr uint32 WARMUP_PASS = UINT32_MAX;
+constexpr uint32 WARMUP_PASS = UINT32_MAX;
 
-static float64 Test(Array<Operation>* ops, Array<Allocation>* allocations, Allocator* allocator, uint32 pass)
+float64 Test(Array<Operation>* ops, Array<Allocation>* allocations, Allocator* allocator, uint32 pass)
 {
     Profile test_profile = {};
 
@@ -135,23 +135,23 @@ static float64 Test(Array<Operation>* ops, Array<Allocation>* allocations, Alloc
     return test_profile.ms;
 }
 
-static void Run()
+void Run()
 {
     PrintLine("\nFreeList Performance Test");
 
-    static constexpr uint32 FREE_LIST_BYTE_SIZE = Megabyte32<256>();
-    static constexpr uint32 MAX_ALLOCATION_SIZE = 4000;
+    constexpr uint32 FREE_LIST_BYTE_SIZE = Megabyte32<256>();
+    constexpr uint32 MAX_ALLOCATION_SIZE = 4000;
 
     // Generate randomized operations for test.
     // RandomSeed();
-    static constexpr uint32 OP_COUNT      = 1000000;
-    static constexpr uint32 ALLOC_RATIO   = 1;
-    static constexpr uint32 REALLOC_RATIO = 1;
-    static constexpr uint32 DEALLOC_RATIO = 1;
-    static constexpr uint32 ALLOC_RANGE   = 0             + ALLOC_RATIO;
-    static constexpr uint32 REALLOC_RANGE = ALLOC_RANGE   + REALLOC_RATIO;
-    static constexpr uint32 DEALLOC_RANGE = REALLOC_RANGE + DEALLOC_RATIO;
-    static constexpr uint32 TOTAL_RANGE   = DEALLOC_RANGE;
+    constexpr uint32 OP_COUNT      = 1000000;
+    constexpr uint32 ALLOC_RATIO   = 1;
+    constexpr uint32 REALLOC_RATIO = 1;
+    constexpr uint32 DEALLOC_RATIO = 1;
+    constexpr uint32 ALLOC_RANGE   = 0             + ALLOC_RATIO;
+    constexpr uint32 REALLOC_RANGE = ALLOC_RANGE   + REALLOC_RATIO;
+    constexpr uint32 DEALLOC_RANGE = REALLOC_RANGE + DEALLOC_RATIO;
+    constexpr uint32 TOTAL_RANGE   = DEALLOC_RANGE;
 
     auto ops = CreateArray<Operation>(&std_allocator, OP_COUNT);
     uint32 allocate_op_count    = 0;
@@ -218,8 +218,8 @@ static void Run()
     PrintLine("max allocations: %u", max_allocation_count);
 
     // Run tests.
-    static constexpr uint32 MAX_ALLOCATIONS = 2048;
-    static constexpr uint32 TEST_PASSES     = 8;
+    constexpr uint32 MAX_ALLOCATIONS = 2048;
+    constexpr uint32 TEST_PASSES     = 8;
     auto allocations = CreateArray<Allocation>(&std_allocator, max_allocation_count);
 
 #if 1

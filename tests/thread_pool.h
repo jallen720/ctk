@@ -3,9 +3,9 @@
 namespace ThreadPoolTest
 {
 
-static CRITICAL_SECTION print_lock;
+CRITICAL_SECTION print_lock;
 
-static void Thread(void* data)
+void Thread(void* data)
 {
     uint32 id = (uint32)data;
     for (uint32 i = 0; i < 4; ++i)
@@ -17,9 +17,9 @@ static void Thread(void* data)
     }
 }
 
-static void ThreadPoolTest()
+void ThreadPoolTest()
 {
-    static constexpr uint32 THREAD_COUNT = 4;
+    constexpr uint32 THREAD_COUNT = 4;
     ThreadPool thread_pool = {};
     InitThreadPool(&thread_pool, &std_allocator, THREAD_COUNT);
     InitializeCriticalSection(&print_lock);
@@ -39,7 +39,7 @@ static void ThreadPoolTest()
     DestroyThreadPool(&thread_pool);
 }
 
-static void DebugGetBatchRange(uint32 thread_index, uint32 total_thread_count, uint32 total_batch_size)
+void DebugGetBatchRange(uint32 thread_index, uint32 total_thread_count, uint32 total_batch_size)
 {
     BatchRange res = GetBatchRange(thread_index, total_thread_count, total_batch_size);
     PrintLine("GetBatchRange(thread_index=%u, total_thread_count=%u, total_batch_size=%u) = "
@@ -47,17 +47,17 @@ static void DebugGetBatchRange(uint32 thread_index, uint32 total_thread_count, u
               thread_index, total_thread_count, total_batch_size, res.start, res.size);
 }
 
-static void BatchRangeTest()
+void BatchRangeTest()
 {
-    static constexpr uint32 THREAD_COUNT = 5;
-    static constexpr uint32 BATCH_SIZE   = 27;
+    constexpr uint32 THREAD_COUNT = 5;
+    constexpr uint32 BATCH_SIZE   = 27;
     for (uint32 thread_index = 0; thread_index < THREAD_COUNT; thread_index += 1)
     {
         DebugGetBatchRange(thread_index, THREAD_COUNT, BATCH_SIZE);
     }
 }
 
-static void Run()
+void Run()
 {
     ThreadPoolTest();
     BatchRangeTest();

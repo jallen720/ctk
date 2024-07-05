@@ -43,9 +43,9 @@ struct alignas(16) Matrix
 
 /// Constants
 ////////////////////////////////////////////////////////////
-static constexpr float32 PI = 3.141592f;
+constexpr float32 PI = 3.141592f;
 
-static constexpr Matrix ID_MATRIX =
+constexpr Matrix ID_MATRIX =
 {
     .data =
     {
@@ -58,9 +58,9 @@ static constexpr Matrix ID_MATRIX =
 
 /// Debugging
 ////////////////////////////////////////////////////////////
-static float32 Get(const Matrix* m, uint32 col, uint32 row);
+float32 Get(const Matrix* m, uint32 col, uint32 row);
 
-static void PrintMatrix(Matrix* m)
+void PrintMatrix(Matrix* m)
 {
     PrintLine();
     for (uint32 row = 0; row < 4; ++row)
@@ -85,8 +85,8 @@ static void PrintMatrix(Matrix* m)
 /// General
 ////////////////////////////////////////////////////////////
 #define CTK_MINMAX_FUNCS(TYPE) \
-static TYPE Min(TYPE a, TYPE b) { return a < b ? a : b; } \
-static TYPE Max(TYPE a, TYPE b) { return a > b ? a : b; }
+TYPE Min(TYPE a, TYPE b) { return a < b ? a : b; } \
+TYPE Max(TYPE a, TYPE b) { return a > b ? a : b; }
 CTK_MINMAX_FUNCS(uint8)
 CTK_MINMAX_FUNCS(uint16)
 CTK_MINMAX_FUNCS(uint32)
@@ -99,7 +99,7 @@ CTK_MINMAX_FUNCS(float32)
 CTK_MINMAX_FUNCS(float64)
 
 #define CTK_CLAMP_FUNC(TYPE) \
-static TYPE Clamp(TYPE val, TYPE min_val, TYPE max_val) { return Min(Max(val, min_val), max_val); }
+TYPE Clamp(TYPE val, TYPE min_val, TYPE max_val) { return Min(Max(val, min_val), max_val); }
 CTK_CLAMP_FUNC(uint8)
 CTK_CLAMP_FUNC(uint16)
 CTK_CLAMP_FUNC(uint32)
@@ -111,18 +111,18 @@ CTK_CLAMP_FUNC(sint64)
 CTK_CLAMP_FUNC(float32)
 CTK_CLAMP_FUNC(float64)
 
-static float32 Log2(float32 val)
+float32 Log2(float32 val)
 {
     return log2f(val);
 }
 
-static float64 Log2(float64 val)
+float64 Log2(float64 val)
 {
     return log2(val);
 }
 
 #define CTK_ALIGN_FUNC(TYPE) \
-static TYPE Align(TYPE val, TYPE alignment) { return ((val + (alignment - 1)) / alignment) * alignment; }
+TYPE Align(TYPE val, TYPE alignment) { return ((val + (alignment - 1)) / alignment) * alignment; }
 CTK_ALIGN_FUNC(uint8)
 CTK_ALIGN_FUNC(uint16)
 CTK_ALIGN_FUNC(uint32)
@@ -133,7 +133,7 @@ CTK_ALIGN_FUNC(sint32)
 CTK_ALIGN_FUNC(sint64)
 
 #define CTK_CTIME_ALIGN_FUNC(TYPE) \
-static constexpr TYPE CTime_Align(TYPE val, TYPE alignment) \
+constexpr TYPE CTime_Align(TYPE val, TYPE alignment) \
 { \
     return ((val + (alignment - 1)) / alignment) * alignment; \
 }
@@ -147,12 +147,12 @@ CTK_CTIME_ALIGN_FUNC(sint32)
 CTK_CTIME_ALIGN_FUNC(sint64)
 
 template<typename Type>
-static Type* Align(Type* ptr, uint64 alignment)
+Type* Align(Type* ptr, uint64 alignment)
 {
     return (Type*)Align((uint64)ptr, alignment);
 }
 
-static uint64 GetAlignment(uint64 value)
+uint64 GetAlignment(uint64 value)
 {
     for (uint32 i = 0; i < 64; ++i)
     {
@@ -165,18 +165,18 @@ static uint64 GetAlignment(uint64 value)
     return 0;
 }
 
-static uint64 GetAlignment(void* address)
+uint64 GetAlignment(void* address)
 {
     return GetAlignment((uint64)address);
 }
 
-static float32 ToRadians(float32 degrees)
+float32 ToRadians(float32 degrees)
 {
     return 2 * PI * (degrees / 360);
 }
 
 #define CTK_DISTANCE_2D_FUNC_32(TYPE) \
-static float32 Distance2D(TYPE x0, TYPE y0, TYPE x1, TYPE y1) \
+float32 Distance2D(TYPE x0, TYPE y0, TYPE x1, TYPE y1) \
 { \
     TYPE a = x1 - x0; \
     TYPE b = y1 - y0; \
@@ -188,7 +188,7 @@ CTK_DISTANCE_2D_FUNC_32(sint32)
 CTK_DISTANCE_2D_FUNC_32(float32)
 
 #define CTK_DISTANCE_2D_FUNC_64(TYPE) \
-static float64 Distance2D(TYPE x0, TYPE y0, TYPE x1, TYPE y1) \
+float64 Distance2D(TYPE x0, TYPE y0, TYPE x1, TYPE y1) \
 { \
     TYPE a = x1 - x0; \
     TYPE b = y1 - y0; \
@@ -197,7 +197,7 @@ static float64 Distance2D(TYPE x0, TYPE y0, TYPE x1, TYPE y1) \
 CTK_DISTANCE_2D_FUNC_64(sint64)
 CTK_DISTANCE_2D_FUNC_64(float64)
 
-#define CTK_ABSVAL_FUNC_SIGNED(TYPE) static TYPE AbsVal(TYPE x) { return x < 0 ? -x : x; }
+#define CTK_ABSVAL_FUNC_SIGNED(TYPE) TYPE AbsVal(TYPE x) { return x < 0 ? -x : x; }
 CTK_ABSVAL_FUNC_SIGNED(sint8)
 CTK_ABSVAL_FUNC_SIGNED(sint16)
 CTK_ABSVAL_FUNC_SIGNED(sint32)
@@ -205,32 +205,32 @@ CTK_ABSVAL_FUNC_SIGNED(sint64)
 CTK_ABSVAL_FUNC_SIGNED(float32)
 CTK_ABSVAL_FUNC_SIGNED(float64)
 
-#define CTK_ABSVAL_FUNC_UNSIGNED(TYPE) static TYPE AbsVal(TYPE x) { return x; }
+#define CTK_ABSVAL_FUNC_UNSIGNED(TYPE) TYPE AbsVal(TYPE x) { return x; }
 CTK_ABSVAL_FUNC_UNSIGNED(uint8)
 CTK_ABSVAL_FUNC_UNSIGNED(uint16)
 CTK_ABSVAL_FUNC_UNSIGNED(uint32)
 CTK_ABSVAL_FUNC_UNSIGNED(uint64)
 
-static void RandomSeed(uint32 seed = 0)
+void RandomSeed(uint32 seed = 0)
 {
     srand(seed ? seed : _time32(NULL));
 }
 
-static sint32 RandomRange(sint32 min_val, sint32 max_val)
+sint32 RandomRange(sint32 min_val, sint32 max_val)
 {
     CTK_ASSERT(max_val >= min_val);
 
     return (rand() % (max_val - min_val)) + min_val;
 }
 
-static uint32 RandomRange(uint32 min_val, uint32 max_val)
+uint32 RandomRange(uint32 min_val, uint32 max_val)
 {
     CTK_ASSERT(max_val >= min_val);
 
     return ((uint32)rand() % (max_val - min_val)) + min_val;
 }
 
-static float32 RandomRange(float32 min_val, float32 max_val)
+float32 RandomRange(float32 min_val, float32 max_val)
 {
     CTK_ASSERT(max_val >= min_val);
 
@@ -240,7 +240,7 @@ static float32 RandomRange(float32 min_val, float32 max_val)
 /// Vec4
 ////////////////////////////////////////////////////////////
 template<typename Type>
-static Type Get(Vec4<Type>* vec, uint32 index)
+Type Get(Vec4<Type>* vec, uint32 index)
 {
     CTK_ASSERT(index < 4);
 
@@ -248,7 +248,7 @@ static Type Get(Vec4<Type>* vec, uint32 index)
 }
 
 template<typename Type>
-static Type Set(Vec4<Type>* vec, uint32 index, Type value)
+Type Set(Vec4<Type>* vec, uint32 index, Type value)
 {
     CTK_ASSERT(index < 4);
 
@@ -256,7 +256,7 @@ static Type Set(Vec4<Type>* vec, uint32 index, Type value)
 }
 
 template<typename Type>
-static Vec4<Type> operator+(Vec4<Type> a, Vec4<Type> b)
+Vec4<Type> operator+(Vec4<Type> a, Vec4<Type> b)
 {
     Vec4<Type> vec4 = {};
     vec4.x = a.x + b.x;
@@ -267,7 +267,7 @@ static Vec4<Type> operator+(Vec4<Type> a, Vec4<Type> b)
 }
 
 template<typename Type>
-static Vec4<Type> operator-(Vec4<Type> a, Vec4<Type> b)
+Vec4<Type> operator-(Vec4<Type> a, Vec4<Type> b)
 {
     Vec4<Type> vec4 = {};
     vec4.x = a.x - b.x;
@@ -278,7 +278,7 @@ static Vec4<Type> operator-(Vec4<Type> a, Vec4<Type> b)
 }
 
 template<typename Type>
-static Vec4<Type> operator*(Vec4<Type> a, Vec4<Type> b)
+Vec4<Type> operator*(Vec4<Type> a, Vec4<Type> b)
 {
     Vec4<Type> vec4 = {};
     vec4.x = a.x * b.x;
@@ -289,7 +289,7 @@ static Vec4<Type> operator*(Vec4<Type> a, Vec4<Type> b)
 }
 
 template<typename Type>
-static Vec4<Type> operator/(Vec4<Type> a, Vec4<Type> b)
+Vec4<Type> operator/(Vec4<Type> a, Vec4<Type> b)
 {
     Vec4<Type> vec4 = {};
     vec4.x = a.x / b.x;
@@ -300,7 +300,7 @@ static Vec4<Type> operator/(Vec4<Type> a, Vec4<Type> b)
 }
 
 template<typename Type>
-static Vec4<Type> operator+(Vec4<Type> vec, Type scalar)
+Vec4<Type> operator+(Vec4<Type> vec, Type scalar)
 {
     Vec4<Type> vec4 = {};
     vec4.x = vec.x + scalar;
@@ -311,7 +311,7 @@ static Vec4<Type> operator+(Vec4<Type> vec, Type scalar)
 }
 
 template<typename Type>
-static Vec4<Type> operator-(Vec4<Type> vec, Type scalar)
+Vec4<Type> operator-(Vec4<Type> vec, Type scalar)
 {
     Vec4<Type> vec4 = {};
     vec4.x = vec.x - scalar;
@@ -322,7 +322,7 @@ static Vec4<Type> operator-(Vec4<Type> vec, Type scalar)
 }
 
 template<typename Type>
-static Vec4<Type> operator*(Vec4<Type> vec, Type scalar)
+Vec4<Type> operator*(Vec4<Type> vec, Type scalar)
 {
     Vec4<Type> vec4 = {};
     vec4.x = vec.x * scalar;
@@ -333,7 +333,7 @@ static Vec4<Type> operator*(Vec4<Type> vec, Type scalar)
 }
 
 template<typename Type>
-static Vec4<Type> operator/(Vec4<Type> vec, Type scalar)
+Vec4<Type> operator/(Vec4<Type> vec, Type scalar)
 {
     Vec4<Type> vec4 = {};
     vec4.x = vec.x / scalar;
@@ -344,7 +344,7 @@ static Vec4<Type> operator/(Vec4<Type> vec, Type scalar)
 }
 
 template<typename Type>
-static Type Length(Vec4<Type> vec)
+Type Length(Vec4<Type> vec)
 {
     return sqrt((vec.x * vec.x) +
                 (vec.y * vec.y) +
@@ -353,7 +353,7 @@ static Type Length(Vec4<Type> vec)
 }
 
 template<typename Type>
-static Type Dot(Vec4<Type> a, Vec4<Type> b)
+Type Dot(Vec4<Type> a, Vec4<Type> b)
 {
     return (a.x * b.x) +
            (a.y * b.y) +
@@ -362,7 +362,7 @@ static Type Dot(Vec4<Type> a, Vec4<Type> b)
 }
 
 template<typename Type>
-static Vec4<Type> Normalize(Vec4<Type> vec)
+Vec4<Type> Normalize(Vec4<Type> vec)
 {
     return vec / Length(vec);
 }
@@ -370,7 +370,7 @@ static Vec4<Type> Normalize(Vec4<Type> vec)
 /// Vec3
 ////////////////////////////////////////////////////////////
 template<typename Type>
-static Type Get(Vec3<Type>* vec, uint32 index)
+Type Get(Vec3<Type>* vec, uint32 index)
 {
     CTK_ASSERT(index < 3);
 
@@ -378,7 +378,7 @@ static Type Get(Vec3<Type>* vec, uint32 index)
 }
 
 template<typename Type>
-static void Set(Vec3<Type>* vec, uint32 index, Type value)
+void Set(Vec3<Type>* vec, uint32 index, Type value)
 {
     CTK_ASSERT(index < 3);
 
@@ -386,7 +386,7 @@ static void Set(Vec3<Type>* vec, uint32 index, Type value)
 }
 
 template<typename Type>
-static Vec3<Type> operator+(Vec3<Type> a, Vec3<Type> b)
+Vec3<Type> operator+(Vec3<Type> a, Vec3<Type> b)
 {
     Vec3<Type> vec3 = {};
     vec3.x = a.x + b.x;
@@ -396,7 +396,7 @@ static Vec3<Type> operator+(Vec3<Type> a, Vec3<Type> b)
 }
 
 template<typename Type>
-static Vec3<Type> operator-(Vec3<Type> a, Vec3<Type> b)
+Vec3<Type> operator-(Vec3<Type> a, Vec3<Type> b)
 {
     Vec3<Type> vec3 = {};
     vec3.x = a.x - b.x;
@@ -406,7 +406,7 @@ static Vec3<Type> operator-(Vec3<Type> a, Vec3<Type> b)
 }
 
 template<typename Type>
-static Vec3<Type> operator*(Vec3<Type> a, Vec3<Type> b)
+Vec3<Type> operator*(Vec3<Type> a, Vec3<Type> b)
 {
     Vec3<Type> vec3 = {};
     vec3.x = a.x * b.x;
@@ -416,7 +416,7 @@ static Vec3<Type> operator*(Vec3<Type> a, Vec3<Type> b)
 }
 
 template<typename Type>
-static Vec3<Type> operator/(Vec3<Type> a, Vec3<Type> b)
+Vec3<Type> operator/(Vec3<Type> a, Vec3<Type> b)
 {
     Vec3<Type> vec3 = {};
     vec3.x = a.x / b.x;
@@ -426,7 +426,7 @@ static Vec3<Type> operator/(Vec3<Type> a, Vec3<Type> b)
 }
 
 template<typename Type>
-static Vec3<Type> operator+(Vec3<Type> vec, Type scalar)
+Vec3<Type> operator+(Vec3<Type> vec, Type scalar)
 {
     Vec3<Type> vec3 = {};
     vec3.x = vec.x + scalar;
@@ -436,7 +436,7 @@ static Vec3<Type> operator+(Vec3<Type> vec, Type scalar)
 }
 
 template<typename Type>
-static Vec3<Type> operator-(Vec3<Type> vec, Type scalar)
+Vec3<Type> operator-(Vec3<Type> vec, Type scalar)
 {
     Vec3<Type> vec3 = {};
     vec3.x = vec.x - scalar;
@@ -446,7 +446,7 @@ static Vec3<Type> operator-(Vec3<Type> vec, Type scalar)
 }
 
 template<typename Type>
-static Vec3<Type> operator*(Vec3<Type> vec, Type scalar)
+Vec3<Type> operator*(Vec3<Type> vec, Type scalar)
 {
     Vec3<Type> vec3 = {};
     vec3.x = vec.x * scalar;
@@ -456,7 +456,7 @@ static Vec3<Type> operator*(Vec3<Type> vec, Type scalar)
 }
 
 template<typename Type>
-static Vec3<Type> operator/(Vec3<Type> vec, Type scalar)
+Vec3<Type> operator/(Vec3<Type> vec, Type scalar)
 {
     Vec3<Type> vec3 = {};
     vec3.x = vec.x / scalar;
@@ -466,7 +466,7 @@ static Vec3<Type> operator/(Vec3<Type> vec, Type scalar)
 }
 
 template<typename Type>
-static Type Length(Vec3<Type> vec)
+Type Length(Vec3<Type> vec)
 {
     return sqrtf((vec.x * vec.x) +
                  (vec.y * vec.y) +
@@ -474,7 +474,7 @@ static Type Length(Vec3<Type> vec)
 }
 
 template<typename Type>
-static Type Dot(Vec3<Type> a, Vec3<Type> b)
+Type Dot(Vec3<Type> a, Vec3<Type> b)
 {
     return (a.x * b.x) +
            (a.y * b.y) +
@@ -482,13 +482,13 @@ static Type Dot(Vec3<Type> a, Vec3<Type> b)
 }
 
 template<typename Type>
-static Vec3<Type> Normalize(Vec3<Type> vec)
+Vec3<Type> Normalize(Vec3<Type> vec)
 {
     return vec / Length(vec);
 }
 
 template<typename Type>
-static Vec3<Type> Cross(Vec3<Type> a, Vec3<Type> b)
+Vec3<Type> Cross(Vec3<Type> a, Vec3<Type> b)
 {
     Vec3<Type> vec3 = {};
     vec3.x = (a.y * b.z) - (b.y * a.z);
@@ -500,7 +500,7 @@ static Vec3<Type> Cross(Vec3<Type> a, Vec3<Type> b)
 /// Vec2
 ////////////////////////////////////////////////////////////
 template<typename Type>
-static Type Get(Vec2<Type>* vec, uint32 index)
+Type Get(Vec2<Type>* vec, uint32 index)
 {
     CTK_ASSERT(index < 2);
 
@@ -508,7 +508,7 @@ static Type Get(Vec2<Type>* vec, uint32 index)
 }
 
 template<typename Type>
-static void Set(Vec2<Type>* vec, uint32 index, Type value)
+void Set(Vec2<Type>* vec, uint32 index, Type value)
 {
     CTK_ASSERT(index < 2);
 
@@ -516,7 +516,7 @@ static void Set(Vec2<Type>* vec, uint32 index, Type value)
 }
 
 template<typename Type>
-static Vec2<Type> operator+(Vec2<Type> a, Vec2<Type> b)
+Vec2<Type> operator+(Vec2<Type> a, Vec2<Type> b)
 {
     Vec2<Type> vec2 = {};
     vec2.x = a.x + b.x;
@@ -525,7 +525,7 @@ static Vec2<Type> operator+(Vec2<Type> a, Vec2<Type> b)
 }
 
 template<typename Type>
-static Vec2<Type> operator-(Vec2<Type> a, Vec2<Type> b)
+Vec2<Type> operator-(Vec2<Type> a, Vec2<Type> b)
 {
     Vec2<Type> vec2 = {};
     vec2.x = a.x - b.x;
@@ -534,7 +534,7 @@ static Vec2<Type> operator-(Vec2<Type> a, Vec2<Type> b)
 }
 
 template<typename Type>
-static Vec2<Type> operator*(Vec2<Type> a, Vec2<Type> b)
+Vec2<Type> operator*(Vec2<Type> a, Vec2<Type> b)
 {
     Vec2<Type> vec2 = {};
     vec2.x = a.x * b.x;
@@ -543,7 +543,7 @@ static Vec2<Type> operator*(Vec2<Type> a, Vec2<Type> b)
 }
 
 template<typename Type>
-static Vec2<Type> operator/(Vec2<Type> a, Vec2<Type> b)
+Vec2<Type> operator/(Vec2<Type> a, Vec2<Type> b)
 {
     Vec2<Type> vec2 = {};
     vec2.x = a.x / b.x;
@@ -552,7 +552,7 @@ static Vec2<Type> operator/(Vec2<Type> a, Vec2<Type> b)
 }
 
 template<typename Type>
-static Vec2<Type> operator+(Vec2<Type> vec, Type scalar)
+Vec2<Type> operator+(Vec2<Type> vec, Type scalar)
 {
     Vec2<Type> vec2 = {};
     vec2.x = vec.x + scalar;
@@ -561,7 +561,7 @@ static Vec2<Type> operator+(Vec2<Type> vec, Type scalar)
 }
 
 template<typename Type>
-static Vec2<Type> operator-(Vec2<Type> vec, Type scalar)
+Vec2<Type> operator-(Vec2<Type> vec, Type scalar)
 {
     Vec2<Type> vec2 = {};
     vec2.x = vec.x - scalar;
@@ -570,7 +570,7 @@ static Vec2<Type> operator-(Vec2<Type> vec, Type scalar)
 }
 
 template<typename Type>
-static Vec2<Type> operator*(Vec2<Type> vec, Type scalar)
+Vec2<Type> operator*(Vec2<Type> vec, Type scalar)
 {
     Vec2<Type> vec2 = {};
     vec2.x = vec.x * scalar;
@@ -579,7 +579,7 @@ static Vec2<Type> operator*(Vec2<Type> vec, Type scalar)
 }
 
 template<typename Type>
-static Vec2<Type> operator/(Vec2<Type> vec, Type scalar)
+Vec2<Type> operator/(Vec2<Type> vec, Type scalar)
 {
     Vec2<Type> vec2 = {};
     vec2.x = vec.x / scalar;
@@ -588,38 +588,38 @@ static Vec2<Type> operator/(Vec2<Type> vec, Type scalar)
 }
 
 template<typename Type>
-static Type Length(Vec2<Type> vec)
+Type Length(Vec2<Type> vec)
 {
     return sqrt((vec.x * vec.x) +
                 (vec.y * vec.y));
 }
 
 template<typename Type>
-static Type Dot(Vec2<Type> a, Vec2<Type> b)
+Type Dot(Vec2<Type> a, Vec2<Type> b)
 {
     return (a.x * b.x) +
            (a.y * b.y);
 }
 
 template<typename Type>
-static Vec2<Type> Normalize(Vec2<Type> vec)
+Vec2<Type> Normalize(Vec2<Type> vec)
 {
     return vec / Length(vec);
 }
 
 /// Matrix
 ////////////////////////////////////////////////////////////
-static const float32* GetCol(const Matrix* m, uint32 col)
+const float32* GetCol(const Matrix* m, uint32 col)
 {
     return &m->data[col * 4];
 }
 
-static float32* GetCol(Matrix* m, uint32 col)
+float32* GetCol(Matrix* m, uint32 col)
 {
     return &m->data[col * 4];
 }
 
-static float32 Get(const Matrix* m, uint32 col, uint32 row)
+float32 Get(const Matrix* m, uint32 col, uint32 row)
 {
     CTK_ASSERT(col < 4);
     CTK_ASSERT(row < 4);
@@ -627,7 +627,7 @@ static float32 Get(const Matrix* m, uint32 col, uint32 row)
     return GetCol(m, col)[row];
 }
 
-static void Set(Matrix* m, uint32 col, uint32 row, float32 value)
+void Set(Matrix* m, uint32 col, uint32 row, float32 value)
 {
     CTK_ASSERT(col < 4);
     CTK_ASSERT(row < 4);
@@ -635,7 +635,7 @@ static void Set(Matrix* m, uint32 col, uint32 row, float32 value)
     GetCol(m, col)[row] = value;
 }
 
-static Matrix operator*(const Matrix& l, const Matrix& r)
+Matrix operator*(const Matrix& l, const Matrix& r)
 {
     Matrix res = {};
 
@@ -663,7 +663,7 @@ static Matrix operator*(const Matrix& l, const Matrix& r)
     return res;
 }
 
-static Matrix operator+(const Matrix& l, const Matrix& r)
+Matrix operator+(const Matrix& l, const Matrix& r)
 {
     Matrix res = {};
 
@@ -675,7 +675,7 @@ static Matrix operator+(const Matrix& l, const Matrix& r)
     return res;
 }
 
-static Matrix Translate(Matrix m, Vec3<float32> trans)
+Matrix Translate(Matrix m, Vec3<float32> trans)
 {
     for (uint32 col = 0; col < 3; ++col)
     {
@@ -694,7 +694,7 @@ static Matrix Translate(Matrix m, Vec3<float32> trans)
     return m;
 }
 
-static Matrix RotateX(Matrix m, float32 degrees)
+Matrix RotateX(Matrix m, float32 degrees)
 {
     float32 rads = ToRadians(degrees);
 
@@ -707,7 +707,7 @@ static Matrix RotateX(Matrix m, float32 degrees)
     return m * rot_mtx;
 }
 
-static Matrix RotateY(Matrix m, float32 degrees)
+Matrix RotateY(Matrix m, float32 degrees)
 {
     float32 rads = ToRadians(degrees);
 
@@ -720,7 +720,7 @@ static Matrix RotateY(Matrix m, float32 degrees)
     return m * rot_mtx;
 }
 
-static Matrix RotateZ(Matrix m, float32 degrees)
+Matrix RotateZ(Matrix m, float32 degrees)
 {
     float32 rads = ToRadians(degrees);
 
@@ -733,7 +733,7 @@ static Matrix RotateZ(Matrix m, float32 degrees)
     return m * rot_mtx;
 }
 
-static Matrix Scale(Matrix m, Vec3<float32> v)
+Matrix Scale(Matrix m, Vec3<float32> v)
 {
     for (uint32 col = 0; col < 3; ++col)
     for (uint32 row = 0; row < 3; ++row)
@@ -744,7 +744,7 @@ static Matrix Scale(Matrix m, Vec3<float32> v)
     return m;
 }
 
-static Matrix GetPerspectiveMatrix(float32 vertical_fov, float32 aspect, float32 z_near, float32 z_far)
+Matrix GetPerspectiveMatrix(float32 vertical_fov, float32 aspect, float32 z_near, float32 z_far)
 {
     Matrix res = {}; // Must be 0 matrix.
 
@@ -759,12 +759,12 @@ static Matrix GetPerspectiveMatrix(float32 vertical_fov, float32 aspect, float32
     return res;
 }
 
-static Matrix GetOrthographicMatrix()
+Matrix GetOrthographicMatrix()
 {
     return ID_MATRIX;
 }
 
-static Matrix LookAt(Vec3<float32> eye, Vec3<float32> center, Vec3<float32> up)
+Matrix LookAt(Vec3<float32> eye, Vec3<float32> center, Vec3<float32> up)
 {
     Matrix res = ID_MATRIX;
 

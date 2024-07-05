@@ -105,7 +105,7 @@ struct PrintChildFuncs
     PrintChildFunc object;
 };
 
-static constexpr bool IS_SYMBOL[128] =
+constexpr bool IS_SYMBOL[128] =
 {
     /*0*/   false, false, false,     false,     false,     false,     false, false,
     /*8*/   false, false, false,     false,     false,     false,     false, false,
@@ -125,7 +125,7 @@ static constexpr bool IS_SYMBOL[128] =
     /*120*/ false, false, false,     true/*{*/, false,     true/*}*/, false, false,
 };
 
-static constexpr bool IS_SKIPPABLE[128] =
+constexpr bool IS_SKIPPABLE[128] =
 {
     /*0*/   true/*\0*/, false,      false,      false, false, false,      false, false,
     /*8*/   false,      true/*\t*/, true/*\n*/, false, false, true/*\r*/, false, false,
@@ -145,7 +145,7 @@ static constexpr bool IS_SKIPPABLE[128] =
     /*120*/ false,      false,      false,      false, false, false,      false, false,
 };
 
-static constexpr JSONTokenType SYMBOL_TOKEN_TYPE[128] =
+constexpr JSONTokenType SYMBOL_TOKEN_TYPE[128] =
 {
     /*0*/   JSONTokenType::NONE, JSONTokenType::NONE, JSONTokenType::NONE,  JSONTokenType::NONE,                JSONTokenType::NONE,  JSONTokenType::NONE,                 JSONTokenType::NONE, JSONTokenType::NONE,
     /*8*/   JSONTokenType::NONE, JSONTokenType::NONE, JSONTokenType::NONE,  JSONTokenType::NONE,                JSONTokenType::NONE,  JSONTokenType::NONE,                 JSONTokenType::NONE, JSONTokenType::NONE,
@@ -169,7 +169,7 @@ static constexpr JSONTokenType SYMBOL_TOKEN_TYPE[128] =
 ////////////////////////////////////////////////////////////
 const char* TokenTypeName(JSONTokenType type)
 {
-    static constexpr const char* TOKEN_TYPE_NAMES[] =
+    constexpr const char* TOKEN_TYPE_NAMES[] =
     {
         // Symbols
         "OPEN_SQUARE_BRACKET",
@@ -197,7 +197,7 @@ const char* TokenTypeName(JSONTokenType type)
 
 const char* NodeTypeName(JSONNodeType type)
 {
-    static constexpr const char* NODE_TYPE_NAMES[] =
+    constexpr const char* NODE_TYPE_NAMES[] =
     {
         "ARRAY",
         "OBJECT",
@@ -232,6 +232,8 @@ void ParseLiteralToken(JSONTokenParseState* parse_state, String* json_file, cons
 
 Array<JSONToken> ParseTokens(JSON* json, String* json_file)
 {
+    auto tokens = CreateArray<JSONToken>(json->allocator);
+
     // Parse File
     JSONTokenParseState parse_state =
     {
@@ -462,12 +464,12 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
     }
     if (max_tokens == 0)
     {
-        return {};
+        return tokens;
     }
 
     // Parse tokens.
     parse_state.char_index = 0;
-    auto tokens = CreateArray<JSONToken>(json->allocator, max_tokens);
+    Resize(&tokens, max_tokens);
 
     // Track what list tokens belong to. An extra level is added to stack to allow resetting is_array flag on the final
     // close bracket. This removes the need to check is_array_stack.count > 0 every time is_array needs reset.
@@ -1212,18 +1214,17 @@ JSON LoadJSON(Allocator* allocator, const char* path)
     json.allocator = allocator;
 
     // Load File
-    String json_file = {};
-    ReadFile(&json_file, json.allocator, path);
+    String json_file = ReadFile<char>(json.allocator, path);
     if (json_file.count == 0)
     {
-        return {};
+        return json;
     }
 
     Array<JSONToken> tokens = ParseTokens(&json, &json_file);
     if (tokens.count == 0)
     {
         DestroyString(&json_file);
-        return {};
+        return json;
     }
 // for (uint32 i = 0; i < tokens.count; i += 1)
 // {

@@ -10,7 +10,7 @@ struct RangeInfo
 // /// Utils
 // ////////////////////////////////////////////////////////////
 template<typename... Args>
-static void PrintRangeType(FreeList* free_list, uint32 range_index, const char* msg, Args... args)
+void PrintRangeType(FreeList* free_list, uint32 range_index, const char* msg, Args... args)
 {
     if (range_index == UINT32_MAX)
     {
@@ -32,7 +32,7 @@ static void PrintRangeType(FreeList* free_list, uint32 range_index, const char* 
 
 /// Interface
 ////////////////////////////////////////////////////////////
-static void PrintRangeSimple(RangeInfo range_info)
+void PrintRangeSimple(RangeInfo range_info)
 {
     if (range_info.byte_size == 0)
     {
@@ -58,7 +58,7 @@ static void PrintRangeSimple(RangeInfo range_info)
     }
 }
 
-static void PrintAllRangesSimple(FreeList* free_list)
+void PrintAllRangesSimple(FreeList* free_list)
 {
     uint32 range_index = free_list->first_range_index;
     while (range_index != UINT32_MAX)
@@ -74,7 +74,7 @@ static void PrintAllRangesSimple(FreeList* free_list)
     PrintLine();
 }
 
-static void PrintAllRangesSimple(RangeInfo* ranges, uint32 count)
+void PrintAllRangesSimple(RangeInfo* ranges, uint32 count)
 {
     CTK_ITER_PTR(range, ranges, count)
     {
@@ -83,7 +83,7 @@ static void PrintAllRangesSimple(RangeInfo* ranges, uint32 count)
     PrintLine();
 }
 
-static void PrintAllRangesBytes(FreeList* free_list)
+void PrintAllRangesBytes(FreeList* free_list)
 {
     uint32 range_index = free_list->first_range_index;
     while (range_index != UINT32_MAX)
@@ -107,7 +107,7 @@ static void PrintAllRangesBytes(FreeList* free_list)
     PrintLine();
 }
 
-static void PrintAllRangesByteValues(FreeList* free_list)
+void PrintAllRangesByteValues(FreeList* free_list)
 {
     uint32 range_index = free_list->first_range_index;
     while (range_index != UINT32_MAX)
@@ -131,7 +131,7 @@ static void PrintAllRangesByteValues(FreeList* free_list)
     PrintLine();
 }
 
-static void PrintRange(FreeList* free_list, uint32 range_index)
+void PrintRange(FreeList* free_list, uint32 range_index)
 {
     if (IsFreeRangeIndex(free_list, range_index))
     {
@@ -165,7 +165,7 @@ static void PrintRange(FreeList* free_list, uint32 range_index)
     }
 }
 
-static void PrintAllRanges(FreeList* free_list)
+void PrintAllRanges(FreeList* free_list)
 {
     uint32 range_index = free_list->first_range_index;
     while (range_index != UINT32_MAX)
@@ -176,7 +176,7 @@ static void PrintAllRanges(FreeList* free_list)
     PrintLine();
 }
 
-static void PrintRangeKeys(FreeList* free_list)
+void PrintRangeKeys(FreeList* free_list)
 {
     PrintLine(OutputColor::MAGENTA, "Used Ranges (count=%u):", free_list->used_range_count);
     for (uint32 i = 0; i < free_list->used_range_count; ++i)
@@ -194,7 +194,7 @@ static void PrintRangeKeys(FreeList* free_list)
     }
 }
 
-static void PrintUsage(FreeList* free_list)
+void PrintUsage(FreeList* free_list)
 {
     uint32 used_byte_size  = 0;
     uint32 free_byte_size  = 0;
@@ -229,7 +229,7 @@ static void PrintUsage(FreeList* free_list)
     PrintLine("????:  %u (%.1f%%)", unaccounted_byte_size, 100 * ((float32)unaccounted_byte_size / (float32)total_byte_size));
 }
 
-static void PrintNeighborRanges(FreeList* free_list, uint32 range_index, uint32 neighbor_count)
+void PrintNeighborRanges(FreeList* free_list, uint32 range_index, uint32 neighbor_count)
 {
     PrintLine("printing neighbors for:");
 
@@ -264,7 +264,7 @@ static void PrintNeighborRanges(FreeList* free_list, uint32 range_index, uint32 
     PrintLine("=======================\n");
 }
 
-static void ValidateRanges(FreeList* free_list)
+void ValidateRanges(FreeList* free_list)
 {
     for (uint32 range_index = 0; range_index < free_list->used_range_count; ++range_index)
     {

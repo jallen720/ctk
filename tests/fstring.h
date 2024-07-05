@@ -6,7 +6,7 @@ namespace FStringTest
 /// Utils
 ////////////////////////////////////////////////////////////
 template<uint32 size>
-static bool TestStringFields(FString<size>* string, uint32 expected_size, uint32 expected_count)
+bool TestStringFields(FString<size>* string, uint32 expected_size, uint32 expected_count)
 {
     bool pass = true;
 
@@ -25,7 +25,7 @@ static bool TestStringFields(FString<size>* string, uint32 expected_size, uint32
 
 /// Tests
 ////////////////////////////////////////////////////////////
-static bool CanPushTest()
+bool CanPushTest()
 {
     bool pass = true;
 
@@ -50,7 +50,7 @@ static bool CanPushTest()
     return pass;
 }
 
-static bool RemoveTest()
+bool RemoveTest()
 {
     bool pass = true;
 
@@ -74,7 +74,7 @@ static bool RemoveTest()
     return pass;
 }
 
-static bool RemoveRangeTest()
+bool RemoveRangeTest()
 {
     bool pass = true;
 
@@ -98,12 +98,12 @@ static bool RemoveRangeTest()
     return pass;
 }
 
-static bool WriteTest()
+bool WriteTest()
 {
     bool pass = true;
 
     {
-        static constexpr uint32 STRING_SIZE = 5;
+        constexpr uint32 STRING_SIZE = 5;
         FString<STRING_SIZE> string = {}; // Must have room for null-terminator, unlike String.
         Write(&string, "test");
         const char* expected = "test";
@@ -113,7 +113,7 @@ static bool WriteTest()
                 TestStringFields, &string, STRING_SIZE, 4u);
     }
     {
-        static constexpr uint32 STRING_SIZE = 8;
+        constexpr uint32 STRING_SIZE = 8;
         FString<STRING_SIZE> string = {};
         char expected[STRING_SIZE] = {};
         Write(&string, "test");
@@ -127,12 +127,12 @@ static bool WriteTest()
     return pass;
 }
 
-static bool AppendTest()
+bool AppendTest()
 {
     bool pass = true;
 
     {
-        static constexpr uint32 STRING_SIZE = 18;
+        constexpr uint32 STRING_SIZE = 18;
         char expected[4][STRING_SIZE] = {};
         Write(expected[0], STRING_SIZE, "test1");
         Write(expected[1], STRING_SIZE, "test1test2");
@@ -161,7 +161,7 @@ static bool AppendTest()
     return pass;
 }
 
-static bool ContainsTest()
+bool ContainsTest()
 {
     bool pass = true;
 
@@ -187,7 +187,7 @@ static bool ContainsTest()
     return pass;
 }
 
-static bool ReverseTest()
+bool ReverseTest()
 {
     bool pass = true;
 
@@ -218,7 +218,7 @@ static bool ReverseTest()
     return pass;
 }
 
-static bool Run()
+bool Run()
 {
     bool pass = true;
 

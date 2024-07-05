@@ -3,7 +3,7 @@
 namespace WindowTest
 {
 
-static void Run()
+void Run()
 {
     InitWin32Info();
     WindowInfo window_info =

@@ -17,7 +17,7 @@ struct Array
 /// C-Array Interface
 ////////////////////////////////////////////////////////////
 template<typename Type>
-static void Reverse(Type* array, uint32 size)
+void Reverse(Type* array, uint32 size)
 {
     for (uint32 index = 0; index < size / 2; index += 1)
     {
@@ -29,7 +29,7 @@ static void Reverse(Type* array, uint32 size)
 }
 
 template<typename Type, typename ...Args>
-static void InsertionSort(Type* array, uint32 size, Func<bool, Type*, Type*, Args...> SortFunc, Args... args)
+void InsertionSort(Type* array, uint32 size, Func<bool, Type*, Type*, Args...> SortFunc, Args... args)
 {
     for (sint32 i = 1; i < size; i += 1)
     {
@@ -46,13 +46,13 @@ static void InsertionSort(Type* array, uint32 size, Func<bool, Type*, Type*, Arg
 /// CTK_ITER Interface
 ////////////////////////////////////////////////////////////
 template<typename Type>
-static Type* IterStart(Array<Type>* array)
+Type* IterStart(Array<Type>* array)
 {
     return array->data;
 }
 
 template<typename Type>
-static Type* IterEnd(Array<Type>* array)
+Type* IterEnd(Array<Type>* array)
 {
     return array->data + array->count;
 }
@@ -60,7 +60,7 @@ static Type* IterEnd(Array<Type>* array)
 /// Array Interface
 ////////////////////////////////////////////////////////////
 template<typename Type>
-static Array<Type> CreateArray(Allocator* allocator, uint32 size = 0)
+Array<Type> CreateArray(Allocator* allocator, uint32 size = 0)
 {
     Array<Type> array = {};
     array.allocator = allocator;
@@ -71,7 +71,7 @@ static Array<Type> CreateArray(Allocator* allocator, uint32 size = 0)
 }
 
 template<typename Type>
-static Array<Type> CreateArray(Allocator* allocator, const Type* src_array, uint32 size)
+Array<Type> CreateArray(Allocator* allocator, const Type* src_array, uint32 size)
 {
     Array<Type> array = {};
     array.allocator = allocator;
@@ -83,13 +83,13 @@ static Array<Type> CreateArray(Allocator* allocator, const Type* src_array, uint
 }
 
 template<typename Type>
-static Array<Type> CreateArray(Allocator* allocator, Array<Type>* src_array)
+Array<Type> CreateArray(Allocator* allocator, Array<Type>* src_array)
 {
     return CreateArray(allocator, src_array->data, src_array->count);
 }
 
 template<typename Type>
-static Array<Type> CreateArrayFull(Allocator* allocator, uint32 size)
+Array<Type> CreateArrayFull(Allocator* allocator, uint32 size)
 {
     Array<Type> array = {};
     array.allocator = allocator;
@@ -100,9 +100,11 @@ static Array<Type> CreateArrayFull(Allocator* allocator, uint32 size)
 }
 
 template<typename Type>
-static void DestroyArray(Array<Type>* array)
+void DestroyArray(Array<Type>* array)
 {
-    if (array->allocator != NULL && array->data != NULL)
+    CTK_ASSERT(array->allocator != NULL)
+
+    if (array->data != NULL)
     {
         Deallocate(array->allocator, array->data);
     }
@@ -111,7 +113,7 @@ static void DestroyArray(Array<Type>* array)
 
 #define CTK_ARRAY_RESIZE_FUNC(NAME, REALLOCATE_FUNC) \
 template<typename Type> \
-static void NAME(Array<Type>* array, uint32 new_size) \
+void NAME(Array<Type>* array, uint32 new_size) \
 { \
     if (array->size > 0 && new_size == 0) \
     { \
@@ -142,13 +144,13 @@ CTK_ARRAY_RESIZE_FUNC(ResizeNZ, ReallocateNZ)
 CTK_ARRAY_RESIZE_FUNC(Resize,   Reallocate)
 
 template<typename Type>
-static bool CanPush(Array<Type>* array, uint32 count)
+bool CanPush(Array<Type>* array, uint32 count)
 {
     return array->count + count <= array->size;
 }
 
 template<typename Type>
-static Type* Push(Array<Type>* array, Type elem)
+Type* Push(Array<Type>* array, Type elem)
 {
     if (array->count == array->size)
     {
@@ -162,13 +164,13 @@ static Type* Push(Array<Type>* array, Type elem)
 }
 
 template<typename Type>
-static Type* Push(Array<Type>* array)
+Type* Push(Array<Type>* array)
 {
     return Push(array, {});
 }
 
 template<typename Type>
-static Type* PushResize(Array<Type>* array, Type elem, uint32 additional_space)
+Type* PushResize(Array<Type>* array, Type elem, uint32 additional_space)
 {
     if (!CanPush(array, 1))
     {
@@ -178,13 +180,13 @@ static Type* PushResize(Array<Type>* array, Type elem, uint32 additional_space)
 }
 
 template<typename Type>
-static Type* PushResize(Array<Type>* array, uint32 additional_space)
+Type* PushResize(Array<Type>* array, uint32 additional_space)
 {
     return PushResize(array, {}, additional_space);
 }
 
 template<typename Type>
-static void PushRange(Array<Type>* array, const Type* data, uint32 data_size)
+void PushRange(Array<Type>* array, const Type* data, uint32 data_size)
 {
     if (data_size == 0)
     {
@@ -202,19 +204,19 @@ static void PushRange(Array<Type>* array, const Type* data, uint32 data_size)
 }
 
 template<typename Type>
-static void PushRange(Array<Type>* array, Array<Type>* other)
+void PushRange(Array<Type>* array, Array<Type>* other)
 {
     PushRange(array, other->data, other->count);
 }
 
 template<typename Type>
-static void PushRange(Array<Type>* array, Array<Type> other)
+void PushRange(Array<Type>* array, Array<Type> other)
 {
     PushRange(array, other.data, other.count);
 }
 
 template<typename Type>
-static void PushRangeResize(Array<Type>* array, const Type* data, uint32 data_size, uint32 additional_space)
+void PushRangeResize(Array<Type>* array, const Type* data, uint32 data_size, uint32 additional_space)
 {
     if (!CanPush(array, data_size))
     {
@@ -224,19 +226,19 @@ static void PushRangeResize(Array<Type>* array, const Type* data, uint32 data_si
 }
 
 template<typename Type>
-static void PushRangeResize(Array<Type>* array, Array<Type>* other, uint32 additional_space)
+void PushRangeResize(Array<Type>* array, Array<Type>* other, uint32 additional_space)
 {
     PushRangeResize(array, other->data, other->count, additional_space);
 }
 
 template<typename Type>
-static void PushRangeResize(Array<Type>* array, Array<Type> other, Allocator* allocator, uint32 additional_space)
+void PushRangeResize(Array<Type>* array, Array<Type> other, Allocator* allocator, uint32 additional_space)
 {
     PushRangeResize(array, other.data, other.count, allocator, additional_space);
 }
 
 template<typename Type>
-static void Remove(Array<Type>* array, uint32 index)
+void Remove(Array<Type>* array, uint32 index)
 {
     CTK_ASSERT(index < array->count);
 
@@ -245,7 +247,7 @@ static void Remove(Array<Type>* array, uint32 index)
 }
 
 template<typename Type>
-static void RemoveRange(Array<Type>* array, uint32 index, uint32 count)
+void RemoveRange(Array<Type>* array, uint32 index, uint32 count)
 {
     CTK_ASSERT(index < array->count);
     CTK_ASSERT(index + count <= array->count);
@@ -255,13 +257,13 @@ static void RemoveRange(Array<Type>* array, uint32 index, uint32 count)
 }
 
 template<typename Type>
-static void Clear(Array<Type>* array)
+void Clear(Array<Type>* array)
 {
     array->count = 0;
 }
 
 template<typename Type>
-static Type* GetPtr(Array<Type>* array, uint32 index)
+Type* GetPtr(Array<Type>* array, uint32 index)
 {
     CTK_ASSERT(index < array->count);
 
@@ -269,7 +271,7 @@ static Type* GetPtr(Array<Type>* array, uint32 index)
 }
 
 template<typename Type>
-static Type Get(Array<Type>* array, uint32 index)
+Type Get(Array<Type>* array, uint32 index)
 {
     CTK_ASSERT(index < array->count);
 
@@ -277,7 +279,7 @@ static Type Get(Array<Type>* array, uint32 index)
 }
 
 template<typename Type>
-static void Set(Array<Type>* array, uint32 index, Type val)
+void Set(Array<Type>* array, uint32 index, Type val)
 {
     CTK_ASSERT(index < array->count);
 
@@ -285,19 +287,19 @@ static void Set(Array<Type>* array, uint32 index, Type val)
 }
 
 template<typename Type>
-static uint32 ByteSize(Array<Type>* array)
+uint32 ByteSize(Array<Type>* array)
 {
     return array->size * sizeof(Type);
 }
 
 template<typename Type>
-static uint32 ByteCount(Array<Type>* array)
+uint32 ByteCount(Array<Type>* array)
 {
     return array->count * sizeof(Type);
 }
 
 template<typename Type>
-static bool Contains(Array<Type>* array, Type val)
+bool Contains(Array<Type>* array, Type val)
 {
     CTK_ITER(array_val, array)
     {
@@ -311,7 +313,7 @@ static bool Contains(Array<Type>* array, Type val)
 }
 
 template<typename Type>
-static Array<Type> WrapArray(Type* data, uint32 size)
+Array<Type> WrapArray(Type* data, uint32 size)
 {
     CTK_ASSERT(size > 0);
 
@@ -323,19 +325,19 @@ static Array<Type> WrapArray(Type* data, uint32 size)
 }
 
 template<typename Type, typename ...Args>
-static void InsertionSort(Array<Type>* array, Func<bool, Type*, Type*, Args...> SortFunc, Args... args)
+void InsertionSort(Array<Type>* array, Func<bool, Type*, Type*, Args...> SortFunc, Args... args)
 {
     InsertionSort(array->data, array->count, SortFunc, args...);
 }
 
 template<typename Type>
-static void Reverse(Array<Type>* array)
+void Reverse(Array<Type>* array)
 {
     Reverse(array->data, array->count);
 }
 
 template<typename Type>
-static bool IsInitialized(Array<Type>* array)
+bool IsInitialized(Array<Type>* array)
 {
     return array->data != NULL && array->size > 0;
 }

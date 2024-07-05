@@ -1,23 +1,23 @@
 /// Utils
 ////////////////////////////////////////////////////////////
-static bool PathExists(DWORD attribs)
+bool PathExists(DWORD attribs)
 {
     return attribs != INVALID_FILE_ATTRIBUTES;
 }
 
-static bool IsFile(DWORD attribs)
+bool IsFile(DWORD attribs)
 {
     return !(attribs & FILE_ATTRIBUTE_DIRECTORY);
 }
 
-static uint32 GetFileSize(HANDLE file)
+uint32 GetFileSize(HANDLE file)
 {
     return ::GetFileSize(file, NULL);
 }
 
 /// Interface
 ////////////////////////////////////////////////////////////
-static uint32 GetFileSize(const char* path)
+uint32 GetFileSize(const char* path)
 {
     OFSTRUCT file_info = {};
     auto file = (HANDLE)OpenFile(path, &file_info, OF_READ);
@@ -32,7 +32,7 @@ static uint32 GetFileSize(const char* path)
     return file_size;
 }
 
-static uint32 GetPathDirSize(const char* path)
+uint32 GetPathDirSize(const char* path)
 {
     uint32 path_size = StringSize(path);
     uint32 dir_size = 0;
@@ -47,7 +47,7 @@ static uint32 GetPathDirSize(const char* path)
 }
 
 template<typename Type>
-static void ReadFile(Type** array, uint32* size, Allocator* allocator, const char* path)
+void ReadFile(Type** array, uint32* size, Allocator* allocator, const char* path)
 {
     // Open file.
     OFSTRUCT file_info = {};
@@ -92,15 +92,16 @@ static void ReadFile(Type** array, uint32* size, Allocator* allocator, const cha
 
 
 template<typename Type>
-static void ReadFile(Array<Type>* array, Allocator* allocator, const char* path)
+Array<Type> ReadFile(Allocator* allocator, const char* path)
 {
-    CTK_ASSERT(!IsInitialized(array));
-    ReadFile(&array->data, &array->size, allocator, path);
-    array->count = array->size;
+    Array<Type> array = CreateArray<Type>(allocator);
+    ReadFile(&array.data, &array.size, allocator, path);
+    array.count = array.size;
+    return array;
 }
 
 template<typename Type, uint32 size>
-static void ReadFile(FArray<Type, size>* array, const char* path)
+void ReadFile(FArray<Type, size>* array, const char* path)
 {
     array->count = 0;
 
@@ -144,7 +145,7 @@ static void ReadFile(FArray<Type, size>* array, const char* path)
 }
 
 template<typename Type>
-static void WriteFile(const char* path, const Type* array, uint32 array_size)
+void WriteFile(const char* path, const Type* array, uint32 array_size)
 {
     Win32Error err = {};
 
@@ -179,23 +180,23 @@ static void WriteFile(const char* path, const Type* array, uint32 array_size)
     CloseHandle(file);
 }
 
-static void WriteFile(const char* path, String* string)
+void WriteFile(const char* path, String* string)
 {
     WriteFile(path, string->data, string->count);
 }
 
 template<typename Type>
-static void WriteFile(const char* path, Array<Type>* array)
+void WriteFile(const char* path, Array<Type>* array)
 {
     WriteFile(path, array->data, array->count);
 }
 
-static bool PathExists(const char* path)
+bool PathExists(const char* path)
 {
     return PathExists(GetFileAttributes(path));
 }
 
-static bool IsFile(const char* path)
+bool IsFile(const char* path)
 {
     return IsFile(GetFileAttributes(path));
 }

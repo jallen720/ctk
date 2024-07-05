@@ -22,20 +22,20 @@ struct Stack
 
 /// Allocator
 ////////////////////////////////////////////////////////////
-static uint8* AllocateNZ(Stack* stack, uint32 size, uint32 alignment);
-static uint8* Allocate(Stack* stack, uint32 size, uint32 alignment);
+uint8* AllocateNZ(Stack* stack, uint32 size, uint32 alignment);
+uint8* Allocate(Stack* stack, uint32 size, uint32 alignment);
 
-static uint8* Stack_AllocateNZ(void* data, uint32 size, uint32 alignment)
+uint8* Stack_AllocateNZ(void* data, uint32 size, uint32 alignment)
 {
     return AllocateNZ((Stack*)data, size, alignment);
 }
 
-static uint8* Stack_Allocate(void* data, uint32 size, uint32 alignment)
+uint8* Stack_Allocate(void* data, uint32 size, uint32 alignment)
 {
     return Allocate((Stack*)data, size, alignment);
 }
 
-static constexpr Allocator STACK_ALLOCATOR =
+constexpr Allocator STACK_ALLOCATOR =
 {
     .AllocateNZ   = Stack_AllocateNZ,
     .Allocate     = Stack_Allocate,
@@ -46,7 +46,7 @@ static constexpr Allocator STACK_ALLOCATOR =
 
 /// Interface
 ////////////////////////////////////////////////////////////
-static Stack CreateStack(Allocator* allocator, uint32 size)
+Stack CreateStack(Allocator* allocator, uint32 size)
 {
     CTK_ASSERT(size > 0);
 
@@ -60,18 +60,18 @@ static Stack CreateStack(Allocator* allocator, uint32 size)
     return stack;
 }
 
-static void DestroyStack(Stack* stack)
+void DestroyStack(Stack* stack)
 {
     Deallocate(stack->parent_allocator, stack->mem);
     *stack = {};
 }
 
-static void Clear(Stack* stack)
+void Clear(Stack* stack)
 {
     stack->count = 0;
 }
 
-static uint8* AllocateNZ(Stack* stack, uint32 size, uint32 alignment)
+uint8* AllocateNZ(Stack* stack, uint32 size, uint32 alignment)
 {
     CTK_ASSERT(size > 0);
 
@@ -88,18 +88,18 @@ static uint8* AllocateNZ(Stack* stack, uint32 size, uint32 alignment)
 }
 
 template<typename Type>
-static Type* AllocateNZ(Stack* stack, uint32 count, uint32 alignment)
+Type* AllocateNZ(Stack* stack, uint32 count, uint32 alignment)
 {
     return (Type*)AllocateNZ(stack, SizeOf32<Type>() * count, alignment);
 }
 
 template<typename Type>
-static Type* AllocateNZ(Stack* stack, uint32 count)
+Type* AllocateNZ(Stack* stack, uint32 count)
 {
     return AllocateNZ<Type>(stack, count, alignof(Type));
 }
 
-static uint8* Allocate(Stack* stack, uint32 size, uint32 alignment)
+uint8* Allocate(Stack* stack, uint32 size, uint32 alignment)
 {
     uint8* allocated_mem = AllocateNZ(stack, size, alignment);
     memset(allocated_mem, 0, size);
@@ -107,18 +107,18 @@ static uint8* Allocate(Stack* stack, uint32 size, uint32 alignment)
 }
 
 template<typename Type>
-static Type* Allocate(Stack* stack, uint32 count, uint32 alignment)
+Type* Allocate(Stack* stack, uint32 count, uint32 alignment)
 {
     return (Type*)Allocate(stack, SizeOf32<Type>() * count, alignment);
 }
 
 template<typename Type>
-static Type* Allocate(Stack* stack, uint32 count)
+Type* Allocate(Stack* stack, uint32 count)
 {
     return Allocate<Type>(stack, count, alignof(Type));
 }
 
-static Stack CreateFrame(Stack* parent)
+Stack CreateFrame(Stack* parent)
 {
     uint32 size = parent->size - parent->count;
 

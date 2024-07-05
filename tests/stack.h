@@ -3,7 +3,7 @@
 namespace StackTest
 {
 
-static bool TestStackFields(const char* stack_name, Stack* stack, uint32 expected_size, uint32 expected_count)
+bool TestStackFields(const char* stack_name, Stack* stack, uint32 expected_size, uint32 expected_count)
 {
     bool pass = true;
 
@@ -23,7 +23,7 @@ static bool TestStackFields(const char* stack_name, Stack* stack, uint32 expecte
     return pass;
 }
 
-static bool ExpectBytes(Stack* stack, uint8* expected_bytes)
+bool ExpectBytes(Stack* stack, uint8* expected_bytes)
 {
     bool pass = true;
 
@@ -47,11 +47,11 @@ static bool ExpectBytes(Stack* stack, uint8* expected_bytes)
     return pass;
 }
 
-static bool AllocateTest()
+bool AllocateTest()
 {
     bool pass = true;
 
-    static constexpr uint32 STACK_BYTE_SIZE = 32;
+    constexpr uint32 STACK_BYTE_SIZE = 32;
     Stack stack = CreateStack(&std_allocator, STACK_BYTE_SIZE);
     char* buffer = NULL;
 
@@ -78,11 +78,11 @@ static bool AllocateTest()
     return pass;
 }
 
-static bool CreateFrameTest()
+bool CreateFrameTest()
 {
     bool pass = true;
 
-    static constexpr uint32 STACK_BYTE_SIZE = 32;
+    constexpr uint32 STACK_BYTE_SIZE = 32;
     Stack stack = CreateStack(&std_allocator, STACK_BYTE_SIZE);
 
     {
@@ -149,12 +149,12 @@ static bool CreateFrameTest()
     return pass;
 }
 
-static bool AlignmentTest()
+bool AlignmentTest()
 {
     bool pass = true;
 
-    static constexpr uint32 STACK_BYTE_SIZE = 1024;
-    static constexpr uint32 STACK_COUNT     = 16;
+    constexpr uint32 STACK_BYTE_SIZE = 1024;
+    constexpr uint32 STACK_COUNT     = 16;
     Stack stacks[STACK_COUNT] = {};
 
     CTK_ITER_PTR(stack, stacks, STACK_COUNT)
@@ -178,7 +178,7 @@ static bool AlignmentTest()
     return pass;
 }
 
-static bool Run()
+bool Run()
 {
     bool pass = true;
 

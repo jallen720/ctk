@@ -21,11 +21,11 @@ struct Pool
     PoolHnd<Type>   next_free;
 };
 
-static constexpr uint32 NULL_HND = 0;
+constexpr uint32 NULL_HND = 0;
 
 /// Utils
 ////////////////////////////////////////////////////////////
-static uint32 GetIndex(uint32 hnd_id)
+uint32 GetIndex(uint32 hnd_id)
 {
     CTK_ASSERT(hnd_id != 0);
 
@@ -33,7 +33,7 @@ static uint32 GetIndex(uint32 hnd_id)
 }
 
 template<typename Type>
-static uint32 GetHndIndex(PoolHnd<Type> hnd)
+uint32 GetHndIndex(PoolHnd<Type> hnd)
 {
     return GetIndex(hnd.id);
 }
@@ -41,12 +41,12 @@ static uint32 GetHndIndex(PoolHnd<Type> hnd)
 /// Interface
 ////////////////////////////////////////////////////////////
 template<typename Type>
-static void InitPool(Pool<Type>* pool, Allocator* allocator, uint32 size)
+void InitPool(Pool<Type>* pool, Allocator* allocator, uint32 size)
 {
 }
 
 template<typename Type>
-static void DeinitPool(Pool<Type>* pool, Allocator* allocator)
+void DeinitPool(Pool<Type>* pool, Allocator* allocator)
 {
     Deallocate(allocator, pool->nodes);
     pool->size         = 0;
@@ -54,7 +54,7 @@ static void DeinitPool(Pool<Type>* pool, Allocator* allocator)
 }
 
 template<typename Type>
-static Pool<Type> CreatePool(Allocator* allocator, uint32 size)
+Pool<Type> CreatePool(Allocator* allocator, uint32 size)
 {
     CTK_ASSERT(size > 0);
 
@@ -73,26 +73,26 @@ static Pool<Type> CreatePool(Allocator* allocator, uint32 size)
 }
 
 template<typename Type>
-static void DestroyPool(Pool<Type>* pool, Allocator* allocator)
+void DestroyPool(Pool<Type>* pool, Allocator* allocator)
 {
     Deallocate(allocator, pool->nodes);
     Deallocate(allocator, pool);
 }
 
 template<typename Type>
-static bool IsNull(PoolHnd<Type> hnd)
+bool IsNull(PoolHnd<Type> hnd)
 {
     return hnd.id == NULL_HND;
 }
 
 template<typename Type>
-static bool IsEqual(PoolHnd<Type> a, PoolHnd<Type> b)
+bool IsEqual(PoolHnd<Type> a, PoolHnd<Type> b)
 {
     return a.id == b.id;
 }
 
 template<typename Type>
-static bool IsFree(Pool<Type>* pool, PoolHnd<Type> hnd)
+bool IsFree(Pool<Type>* pool, PoolHnd<Type> hnd)
 {
     PoolHnd<Type> next_free = pool->next_free;
     while (!IsNull(next_free))
@@ -108,7 +108,7 @@ static bool IsFree(Pool<Type>* pool, PoolHnd<Type> hnd)
 }
 
 template<typename Type>
-static Type* GetData(Pool<Type>* pool, PoolHnd<Type> hnd)
+Type* GetData(Pool<Type>* pool, PoolHnd<Type> hnd)
 {
     uint32 index = GetHndIndex(hnd);
 
@@ -126,7 +126,7 @@ static Type* GetData(Pool<Type>* pool, PoolHnd<Type> hnd)
 }
 
 template<typename Type>
-static PoolHnd<Type> Allocate(Pool<Type>* pool)
+PoolHnd<Type> Allocate(Pool<Type>* pool)
 {
     if (IsNull(pool->next_free))
     {
@@ -141,7 +141,7 @@ static PoolHnd<Type> Allocate(Pool<Type>* pool)
 }
 
 template<typename Type>
-static void Deallocate(Pool<Type>* pool, PoolHnd<Type> hnd)
+void Deallocate(Pool<Type>* pool, PoolHnd<Type> hnd)
 {
     uint32 index = GetHndIndex(hnd);
 

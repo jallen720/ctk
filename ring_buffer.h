@@ -11,13 +11,13 @@ struct RingBuffer
 /// CTK_ITER Interface
 ////////////////////////////////////////////////////////////
 template<typename Type>
-static Type* IterStart(RingBuffer<Type>* ring_buffer)
+Type* IterStart(RingBuffer<Type>* ring_buffer)
 {
     return ring_buffer->data;
 }
 
 template<typename Type>
-static Type* IterEnd(RingBuffer<Type>* ring_buffer)
+Type* IterEnd(RingBuffer<Type>* ring_buffer)
 {
     return ring_buffer->data + ring_buffer->size;
 }
@@ -25,7 +25,7 @@ static Type* IterEnd(RingBuffer<Type>* ring_buffer)
 /// Interface
 ////////////////////////////////////////////////////////////
 template<typename Type>
-static RingBuffer<Type> CreateRingBuffer(Allocator* allocator, uint32 size)
+RingBuffer<Type> CreateRingBuffer(Allocator* allocator, uint32 size)
 {
     RingBuffer<Type> ring_buffer = {};
     ring_buffer.data  = size > 0 ? Allocate<Type>(allocator, size) : NULL;
@@ -35,7 +35,7 @@ static RingBuffer<Type> CreateRingBuffer(Allocator* allocator, uint32 size)
 }
 
 template<typename Type>
-static void DestroyRingBuffer(RingBuffer<Type>* ring_buffer, Allocator* allocator)
+void DestroyRingBuffer(RingBuffer<Type>* ring_buffer, Allocator* allocator)
 {
     if (ring_buffer->data != NULL)
     {
@@ -45,7 +45,7 @@ static void DestroyRingBuffer(RingBuffer<Type>* ring_buffer, Allocator* allocato
 }
 
 template<typename Type>
-static Type* Next(RingBuffer<Type>* ring_buffer)
+Type* Next(RingBuffer<Type>* ring_buffer)
 {
     ring_buffer->index += 1;
     if (ring_buffer->index >= ring_buffer->size)
@@ -56,13 +56,13 @@ static Type* Next(RingBuffer<Type>* ring_buffer)
 }
 
 template<typename Type>
-static Type* GetCurrentPtr(RingBuffer<Type>* ring_buffer)
+Type* GetCurrentPtr(RingBuffer<Type>* ring_buffer)
 {
     return ring_buffer->data + ring_buffer->index;
 }
 
 template<typename Type>
-static Type GetCurrent(RingBuffer<Type>* ring_buffer)
+Type GetCurrent(RingBuffer<Type>* ring_buffer)
 {
     return ring_buffer->data[ring_buffer->index];
 }

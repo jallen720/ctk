@@ -3,7 +3,7 @@
 namespace ProfileTest
 {
 
-static void ProfileTest()
+void ProfileTest()
 {
     Profile test_profile = {};
     BeginProfile(&test_profile, "test profile");
@@ -12,7 +12,7 @@ static void ProfileTest()
     PrintProfileLine(&test_profile);
 }
 
-static void ProfileTreeTest()
+void ProfileTreeTest()
 {
     ProfileTree* profile_tree = CreateProfileTree(&std_allocator, 16);
 
@@ -34,7 +34,7 @@ static void ProfileTreeTest()
     DestroyProfileTree(profile_tree, &std_allocator);
 }
 
-static void Run()
+void Run()
 {
     ProfileTest();
     ProfileTreeTest();

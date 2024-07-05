@@ -9,7 +9,7 @@ using String = Array<char>;
 
 /// C-String Interface
 ////////////////////////////////////////////////////////////
-static uint32 StringSize(const char* nt_string)
+uint32 StringSize(const char* nt_string)
 {
     if (nt_string == NULL)
     {
@@ -24,7 +24,7 @@ static uint32 StringSize(const char* nt_string)
     return size;
 }
 
-static bool StringsMatch(const char* a, const char* b, uint32 match_size, uint32 match_start = 0)
+bool StringsMatch(const char* a, const char* b, uint32 match_size, uint32 match_start = 0)
 {
     for (uint32 i = 0; i < match_size; ++i)
     {
@@ -37,17 +37,17 @@ static bool StringsMatch(const char* a, const char* b, uint32 match_size, uint32
     return true;
 }
 
-static bool StringsMatch(const char* a, uint32 a_size, const char* b, uint32 b_size)
+bool StringsMatch(const char* a, uint32 a_size, const char* b, uint32 b_size)
 {
     return a_size == b_size && StringsMatch(a, b, a_size);
 }
 
-static bool StringsMatch(const char* a, const char* b)
+bool StringsMatch(const char* a, const char* b)
 {
     return StringsMatch(a, StringSize(a), b, StringSize(b));
 }
 
-static bool Contains(const char* string, uint32 string_size, char c)
+bool Contains(const char* string, uint32 string_size, char c)
 {
     for (uint32 i = 0; i < string_size; ++i)
     {
@@ -60,13 +60,13 @@ static bool Contains(const char* string, uint32 string_size, char c)
     return false;
 }
 
-static bool Contains(const char* nt_string, char c)
+bool Contains(const char* nt_string, char c)
 {
     return Contains(nt_string, StringSize(nt_string), c);
 }
 
 template<typename FloatType>
-static FloatType ToFloat(const char* string, uint32 size)
+FloatType ToFloat(const char* string, uint32 size)
 {
     // Skip leading spaces.
     uint32 index = 0;
@@ -122,17 +122,17 @@ static FloatType ToFloat(const char* string, uint32 size)
 }
 
 template<typename FloatType>
-static FloatType ToFloat(const char* nt_string)
+FloatType ToFloat(const char* nt_string)
 {
     return ToFloat<FloatType>(nt_string, StringSize(nt_string));
 }
 
 #define CSTRING_TO_FLOAT_FUNC(BITS) \
-static float##BITS ToFloat##BITS(const char* string, uint32 size) \
+float##BITS ToFloat##BITS(const char* string, uint32 size) \
 { \
     return ToFloat<float##BITS>(string, size); \
 } \
-static float##BITS ToFloat##BITS(const char* nt_string) \
+float##BITS ToFloat##BITS(const char* nt_string) \
 { \
     return ToFloat<float##BITS>(nt_string, StringSize(nt_string)); \
 }
@@ -140,7 +140,7 @@ CSTRING_TO_FLOAT_FUNC(32)
 CSTRING_TO_FLOAT_FUNC(64)
 
 template<typename IntType>
-static IntType ToInt(const char* string, uint32 size)
+IntType ToInt(const char* string, uint32 size)
 {
     // Skip leading spaces.
     uint32 index = 0;
@@ -180,17 +180,17 @@ static IntType ToInt(const char* string, uint32 size)
 }
 
 template<typename IntType>
-static IntType ToInt(const char* nt_string)
+IntType ToInt(const char* nt_string)
 {
     return ToInt<IntType>(nt_string, StringSize(nt_string));
 }
 
 #define CSTRING_TO_INT_FUNC(SIGN, SIGN_UPPER, BITS) \
-static SIGN##int##BITS To##SIGN_UPPER##Int##BITS(const char* string, uint32 size) \
+SIGN##int##BITS To##SIGN_UPPER##Int##BITS(const char* string, uint32 size) \
 { \
     return ToInt<SIGN##int##BITS>(string, size); \
 } \
-static SIGN##int##BITS To##SIGN_UPPER##Int##BITS(const char* nt_string) \
+SIGN##int##BITS To##SIGN_UPPER##Int##BITS(const char* nt_string) \
 { \
     return ToInt<SIGN##int##BITS>(nt_string, StringSize(nt_string)); \
 }
@@ -203,7 +203,7 @@ CSTRING_TO_INT_FUNC(u, U, 16)
 CSTRING_TO_INT_FUNC(u, U, 32)
 CSTRING_TO_INT_FUNC(u, U, 64)
 
-static bool ToBool(const char* string, uint32 size)
+bool ToBool(const char* string, uint32 size)
 {
     if (size == 4)
     {
@@ -217,102 +217,102 @@ static bool ToBool(const char* string, uint32 size)
     CTK_FATAL("string '%.*s' can't be converted to a boolean value: must be 'true' or 'false'", size, string);
 }
 
-static bool ToBool(const char* nt_string)
+bool ToBool(const char* nt_string)
 {
     return ToBool(nt_string, StringSize(nt_string));
 }
 
 template<typename ...Args>
-static sint32 Write(char* string, uint32 max_string_size, const char* fmt_string, Args... args)
+sint32 Write(char* string, uint32 max_string_size, const char* fmt_string, Args... args)
 {
     return snprintf(string, max_string_size, fmt_string, args...);
 }
 
 /// String Interface
 ////////////////////////////////////////////////////////////
-static String CreateString(Allocator* allocator, uint32 size = 0)
+String CreateString(Allocator* allocator, uint32 size = 0)
 {
     return CreateArray<char>(allocator, size);
 }
 
-static String CreateString(Allocator* allocator, const char* nt_src_string)
+String CreateString(Allocator* allocator, const char* nt_src_string)
 {
     return CreateArray(allocator, nt_src_string, StringSize(nt_src_string));
 }
 
-static String CreateString(Allocator* allocator, const char* src_string, uint32 size)
+String CreateString(Allocator* allocator, const char* src_string, uint32 size)
 {
    return CreateArray(allocator, src_string, size);
 }
 
-static String CreateString(Allocator* allocator, String* src_string)
+String CreateString(Allocator* allocator, String* src_string)
 {
     return CreateArray(allocator, src_string);
 }
 
-static String CreateStringFull(Allocator* allocator, uint32 size)
+String CreateStringFull(Allocator* allocator, uint32 size)
 {
     return CreateArrayFull<char>(allocator, size);
 }
 
-static void DestroyString(String* string)
+void DestroyString(String* string)
 {
     DestroyArray(string);
 }
 
-static String WrapString(char* string, uint32 size)
+String WrapString(char* string, uint32 size)
 {
     return WrapArray(string, size);
 }
 
-static void PushRange(String* string, const char* nt_src_string)
+void PushRange(String* string, const char* nt_src_string)
 {
     PushRange(string, nt_src_string, StringSize(nt_src_string));
 }
 
 template<typename ...Args>
-static void Write(String* string, const char* fmt_string, Args... args)
+void Write(String* string, const char* fmt_string, Args... args)
 {
     uint32 chars_to_write = (uint32)snprintf(string->data, string->size, fmt_string, args...);
     string->count = chars_to_write <= string->size ? chars_to_write : string->size;
 }
 
 template<typename ...Args>
-static void Append(String* string, const char* fmt_string, Args... args)
+void Append(String* string, const char* fmt_string, Args... args)
 {
     uint32 remaining_space = string->size - string->count;
     uint32 chars_to_append = (uint32)snprintf(string->data + string->count, remaining_space, fmt_string, args...);
     string->count += chars_to_append <= remaining_space ? chars_to_append : remaining_space;
 }
 
-static bool StringsMatch(String* str_a, const char* nt_string)
+bool StringsMatch(String* str_a, const char* nt_string)
 {
     return StringsMatch(str_a->data, str_a->count, nt_string, StringSize(nt_string));
 }
 
-static bool StringsMatch(String* str_a, String* str_b)
+bool StringsMatch(String* str_a, String* str_b)
 {
     return StringsMatch(str_a->data, str_a->count, str_b->data, str_b->count);
 }
 
-static bool StringsMatch(String* str_a, const char* str_b, uint32 match_size, uint32 match_start = 0)
+bool StringsMatch(String* str_a, const char* str_b, uint32 match_size, uint32 match_start = 0)
 {
     return StringsMatch(str_a->data, str_b, match_size, match_start);
 }
 
-static bool StringsMatch(String* str_a, String* str_b, uint32 match_size, uint32 match_start = 0)
+bool StringsMatch(String* str_a, String* str_b, uint32 match_size, uint32 match_start = 0)
 {
     return StringsMatch(str_a->data, str_b->data, match_size, match_start);
 }
 
 template<typename FloatType>
-static FloatType ToFloat(String* string)
+FloatType ToFloat(String* string)
 {
     return ToFloat<FloatType>(string->data, string->count);
 }
 
 #define STRING_TO_FLOAT_FUNC(BITS) \
-static float##BITS ToFloat##BITS(String* string) \
+float##BITS ToFloat##BITS(String* string) \
 { \
     return ToFloat##BITS(string->data, string->count); \
 }
@@ -320,13 +320,13 @@ STRING_TO_FLOAT_FUNC(32)
 STRING_TO_FLOAT_FUNC(64)
 
 template<typename IntType>
-static IntType ToInt(String* string)
+IntType ToInt(String* string)
 {
     return ToInt<IntType>(string->data, string->count);
 }
 
 #define STRING_TO_INT_FUNC(SIGN, SIGN_UPPER, BITS) \
-static SIGN##int##BITS To##SIGN_UPPER##Int##BITS(String* string) \
+SIGN##int##BITS To##SIGN_UPPER##Int##BITS(String* string) \
 { \
     return To##SIGN_UPPER##Int##BITS(string->data, string->count); \
 }
@@ -339,7 +339,7 @@ STRING_TO_INT_FUNC(u, U, 16)
 STRING_TO_INT_FUNC(u, U, 32)
 STRING_TO_INT_FUNC(u, U, 64)
 
-static bool ToBool(String* string)
+bool ToBool(String* string)
 {
     if (StringsMatch(string, "true"))  { return true;  }
     if (StringsMatch(string, "false")) { return false; }

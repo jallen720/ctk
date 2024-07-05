@@ -27,12 +27,12 @@ struct ProfileTree
 
 /// Utils
 ////////////////////////////////////////////////////////////
-static ProfileNode* GetProfileNode(ProfileTree* prof_tree, ProfileNodeHnd prof_node_hnd)
+ProfileNode* GetProfileNode(ProfileTree* prof_tree, ProfileNodeHnd prof_node_hnd)
 {
     return GetData(&prof_tree->prof_node_pool, prof_node_hnd);
 }
 
-static void ClearProfile(ProfileTree* prof_tree, ProfileNodeHnd prof_node_hnd)
+void ClearProfile(ProfileTree* prof_tree, ProfileNodeHnd prof_node_hnd)
 {
     // Clear children.
     ProfileNodeHnd child_hnd = GetProfileNode(prof_tree, prof_node_hnd)->child_hnd;
@@ -49,7 +49,7 @@ static void ClearProfile(ProfileTree* prof_tree, ProfileNodeHnd prof_node_hnd)
 
 /// Interface
 ////////////////////////////////////////////////////////////
-static void InitProfileTree(ProfileTree* prof_tree, Allocator* allocator, uint32 max_profiles)
+void InitProfileTree(ProfileTree* prof_tree, Allocator* allocator, uint32 max_profiles)
 {
     InitPool(&prof_tree->prof_node_pool, allocator, max_profiles);
 
@@ -57,32 +57,32 @@ static void InitProfileTree(ProfileTree* prof_tree, Allocator* allocator, uint32
     prof_tree->curr_node_hnd = Allocate(&prof_tree->prof_node_pool);
 }
 
-static void DeinitProfileTree(ProfileTree* prof_tree, Allocator* allocator)
+void DeinitProfileTree(ProfileTree* prof_tree, Allocator* allocator)
 {
     DeinitPool(&prof_tree->prof_node_pool, allocator);
     prof_tree->curr_node_hnd.id = NULL_HND;
 }
 
-static ProfileTree* CreateProfileTree(Allocator* allocator, uint32 max_profiles)
+ProfileTree* CreateProfileTree(Allocator* allocator, uint32 max_profiles)
 {
     auto prof_tree = Allocate<ProfileTree>(allocator, 1);
     InitProfileTree(prof_tree, allocator, max_profiles);
     return prof_tree;
 }
 
-static void DestroyProfileTree(ProfileTree* prof_tree, Allocator* allocator)
+void DestroyProfileTree(ProfileTree* prof_tree, Allocator* allocator)
 {
     DeinitPool(&prof_tree->prof_node_pool, allocator);
     Deallocate(allocator, prof_tree);
 }
 
-static void BeginProfile(Profile* profile, const char* name)
+void BeginProfile(Profile* profile, const char* name)
 {
     profile->name  = name;
     profile->begin = clock();
 }
 
-static ProfileNodeHnd BeginProfile(ProfileTree* prof_tree, const char* name)
+ProfileNodeHnd BeginProfile(ProfileTree* prof_tree, const char* name)
 {
     ProfileNodeHnd profile_node_hnd = Allocate(&prof_tree->prof_node_pool);
 
@@ -105,13 +105,13 @@ static ProfileNodeHnd BeginProfile(ProfileTree* prof_tree, const char* name)
     return profile_node_hnd;
 }
 
-static void EndProfile(Profile* profile)
+void EndProfile(Profile* profile)
 {
     profile->end = clock();
     profile->ms  = (float64)(profile->end - profile->begin) / (CLOCKS_PER_SEC / 1000);
 }
 
-static void EndProfile(ProfileTree* prof_tree)
+void EndProfile(ProfileTree* prof_tree)
 {
     // End profile first.
     ProfileNode* curr_node = GetProfileNode(prof_tree, prof_tree->curr_node_hnd);
@@ -126,19 +126,19 @@ static void EndProfile(ProfileTree* prof_tree)
     prof_tree->curr_node_hnd = curr_node->parent_hnd;
 }
 
-static void PrintProfile(Profile* profile)
+void PrintProfile(Profile* profile)
 {
     Print("%s: %.f ms", profile->name, profile->ms);
 }
 
-static void PrintProfileLine(Profile* profile)
+void PrintProfileLine(Profile* profile)
 {
     PrintLine("%s: %.f ms", profile->name, profile->ms);
 }
 
-static void PrintProfileNode(ProfileTree* prof_tree, ProfileNode* profile_node, uint32 tab_count);
+void PrintProfileNode(ProfileTree* prof_tree, ProfileNode* profile_node, uint32 tab_count);
 
-static void PrintChildNodes(ProfileTree* prof_tree, ProfileNodeHnd child_hnd, uint32 tab_count)
+void PrintChildNodes(ProfileTree* prof_tree, ProfileNodeHnd child_hnd, uint32 tab_count)
 {
     while (!IsNull(child_hnd))
     {
@@ -148,14 +148,14 @@ static void PrintChildNodes(ProfileTree* prof_tree, ProfileNodeHnd child_hnd, ui
     }
 }
 
-static void PrintProfileNode(ProfileTree* prof_tree, ProfileNode* profile_node, uint32 tab_count)
+void PrintProfileNode(ProfileTree* prof_tree, ProfileNode* profile_node, uint32 tab_count)
 {
     PrintTabs(tab_count);
     PrintProfileLine(&profile_node->profile);
     PrintChildNodes(prof_tree, profile_node->child_hnd, tab_count + 1);
 }
 
-static void PrintProfileTree(ProfileTree* prof_tree)
+void PrintProfileTree(ProfileTree* prof_tree)
 {
     ProfileNode* curr_node = GetProfileNode(prof_tree, prof_tree->curr_node_hnd);
     if (!IsNull(curr_node->parent_hnd))
@@ -166,7 +166,7 @@ static void PrintProfileTree(ProfileTree* prof_tree)
     PrintChildNodes(prof_tree, curr_node->child_hnd, 0);
 }
 
-static void ClearProfileTree(ProfileTree* prof_tree)
+void ClearProfileTree(ProfileTree* prof_tree)
 {
     ProfileNode* current = GetProfileNode(prof_tree, prof_tree->curr_node_hnd);
     if (!IsNull(current->parent_hnd))
@@ -187,7 +187,7 @@ static void ClearProfileTree(ProfileTree* prof_tree)
     current->child_hnd.id = NULL_HND;
 }
 
-static Profile* GetProfile(ProfileTree* prof_tree, ProfileNodeHnd prof_node_hnd)
+Profile* GetProfile(ProfileTree* prof_tree, ProfileNodeHnd prof_node_hnd)
 {
     return &GetProfileNode(prof_tree, prof_node_hnd)->profile;
 }

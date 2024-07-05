@@ -5,7 +5,7 @@ namespace ArrayTest
 
 /// Utils
 ////////////////////////////////////////////////////////////
-static bool CompareArrayElements(Array<uint32> a, Array<uint32> b)
+bool CompareArrayElements(Array<uint32> a, Array<uint32> b)
 {
     bool pass = true;
 
@@ -51,7 +51,7 @@ static bool CompareArrayElements(Array<uint32> a, Array<uint32> b)
 }
 
 template<typename Type>
-static bool TestArrayFields(Array<Type>* array, uint32 expected_size, uint32 expected_count, bool null_data = false)
+bool TestArrayFields(Array<Type>* array, uint32 expected_size, uint32 expected_count, bool null_data = false)
 {
     bool pass = true;
 
@@ -73,19 +73,19 @@ static bool TestArrayFields(Array<Type>* array, uint32 expected_size, uint32 exp
     return pass;
 }
 
-static bool SortDesc(char* a, char* b)
+bool SortDesc(char* a, char* b)
 {
     return *a >= *b;
 }
 
-static bool SortAsc(char* a, char* b)
+bool SortAsc(char* a, char* b)
 {
     return *a <= *b;
 }
 
 /// Tests
 ////////////////////////////////////////////////////////////
-static bool ResizeInitializedArrayTest()
+bool ResizeInitializedArrayTest()
 {
     bool pass = true;
 
@@ -105,7 +105,7 @@ static bool ResizeInitializedArrayTest()
     return pass;
 }
 
-static bool ResizeUninitializedArrayTest()
+bool ResizeUninitializedArrayTest()
 {
     bool pass = true;
 
@@ -127,7 +127,7 @@ static bool ResizeUninitializedArrayTest()
     return pass;
 }
 
-static bool CanPushTest()
+bool CanPushTest()
 {
     bool pass = true;
 
@@ -155,7 +155,7 @@ static bool CanPushTest()
     return pass;
 }
 
-static bool RemoveTest()
+bool RemoveTest()
 {
     bool pass = true;
 
@@ -187,7 +187,7 @@ static bool RemoveTest()
     return pass;
 }
 
-static bool RemoveRangeTest()
+bool RemoveRangeTest()
 {
     bool pass = true;
 
@@ -223,7 +223,7 @@ static bool RemoveRangeTest()
     return pass;
 }
 
-static bool ContainsTest()
+bool ContainsTest()
 {
     bool pass = true;
 
@@ -249,7 +249,7 @@ static bool ContainsTest()
     return pass;
 }
 
-static bool ReverseTest()
+bool ReverseTest()
 {
     bool pass = true;
 
@@ -284,7 +284,7 @@ static bool ReverseTest()
     return pass;
 }
 
-static bool InsertionSortTest()
+bool InsertionSortTest()
 {
     bool pass = true;
 
@@ -315,7 +315,7 @@ static bool InsertionSortTest()
     return pass;
 }
 
-static bool Run()
+bool Run()
 {
     bool pass = true;
 

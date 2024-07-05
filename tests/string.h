@@ -5,7 +5,7 @@ namespace StringTest
 
 /// Utils
 ////////////////////////////////////////////////////////////
-static bool TestStringFields(String* string, uint32 expected_size, uint32 expected_count, bool null_data)
+bool TestStringFields(String* string, uint32 expected_size, uint32 expected_count, bool null_data)
 {
     bool pass = true;
 
@@ -29,7 +29,7 @@ static bool TestStringFields(String* string, uint32 expected_size, uint32 expect
 
 /// Tests
 ////////////////////////////////////////////////////////////
-static bool ResizeInitializedStringTest()
+bool ResizeInitializedStringTest()
 {
     bool pass = true;
 
@@ -54,7 +54,7 @@ static bool ResizeInitializedStringTest()
     return pass;
 }
 
-static bool ResizeUninitializedStringTest()
+bool ResizeUninitializedStringTest()
 {
     bool pass = true;
 
@@ -76,7 +76,7 @@ static bool ResizeUninitializedStringTest()
     return pass;
 }
 
-static bool CanPushTest()
+bool CanPushTest()
 {
     bool pass = true;
 
@@ -103,7 +103,7 @@ static bool CanPushTest()
     return pass;
 }
 
-static bool RemoveTest()
+bool RemoveTest()
 {
     bool pass = true;
 
@@ -126,7 +126,7 @@ static bool RemoveTest()
     return pass;
 }
 
-static bool RemoveRangeTest()
+bool RemoveRangeTest()
 {
     bool pass = true;
 
@@ -149,12 +149,12 @@ static bool RemoveRangeTest()
     return pass;
 }
 
-static bool WriteTest()
+bool WriteTest()
 {
     bool pass = true;
 
     {
-        static constexpr uint32 STRING_SIZE = 5;
+        constexpr uint32 STRING_SIZE = 5;
         String string = CreateString(&std_allocator, STRING_SIZE);
 
         Write(&string, "test");
@@ -166,7 +166,7 @@ static bool WriteTest()
         DestroyString(&string);
     }
     {
-        static constexpr uint32 STRING_SIZE = 8;
+        constexpr uint32 STRING_SIZE = 8;
         String string = CreateString(&std_allocator, STRING_SIZE);
 
         char expected[STRING_SIZE] = {};
@@ -183,12 +183,12 @@ static bool WriteTest()
     return pass;
 }
 
-static bool AppendTest()
+bool AppendTest()
 {
     bool pass = true;
 
     {
-        static constexpr uint32 STRING_SIZE = 18;
+        constexpr uint32 STRING_SIZE = 18;
         char expected[4][STRING_SIZE] = {};
         Write(expected[0], STRING_SIZE, "test1");
         Write(expected[1], STRING_SIZE, "test1test2");
@@ -219,7 +219,7 @@ static bool AppendTest()
     return pass;
 }
 
-static bool ContainsTest()
+bool ContainsTest()
 {
     bool pass = true;
 
@@ -246,7 +246,7 @@ static bool ContainsTest()
     return pass;
 }
 
-static bool ReverseTest()
+bool ReverseTest()
 {
     bool pass = true;
 
@@ -279,7 +279,7 @@ static bool ReverseTest()
     return pass;
 }
 
-static bool ConversionTests()
+bool ConversionTests()
 {
     bool pass = true;
 
@@ -344,7 +344,7 @@ static bool ConversionTests()
     return pass;
 }
 
-static bool Run()
+bool Run()
 {
     bool pass = true;
 

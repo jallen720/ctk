@@ -34,11 +34,11 @@ struct ThreadPool
     uint32        size;
 };
 
-static constexpr TaskHnd NO_TASK = UINT32_MAX;
+constexpr TaskHnd NO_TASK = UINT32_MAX;
 
 /// Utils
 ////////////////////////////////////////////////////////////
-static TaskList CreateTaskList()
+TaskList CreateTaskList()
 {
     TaskList task_list = {};
     task_list.head = NO_TASK;
@@ -47,13 +47,13 @@ static TaskList CreateTaskList()
     return task_list;
 }
 
-static void DestroyTaskList(TaskList* task_list)
+void DestroyTaskList(TaskList* task_list)
 {
     task_list->head = 0;
     DeleteCriticalSection(&task_list->lock);
 }
 
-static TaskHnd PopTask(ThreadPool* thread_pool, TaskList* task_list)
+TaskHnd PopTask(ThreadPool* thread_pool, TaskList* task_list)
 {
     EnterCriticalSection(&task_list->lock);
 
@@ -76,7 +76,7 @@ static TaskHnd PopTask(ThreadPool* thread_pool, TaskList* task_list)
     return task_hnd;
 }
 
-static void PushTask(ThreadPool* thread_pool, TaskList* task_list, TaskHnd task_hnd)
+void PushTask(ThreadPool* thread_pool, TaskList* task_list, TaskHnd task_hnd)
 {
     Task* task = GetPtr(&thread_pool->tasks, task_hnd);
     EnterCriticalSection(&task_list->lock);
@@ -88,7 +88,7 @@ static void PushTask(ThreadPool* thread_pool, TaskList* task_list, TaskHnd task_
     WakeConditionVariable(&task_list->available);
 }
 
-static DWORD ThreadFunc(void* data)
+DWORD ThreadFunc(void* data)
 {
     auto thread_pool = (ThreadPool*)data;
     for (;;)
@@ -114,7 +114,7 @@ static DWORD ThreadFunc(void* data)
 
 /// Interface
 ////////////////////////////////////////////////////////////
-static void InitThreadPool(ThreadPool* thread_pool, Allocator* allocator, uint32 thread_count)
+void InitThreadPool(ThreadPool* thread_pool, Allocator* allocator, uint32 thread_count)
 {
     CTK_ASSERT(thread_count > 0);
 
@@ -161,7 +161,7 @@ static void InitThreadPool(ThreadPool* thread_pool, Allocator* allocator, uint32
     thread_pool->idle_tasks.head = 0;
 }
 
-static void DestroyThreadPool(ThreadPool* thread_pool)
+void DestroyThreadPool(ThreadPool* thread_pool)
 {
     CTK_ITER(thread, &thread_pool->threads)
     {
@@ -179,7 +179,7 @@ static void DestroyThreadPool(ThreadPool* thread_pool)
     DestroyTaskList(&thread_pool->ready_tasks);
 }
 
-static TaskHnd SubmitTask(ThreadPool* thread_pool, void* data, Func<void, void*> func)
+TaskHnd SubmitTask(ThreadPool* thread_pool, void* data, Func<void, void*> func)
 {
     // Pop next idle task once available.
     TaskHnd task_hnd = PopTask(thread_pool, &thread_pool->idle_tasks);
@@ -196,7 +196,7 @@ static TaskHnd SubmitTask(ThreadPool* thread_pool, void* data, Func<void, void*>
     return task_hnd;
 }
 
-static void Wait(ThreadPool* thread_pool, TaskHnd task_hnd)
+void Wait(ThreadPool* thread_pool, TaskHnd task_hnd)
 {
     Task* task = GetPtr(&thread_pool->tasks, task_hnd);
     if (task->done)
@@ -212,7 +212,7 @@ static void Wait(ThreadPool* thread_pool, TaskHnd task_hnd)
     LeaveCriticalSection(&task->lock);
 }
 
-static BatchRange GetBatchRange(uint32 region_index, uint32 region_count, uint32 batch_size)
+BatchRange GetBatchRange(uint32 region_index, uint32 region_count, uint32 batch_size)
 {
     uint32 small_part_size = batch_size / region_count;
     uint32 large_part_size = small_part_size + 1;
@@ -224,7 +224,7 @@ static BatchRange GetBatchRange(uint32 region_index, uint32 region_count, uint32
     return batch_range;
 }
 
-static void GetBatchRanges(Array<BatchRange>* batch_ranges, uint32 total_batch_size)
+void GetBatchRanges(Array<BatchRange>* batch_ranges, uint32 total_batch_size)
 {
     CTK_ASSERT(batch_ranges->count > 0);
 

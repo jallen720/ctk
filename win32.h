@@ -7,7 +7,7 @@ struct Win32Info
     bool        initialized;
 };
 
-static constexpr uint32 WIN32_ERROR_MESSAGE_SIZE = 1024;
+constexpr uint32 WIN32_ERROR_MESSAGE_SIZE = 1024;
 struct Win32Error
 {
     char   message[WIN32_ERROR_MESSAGE_SIZE];
@@ -15,15 +15,15 @@ struct Win32Error
     DWORD  code;
 };
 
-static Win32Info g_win32_info;
+Win32Info g_win32_info;
 
 /// Forward Declarations
 ////////////////////////////////////////////////////////////
-static void GetWin32Error(Win32Error* e);
+void GetWin32Error(Win32Error* e);
 
 /// Interface
 ////////////////////////////////////////////////////////////
-static void GetWin32Error(Win32Error* e)
+void GetWin32Error(Win32Error* e)
 {
     e->code = GetLastError();
     e->message_length = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,
@@ -39,7 +39,7 @@ static void GetWin32Error(Win32Error* e)
     }
 }
 
-static void InitWin32Info()
+void InitWin32Info()
 {
     if (g_win32_info.initialized)
     {
@@ -82,7 +82,7 @@ static void InitWin32Info()
     g_win32_info.initialized = true;
 }
 
-static Win32Info* GetWin32Info()
+Win32Info* GetWin32Info()
 {
     if (!g_win32_info.initialized)
     {
@@ -92,14 +92,14 @@ static Win32Info* GetWin32Info()
     return &g_win32_info;
 }
 
-static sint16 GetConsoleScreenBufferWidth()
+sint16 GetConsoleScreenBufferWidth()
 {
     CONSOLE_SCREEN_BUFFER_INFO info = {};
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
     return info.srWindow.Right - info.srWindow.Left + 1;
 }
 
-static uint8* AllocatePages(uint32 page_count)
+uint8* AllocatePages(uint32 page_count)
 {
     if (page_count == 0)
     {
@@ -120,7 +120,7 @@ static uint8* AllocatePages(uint32 page_count)
     return mem;
 }
 
-static void DeallocatePages(void* mem)
+void DeallocatePages(void* mem)
 {
     if (mem == NULL)
     {

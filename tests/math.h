@@ -1,7 +1,7 @@
 namespace MathTest
 {
 
-static bool AlignTest()
+bool AlignTest()
 {
     bool pass = true;
 
@@ -24,7 +24,7 @@ static bool AlignTest()
     return pass;
 }
 
-static bool Run()
+bool Run()
 {
     bool pass = true;
 

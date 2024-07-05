@@ -5,20 +5,20 @@ namespace FreeListTest
 
 /// Data
 ////////////////////////////////////////////////////////////
-static constexpr uint32 MAX_RANGE_COUNT       = 9; // Required for double merge test.
-static constexpr uint32 MAX_FREE_RANGE_COUNT  = (MAX_RANGE_COUNT / 2) + ((MAX_RANGE_COUNT % 2) == 0 ? 0 : 1);
-static constexpr uint32 MAX_USED_RANGE_COUNT  = 1 + MAX_RANGE_COUNT;
-static constexpr uint32 MAX_TOTAL_RANGE_COUNT = MAX_USED_RANGE_COUNT + MAX_FREE_RANGE_COUNT;
+constexpr uint32 MAX_RANGE_COUNT       = 9; // Required for double merge test.
+constexpr uint32 MAX_FREE_RANGE_COUNT  = (MAX_RANGE_COUNT / 2) + ((MAX_RANGE_COUNT % 2) == 0 ? 0 : 1);
+constexpr uint32 MAX_USED_RANGE_COUNT  = 1 + MAX_RANGE_COUNT;
+constexpr uint32 MAX_TOTAL_RANGE_COUNT = MAX_USED_RANGE_COUNT + MAX_FREE_RANGE_COUNT;
 
-static constexpr uint32 RANGES_BYTE_SIZE     = SizeOf32<Range>()    * MAX_TOTAL_RANGE_COUNT;
-static constexpr uint32 RANGE_KEYS_BYTE_SIZE = SizeOf32<RangeKey>() * MAX_TOTAL_RANGE_COUNT;
+constexpr uint32 RANGES_BYTE_SIZE     = SizeOf32<Range>()    * MAX_TOTAL_RANGE_COUNT;
+constexpr uint32 RANGE_KEYS_BYTE_SIZE = SizeOf32<RangeKey>() * MAX_TOTAL_RANGE_COUNT;
 
-static constexpr uint32 RANGE_DATA_BYTE_SIZE = RANGES_BYTE_SIZE + RANGE_KEYS_BYTE_SIZE;
+constexpr uint32 RANGE_DATA_BYTE_SIZE = RANGES_BYTE_SIZE + RANGE_KEYS_BYTE_SIZE;
 
-static constexpr uint32 RANGE_DATA_BYTE_INDEX = 0;
-static constexpr uint32 FREE_SPACE_BYTE_INDEX = RANGE_DATA_BYTE_INDEX + RANGE_DATA_BYTE_SIZE;
+constexpr uint32 RANGE_DATA_BYTE_INDEX = 0;
+constexpr uint32 FREE_SPACE_BYTE_INDEX = RANGE_DATA_BYTE_INDEX + RANGE_DATA_BYTE_SIZE;
 
-static constexpr RangeInfo RANGE_DATA_RANGE_INFO =
+constexpr RangeInfo RANGE_DATA_RANGE_INFO =
 {
     .byte_index = RANGE_DATA_BYTE_INDEX,
     .byte_size  = RANGE_DATA_BYTE_SIZE,
@@ -27,7 +27,7 @@ static constexpr RangeInfo RANGE_DATA_RANGE_INFO =
 
 /// Utils
 ////////////////////////////////////////////////////////////
-static bool ExpectLayout(FreeList* free_list, Array<RangeInfo> layout)
+bool ExpectLayout(FreeList* free_list, Array<RangeInfo> layout)
 {
     bool pass = true;
     uint32 range_info_index = 0;
@@ -104,9 +104,9 @@ static bool ExpectLayout(FreeList* free_list, Array<RangeInfo> layout)
     return pass;
 }
 
-static void FreeLayoutRange(Array<RangeInfo>* expected_layout, uint32 alloc_index)
+void FreeLayoutRange(Array<RangeInfo>* expected_layout, uint32 alloc_index)
 {
-    static constexpr uint32 FREE_SPACE_RANGE_INDEX_START = 1;
+    constexpr uint32 FREE_SPACE_RANGE_INDEX_START = 1;
     uint32 range_index = FREE_SPACE_RANGE_INDEX_START + alloc_index;
     RangeInfo* range = GetPtr(expected_layout, range_index);
     range->is_free = true;
@@ -136,11 +136,11 @@ static void FreeLayoutRange(Array<RangeInfo>* expected_layout, uint32 alloc_inde
 
 /// Tests
 ////////////////////////////////////////////////////////////
-static bool AllocateMultiple()
+bool AllocateMultiple()
 {
     bool pass = true;
 
-    static constexpr uint32 FREE_LIST_BYTE_SIZE = 16;
+    constexpr uint32 FREE_LIST_BYTE_SIZE = 16;
     static_assert(FREE_LIST_BYTE_SIZE > 14); // Must have enough room to hold test_allocs.
     FreeList free_list = CreateFreeList(&std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
     uint32 test_allocs[] = { 8, 4, 2, 1, 1 };
@@ -199,11 +199,11 @@ static bool AllocateMultiple()
     return pass;
 }
 
-static bool AllocateFullFreeList()
+bool AllocateFullFreeList()
 {
     bool pass = true;
 
-    static constexpr uint32 FREE_LIST_BYTE_SIZE = 16;
+    constexpr uint32 FREE_LIST_BYTE_SIZE = 16;
     FreeList free_list = CreateFreeList(&std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
     uint8* alloc = NULL;
 
@@ -253,11 +253,11 @@ static bool AllocateFullFreeList()
     return pass;
 }
 
-static bool DeallocateDoubleMerge()
+bool DeallocateDoubleMerge()
 {
     bool pass = true;
 
-    static constexpr uint32 FREE_LIST_BYTE_SIZE = 60;
+    constexpr uint32 FREE_LIST_BYTE_SIZE = 60;
     FreeList free_list = CreateFreeList(&std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
     uint8* allocs[] =
     {
@@ -317,11 +317,11 @@ static bool DeallocateDoubleMerge()
     return pass;
 }
 
-static bool DeallocatePrevMerge()
+bool DeallocatePrevMerge()
 {
     bool pass = true;
 
-    static constexpr uint32 FREE_LIST_BYTE_SIZE = 60;
+    constexpr uint32 FREE_LIST_BYTE_SIZE = 60;
     FreeList free_list = CreateFreeList(&std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
     uint8* allocs[] =
     {
@@ -373,11 +373,11 @@ static bool DeallocatePrevMerge()
     return pass;
 }
 
-static bool DeallocateNextMerge()
+bool DeallocateNextMerge()
 {
     bool pass = true;
 
-    static constexpr uint32 FREE_LIST_BYTE_SIZE = 60;
+    constexpr uint32 FREE_LIST_BYTE_SIZE = 60;
     FreeList free_list = CreateFreeList(&std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
     uint8* allocs[] =
     {
@@ -429,11 +429,11 @@ static bool DeallocateNextMerge()
     return pass;
 }
 
-static bool ReallocateSameSize()
+bool ReallocateSameSize()
 {
     bool pass = true;
 
-    static constexpr uint32 FREE_LIST_BYTE_SIZE = 4;
+    constexpr uint32 FREE_LIST_BYTE_SIZE = 4;
     FreeList free_list = CreateFreeList(&std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
     uint8* alloc = NULL;
 
@@ -470,11 +470,11 @@ static bool ReallocateSameSize()
     return pass;
 }
 
-static bool ReallocateSmallerNoNextHeader()
+bool ReallocateSmallerNoNextHeader()
 {
     bool pass = true;
 
-    static constexpr uint32 FREE_LIST_BYTE_SIZE = 5;
+    constexpr uint32 FREE_LIST_BYTE_SIZE = 5;
     FreeList free_list = CreateFreeList(&std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
     uint8* alloc = NULL;
 
@@ -520,11 +520,11 @@ static bool ReallocateSmallerNoNextHeader()
     return pass;
 }
 
-static bool ReallocateSmallerNextHeaderIsUsed()
+bool ReallocateSmallerNextHeaderIsUsed()
 {
     bool pass = true;
 
-    static constexpr uint32 FREE_LIST_BYTE_SIZE = 5;
+    constexpr uint32 FREE_LIST_BYTE_SIZE = 5;
     FreeList free_list = CreateFreeList(&std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
     uint8* alloc = NULL;
 
@@ -564,11 +564,11 @@ static bool ReallocateSmallerNextHeaderIsUsed()
     return pass;
 }
 
-static bool ReallocateSmallerNextHeaderIsFree()
+bool ReallocateSmallerNextHeaderIsFree()
 {
     bool pass = true;
 
-    static constexpr uint32 FREE_LIST_BYTE_SIZE = 5;
+    constexpr uint32 FREE_LIST_BYTE_SIZE = 5;
     FreeList free_list = CreateFreeList(&std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
     uint8* alloc = NULL;
 
@@ -645,11 +645,11 @@ static bool ReallocateSmallerNextHeaderIsFree()
     return pass;
 }
 
-static bool ReallocateLargerMergeEntireNextFreeRange()
+bool ReallocateLargerMergeEntireNextFreeRange()
 {
     bool pass = true;
 
-    static constexpr uint32 FREE_LIST_BYTE_SIZE = 6;
+    constexpr uint32 FREE_LIST_BYTE_SIZE = 6;
     FreeList free_list = CreateFreeList(&std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
     uint8* allocs[] =
     {
@@ -684,11 +684,11 @@ static bool ReallocateLargerMergeEntireNextFreeRange()
     return pass;
 }
 
-static bool ReallocateLargerMergePartialNextFreeRange()
+bool ReallocateLargerMergePartialNextFreeRange()
 {
     bool pass = true;
 
-    static constexpr uint32 FREE_LIST_BYTE_SIZE = 6;
+    constexpr uint32 FREE_LIST_BYTE_SIZE = 6;
     FreeList free_list = CreateFreeList(&std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
     uint8* alloc = NULL;
 
@@ -764,11 +764,11 @@ static bool ReallocateLargerMergePartialNextFreeRange()
     return pass;
 }
 
-static bool ReallocateLargerNewAllocationPostRange()
+bool ReallocateLargerNewAllocationPostRange()
 {
     bool pass = true;
 
-    static constexpr uint32 FREE_LIST_BYTE_SIZE = 4;
+    constexpr uint32 FREE_LIST_BYTE_SIZE = 4;
     FreeList free_list = CreateFreeList(&std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
     uint8* allocs[] =
     {
@@ -802,11 +802,11 @@ static bool ReallocateLargerNewAllocationPostRange()
     return pass;
 }
 
-static bool ReallocateLargerNewAllocationPreRange()
+bool ReallocateLargerNewAllocationPreRange()
 {
     bool pass = true;
 
-    static constexpr uint32 FREE_LIST_BYTE_SIZE = 4;
+    constexpr uint32 FREE_LIST_BYTE_SIZE = 4;
     FreeList free_list = CreateFreeList(&std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
     uint8* allocs[] =
     {
@@ -842,11 +842,11 @@ static bool ReallocateLargerNewAllocationPreRange()
     return pass;
 }
 
-static bool ZeroAllocatedMemory()
+bool ZeroAllocatedMemory()
 {
     bool pass = true;
 
-    static constexpr uint32 FREE_LIST_BYTE_SIZE = 4;
+    constexpr uint32 FREE_LIST_BYTE_SIZE = 4;
     FreeList free_list = CreateFreeList(&std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
 
     // Set all free memory in free-range to non-zero values.
@@ -854,7 +854,7 @@ static bool ZeroAllocatedMemory()
     memset(free_space_mem, UINT8_MAX, FREE_LIST_BYTE_SIZE);
 
     {
-        static constexpr uint32 ALLOC_SIZE = 1;
+        constexpr uint32 ALLOC_SIZE = 1;
         char test_buf[ALLOC_SIZE] = {};
         FString<256> description = {};
 
@@ -872,7 +872,7 @@ static bool ZeroAllocatedMemory()
                 (const char*)alloc,    ALLOC_SIZE);
     }
     {
-        static constexpr uint32 ALLOC_SIZE = FREE_LIST_BYTE_SIZE;
+        constexpr uint32 ALLOC_SIZE = FREE_LIST_BYTE_SIZE;
         char test_buf[FREE_LIST_BYTE_SIZE] = {};
         FString<256> description = {};
 
@@ -893,18 +893,18 @@ static bool ZeroAllocatedMemory()
     return pass;
 }
 
-static bool ZeroReallocatedMemory()
+bool ZeroReallocatedMemory()
 {
     bool pass = true;
 
-    static constexpr uint32 FREE_LIST_BYTE_SIZE = 24;
+    constexpr uint32 FREE_LIST_BYTE_SIZE = 24;
     FreeList free_list = CreateFreeList(&std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
 
     // Set all free memory in free-range to non-zero values.
     uint8* free_space_mem = GetRangeMem(&free_list, free_list.ranges[GetFreeRangesFirstIndex(&free_list)].byte_index);
     memset(free_space_mem, UINT8_MAX, FREE_LIST_BYTE_SIZE);
 
-    static constexpr uint32 INIT_ALLOC_BYTE_SIZE = 8;
+    constexpr uint32 INIT_ALLOC_BYTE_SIZE = 8;
     char* allocs[3] =
     {
         Allocate<char>(&free_list, INIT_ALLOC_BYTE_SIZE),
@@ -937,7 +937,7 @@ static bool ZeroReallocatedMemory()
                 (const char*)allocs[0], INIT_ALLOC_BYTE_SIZE);
     }
     {
-        static constexpr uint32 REALLOC_BYTE_SIZE = 12;
+        constexpr uint32 REALLOC_BYTE_SIZE = 12;
         FString<256> description = {};
         Write(&description, "Reallocate(&free_list, allocs[0], %u) partial merge next", REALLOC_BYTE_SIZE);
 
@@ -960,7 +960,7 @@ static bool ZeroReallocatedMemory()
     }
 
     {
-        static constexpr uint32 REALLOC_BYTE_SIZE = 16;
+        constexpr uint32 REALLOC_BYTE_SIZE = 16;
         FString<256> description = {};
         Write(&description, "Reallocate(&free_list, allocs[0], %u) full merge next", REALLOC_BYTE_SIZE);
 
@@ -985,11 +985,11 @@ static bool ZeroReallocatedMemory()
     return pass;
 }
 
-static bool NonZeroAllocatedMemory()
+bool NonZeroAllocatedMemory()
 {
     bool pass = true;
 
-    static constexpr uint32 FREE_LIST_BYTE_SIZE = 4;
+    constexpr uint32 FREE_LIST_BYTE_SIZE = 4;
     FreeList free_list = CreateFreeList(&std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
 
     // Set all free memory in free-range to non-zero values.
@@ -997,7 +997,7 @@ static bool NonZeroAllocatedMemory()
     memset(free_space_mem, '#', FREE_LIST_BYTE_SIZE);
 
     {
-        static constexpr uint32 ALLOC_SIZE = 1;
+        constexpr uint32 ALLOC_SIZE = 1;
         FString<256> description = {};
 
         // Allocated range should still contain default values.
@@ -1018,7 +1018,7 @@ static bool NonZeroAllocatedMemory()
                 (const char*)alloc,    ALLOC_SIZE);
     }
     {
-        static constexpr uint32 ALLOC_SIZE = FREE_LIST_BYTE_SIZE;
+        constexpr uint32 ALLOC_SIZE = FREE_LIST_BYTE_SIZE;
         FString<256> description = {};
 
         // Allocated range should still contain default values.
@@ -1042,18 +1042,18 @@ static bool NonZeroAllocatedMemory()
     return pass;
 }
 
-static bool NonZeroReallocatedMemory()
+bool NonZeroReallocatedMemory()
 {
     bool pass = true;
 
-    static constexpr uint32 FREE_LIST_BYTE_SIZE = 6;
+    constexpr uint32 FREE_LIST_BYTE_SIZE = 6;
     FreeList free_list = CreateFreeList(&std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
 
     // Set all free memory in free-range to non-zero values.
     uint8* free_space_mem = GetRangeMem(&free_list, free_list.ranges[GetFreeRangesFirstIndex(&free_list)].byte_index);
     memset(free_space_mem, '#', FREE_LIST_BYTE_SIZE);
 
-    static constexpr uint32 INIT_ALLOC_BYTE_SIZE = 2;
+    constexpr uint32 INIT_ALLOC_BYTE_SIZE = 2;
     char* allocs[3] =
     {
         AllocateNZ<char>(&free_list, INIT_ALLOC_BYTE_SIZE),
@@ -1085,7 +1085,7 @@ static bool NonZeroReallocatedMemory()
                 (const char*)allocs[0], INIT_ALLOC_BYTE_SIZE);
     }
     {
-        static constexpr uint32 REALLOC_BYTE_SIZE = 3;
+        constexpr uint32 REALLOC_BYTE_SIZE = 3;
         FString<256> description = {};
         Write(&description, "ReallocateNZ(&free_list, allocs[0], %u) partial merge next", REALLOC_BYTE_SIZE);
 
@@ -1110,7 +1110,7 @@ static bool NonZeroReallocatedMemory()
     }
 
     {
-        static constexpr uint32 REALLOC_BYTE_SIZE = 4;
+        constexpr uint32 REALLOC_BYTE_SIZE = 4;
         FString<256> description = {};
         Write(&description, "ReallocateNZ(&free_list, allocs[0], %u) full merge next", REALLOC_BYTE_SIZE);
 
@@ -1137,12 +1137,12 @@ static bool NonZeroReallocatedMemory()
     return pass;
 }
 
-static bool AllocateAlignmentTest()
+bool AllocateAlignmentTest()
 {
     bool pass = true;
 
-    static constexpr uint32 FREE_LIST_BYTE_SIZE = 1024;
-    static constexpr uint32 FREE_LIST_COUNT     = 16;
+    constexpr uint32 FREE_LIST_BYTE_SIZE = 1024;
+    constexpr uint32 FREE_LIST_COUNT     = 16;
     FreeList free_lists[FREE_LIST_COUNT] = {};
 
     CTK_ITER_PTR(free_list, free_lists, FREE_LIST_COUNT)
@@ -1166,12 +1166,12 @@ static bool AllocateAlignmentTest()
     return pass;
 }
 
-static bool ReallocateAlignmentTest()
+bool ReallocateAlignmentTest()
 {
     bool pass = true;
 
-    static constexpr uint32 FREE_LIST_BYTE_SIZE = 1024;
-    static constexpr uint32 FREE_LIST_COUNT     = 16;
+    constexpr uint32 FREE_LIST_BYTE_SIZE = 1024;
+    constexpr uint32 FREE_LIST_COUNT     = 16;
     FreeList free_lists[FREE_LIST_COUNT] = {};
 
     CTK_ITER_PTR(free_list, free_lists, FREE_LIST_COUNT)
@@ -1197,7 +1197,7 @@ static bool ReallocateAlignmentTest()
     return pass;
 }
 
-static void AlignmentExample()
+void AlignmentExample()
 {
     CTK_REPEAT(1)
     {
@@ -1230,7 +1230,7 @@ static void AlignmentExample()
     }
 }
 
-static bool Run()
+bool Run()
 {
     bool pass = true;
 

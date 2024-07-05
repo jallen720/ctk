@@ -3,11 +3,11 @@
 namespace IteratorPerfTest
 {
 
-static void Run()
+void Run()
 {
     PrintLine("\nIterator Performance Test");
 
-    static constexpr uint32 TEST_COUNT = 1000000000;
+    constexpr uint32 TEST_COUNT = 1000000000;
     auto a = CreateArrayFull<uint32>(&std_allocator, TEST_COUNT);
     uint32 total;
     for (uint32 i = 0; i < TEST_COUNT; ++i)
