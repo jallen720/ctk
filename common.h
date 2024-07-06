@@ -5,16 +5,40 @@
 #define CTK_REPEAT(COUNT) for (uint32 _ = 0; _ < COUNT; _ += 1)
 #define CTK_UNUSED(VAR) (void)VAR;
 
-#define CTK_ITER(VAR, CONTAINER) for (auto* VAR = IterStart(CONTAINER); VAR < IterEnd  (CONTAINER); VAR += 1)
-#define CTK_ITER_PTR(VAR, PTR, SIZE) for (auto* VAR = PTR; VAR < PTR + SIZE; VAR += 1)
+#define CTK_ITER(VAR, CONTAINER) \
+    for (auto* VAR = IterStart(CONTAINER); \
+         VAR < IterEnd  (CONTAINER); \
+         VAR += 1)
+
+#define CTK_ITER_PTR(VAR, PTR, SIZE) \
+    for (auto* VAR = PTR; \
+         VAR < PTR + SIZE; \
+         VAR += 1)
+
 #define CTK_ITER_ARRAY(VAR, ARRAY) CTK_ITER_PTR(VAR, ARRAY, CTK_ARRAY_SIZE(ARRAY))
-#define CTK_ITER_REV(VAR, CONTAINER) for (auto* VAR = IterEnd(CONTAINER) - 1; VAR > IterStart(CONTAINER) - 1; VAR -= 1)
-#define CTK_ITER_PTR_REV(VAR, PTR, SIZE) for (auto* VAR = PTR + SIZE - 1; VAR > PTR - 1; VAR -= 1)
+
+#define CTK_ITER_REV(VAR, CONTAINER) \
+    for (auto* VAR = IterEnd(CONTAINER) - 1; \
+         VAR > IterStart(CONTAINER) - 1; \
+         VAR -= 1)
+
+#define CTK_ITER_PTR_REV(VAR, PTR, SIZE) \
+    for (auto* VAR = PTR + SIZE - 1; \
+         VAR > PTR - 1; \
+         VAR -= 1)
+
 #define CTK_ITER_ARRAY_REV(VAR, ARRAY) CTK_ITER_PTR_REV(VAR, ARRAY, CTK_ARRAY_SIZE(ARRAY))
+
 #define CTK_ITER_ENUM(VAR, ENUM_TYPE) \
-    for (ENUM_TYPE VAR = (ENUM_TYPE)0; (sint32)VAR < (sint32)ENUM_TYPE::COUNT; VAR = (ENUM_TYPE)((sint32)VAR + 1))
+    for (ENUM_TYPE VAR = (ENUM_TYPE)0; \
+         (sint32)VAR < (sint32)ENUM_TYPE::COUNT; \
+         VAR = (ENUM_TYPE)((sint32)VAR + 1))
+
 #define CTK_ITER_ENUM_REV(VAR, ENUM_TYPE) \
-    for (ENUM_TYPE VAR = (ENUM_TYPE)((sint32)ENUM_TYPE::COUNT - 1); (sint32)VAR > -1; VAR = (ENUM_TYPE)((sint32)VAR - 1))
+    for (ENUM_TYPE VAR = (ENUM_TYPE)((sint32)ENUM_TYPE::COUNT - 1); \
+         (sint32)VAR > -1; \
+         VAR = (ENUM_TYPE)((sint32)VAR - 1))
+
 #define CTK_ITER_IDX(VAR, CONTAINER) (uint32)(VAR - IterStart(CONTAINER))
 #define CTK_ITER_PTR_IDX(VAR, PTR) (uint32)(VAR - PTR)
 
