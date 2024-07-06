@@ -102,7 +102,7 @@ Array<Type> CreateArrayFull(Allocator* allocator, uint32 size)
 template<typename Type>
 void DestroyArray(Array<Type>* array)
 {
-    CTK_ASSERT(array->allocator != NULL)
+    CTK_ASSERT(array->allocator != NULL);
 
     if (array->data != NULL)
     {

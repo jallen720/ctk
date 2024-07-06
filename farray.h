@@ -137,7 +137,7 @@ uint32 ByteCount(FArray<Type, size>* array)
 template<typename Type, uint32 size>
 constexpr uint32 GetSize(FArray<Type, size>* array)
 {
-    CTK_UNUSED(array)
+    CTK_UNUSED(array);
     return size;
 }
 

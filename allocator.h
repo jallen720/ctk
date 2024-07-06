@@ -94,7 +94,7 @@ void Deallocate(Allocator* allocator, void* mem)
 uint8* AllocateNZ(uint32 size, uint32 alignment)
 {
     CTK_ASSERT(size > 0);
-    return (uint8*)_aligned_malloc(size, alignment);;
+    return (uint8*)_aligned_malloc(size, alignment);
 }
 
 template<typename Type>

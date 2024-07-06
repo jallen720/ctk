@@ -1260,7 +1260,8 @@ void DestroyJSON(JSON* json)
 
 JSONNode* FindNode(JSON* json, JSONNode* node, const char* key, uint32 key_size)
 {
-    CTK_ASSERT(node->type == JSONNodeType::OBJECT)
+    CTK_ASSERT(node->type == JSONNodeType::OBJECT);
+
     JSONNodeList* list = &node->list;
     for (uint32 child_index = 0; child_index < list->size; child_index += 1)
     {
@@ -1304,7 +1305,8 @@ JSONNode* GetNode(JSON* json, JSONNode* node, const char* key)
 
 JSONNode* GetNode(JSON* json, JSONNode* node, uint32 index)
 {
-    CTK_ASSERT(node->type == JSONNodeType::ARRAY || node->type == JSONNodeType::OBJECT)
+    CTK_ASSERT(node->type == JSONNodeType::ARRAY || node->type == JSONNodeType::OBJECT);
+
     JSONNodeList* list = &node->list;
     if (index >= list->size)
     {
