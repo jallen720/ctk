@@ -3,36 +3,21 @@
 template<typename Type>
 struct Vec4
 {
-    struct
-    {
-        Type x;
-        Type y;
-        Type z;
-        Type w;
-    };
+    struct { Type x, y, z, w; };
     Type array[4];
 };
 
 template<typename Type>
 struct Vec3
 {
-    struct
-    {
-        Type x;
-        Type y;
-        Type z;
-    };
+    struct { Type x, y, z; };
     Type array[3];
 };
 
 template<typename Type>
 struct Vec2
 {
-    struct
-    {
-        Type x;
-        Type y;
-    };
+    struct { Type x, y; };
     Type array[2];
 };
 
