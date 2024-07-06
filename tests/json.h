@@ -137,40 +137,40 @@ bool ValidSearchTest()
 
     JSONSearch searches[] =
     {
-        { "uint32"             , JSONNodeType::UINT32  },
-        { "sint32"             , JSONNodeType::SINT32  },
-        { "float32"            , JSONNodeType::FLOAT32 },
-        { "string"             , JSONNodeType::STRING  },
-        { "bool"               , JSONNodeType::BOOLEAN },
-        { "null"               , JSONNodeType::NULL_   },
-        { "empty_array"        , JSONNodeType::ARRAY   },
-        { "empty_object"       , JSONNodeType::OBJECT  },
-        { "array"              , JSONNodeType::ARRAY   },
-        { "array[0]"           , JSONNodeType::SINT32  },
-        { "array[1]"           , JSONNodeType::UINT32  },
-        { "array[2]"           , JSONNodeType::FLOAT32 },
-        { "array[3]"           , JSONNodeType::STRING  },
-        { "array[4]"           , JSONNodeType::BOOLEAN },
-        { "array[5]"           , JSONNodeType::NULL_   },
-        { "array[6]"           , JSONNodeType::ARRAY   },
-        { "array[7]"           , JSONNodeType::OBJECT  },
-        { "array[8]"           , JSONNodeType::ARRAY   },
-        { "array[8][0]"        , JSONNodeType::STRING  },
-        { "array[9]"           , JSONNodeType::OBJECT  },
-        { "array[9].name"      , JSONNodeType::STRING  },
-        { "object"             , JSONNodeType::OBJECT  },
-        { "object.uint32"      , JSONNodeType::UINT32  },
-        { "object.sint32"      , JSONNodeType::SINT32  },
-        { "object.float32"     , JSONNodeType::FLOAT32 },
-        { "object.string"      , JSONNodeType::STRING  },
-        { "object.bool"        , JSONNodeType::BOOLEAN },
-        { "object.null"        , JSONNodeType::NULL_   },
-        { "object.empty_array" , JSONNodeType::ARRAY   },
+        { "uint32",              JSONNodeType::UINT32  },
+        { "sint32",              JSONNodeType::SINT32  },
+        { "float32",             JSONNodeType::FLOAT32 },
+        { "string",              JSONNodeType::STRING  },
+        { "bool",                JSONNodeType::BOOLEAN },
+        { "null",                JSONNodeType::NULL_   },
+        { "empty_array",         JSONNodeType::ARRAY   },
+        { "empty_object",        JSONNodeType::OBJECT  },
+        { "array",               JSONNodeType::ARRAY   },
+        { "array[0]",            JSONNodeType::SINT32  },
+        { "array[1]",            JSONNodeType::UINT32  },
+        { "array[2]",            JSONNodeType::FLOAT32 },
+        { "array[3]",            JSONNodeType::STRING  },
+        { "array[4]",            JSONNodeType::BOOLEAN },
+        { "array[5]",            JSONNodeType::NULL_   },
+        { "array[6]",            JSONNodeType::ARRAY   },
+        { "array[7]",            JSONNodeType::OBJECT  },
+        { "array[8]",            JSONNodeType::ARRAY   },
+        { "array[8][0]",         JSONNodeType::STRING  },
+        { "array[9]",            JSONNodeType::OBJECT  },
+        { "array[9].name",       JSONNodeType::STRING  },
+        { "object",              JSONNodeType::OBJECT  },
+        { "object.uint32",       JSONNodeType::UINT32  },
+        { "object.sint32",       JSONNodeType::SINT32  },
+        { "object.float32",      JSONNodeType::FLOAT32 },
+        { "object.string",       JSONNodeType::STRING  },
+        { "object.bool",         JSONNodeType::BOOLEAN },
+        { "object.null",         JSONNodeType::NULL_   },
+        { "object.empty_array",  JSONNodeType::ARRAY   },
         { "object.empty_object", JSONNodeType::OBJECT  },
-        { "object.array"       , JSONNodeType::ARRAY   },
-        { "object.array[0]"    , JSONNodeType::STRING  },
-        { "object.object"      , JSONNodeType::OBJECT  },
-        { "object.object.name" , JSONNodeType::STRING  },
+        { "object.array",        JSONNodeType::ARRAY   },
+        { "object.array[0]",     JSONNodeType::STRING  },
+        { "object.object",       JSONNodeType::OBJECT  },
+        { "object.object.name",  JSONNodeType::STRING  },
     };
     CTK_ITER_PTR(search, searches, CTK_ARRAY_SIZE(searches))
     {
@@ -209,6 +209,18 @@ bool ValidSearchTest()
     return pass;
 }
 
+bool InvalidSearchTest()
+{
+    bool pass = true;
+
+    JSON json = LoadJSON(&std_allocator, "tests/data/valid.json");
+    RunTest<Func<JSONNode*, JSON*, const char*>>(
+        "SearchNode(&json, \"invalid_key\")", &pass, ExpectFatalError, SearchNode, &json, "invalid_key");
+    DestroyJSON(&json);
+
+    return pass;
+}
+
 bool ValidGetTest()
 {
     bool pass = true;
@@ -235,11 +247,11 @@ bool ValidGetTest()
     RunTest("GetString(array[9], name)", &pass, ExpectEqual, "array object", GetString(&json, array_object, "name"));
 
     JSONNode* object = GetObject(&json, "object");
-    RunTest("GetUInt32 (object, uint32)",             &pass, ExpectEqual, 4u,              GetUInt32 (&json, object, "uint32"));
-    RunTest("GetSInt32 (object, sint32)",             &pass, ExpectEqual, -4,              GetSInt32 (&json, object, "sint32"));
-    RunTest("GetFloat32(object, float32)",            &pass, ExpectEqual, 5.6f,            GetFloat32(&json, object, "float32"));
-    RunTest("GetString (object, string)",             &pass, ExpectEqual, "object string", GetString (&json, object, "string"));
-    RunTest("GetBoolean(object, 4 (key == bool))",    &pass, ExpectEqual, false,           GetBoolean(&json, object, 4));
+    RunTest("GetUInt32 (object, uint32)",          &pass, ExpectEqual, 4u,              GetUInt32 (&json, object, "uint32"));
+    RunTest("GetSInt32 (object, sint32)",          &pass, ExpectEqual, -4,              GetSInt32 (&json, object, "sint32"));
+    RunTest("GetFloat32(object, float32)",         &pass, ExpectEqual, 5.6f,            GetFloat32(&json, object, "float32"));
+    RunTest("GetString (object, string)",          &pass, ExpectEqual, "object string", GetString (&json, object, "string"));
+    RunTest("GetBoolean(object, 4 (key == bool))", &pass, ExpectEqual, false,           GetBoolean(&json, object, 4));
 
     JSONNode* object_array = GetArray(&json, object, "array");
     RunTest("GetString(object.array, 0)", &pass, ExpectEqual, "object array", GetString(&json, object_array, 0u));
@@ -252,17 +264,22 @@ bool ValidGetTest()
     return pass;
 }
 
-void Custom()
+bool InvalidGetTest()
 {
+    bool pass = true;
+
     JSON json = LoadJSON(&std_allocator, "tests/data/valid.json");
+    RunTest<Func<JSONNode*, JSON*, const char*>>(
+        "GetNode(&json, \"invalid_key\")", &pass, ExpectFatalError, GetNode, &json, "invalid_key");
     DestroyJSON(&json);
+
+    return pass;
 }
 
 bool Run()
 {
     bool pass = true;
 
-    // Custom();
     RunTest("ValidTest()",                &pass, ValidTest);
     RunTest("ScientificENotationTest()",  &pass, ScientificENotationTest);
     RunTest("ObjectKeyTest()",            &pass, ObjectKeyTest);
@@ -276,6 +293,8 @@ bool Run()
     RunTest("NoRootTest()",               &pass, NoRootTest);
     RunTest("LargeTest()",                &pass, LargeTest);
     RunTest("ValidSearchTest()",          &pass, ValidSearchTest);
+    RunTest("InvalidSearchTest()",        &pass, InvalidSearchTest);
+    RunTest("InvalidGetTest()",           &pass, InvalidGetTest);
     RunTest("ValidGetTest()",             &pass, ValidGetTest);
 
     return pass;
