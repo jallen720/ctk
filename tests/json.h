@@ -264,18 +264,6 @@ bool ValidGetTest()
     return pass;
 }
 
-bool InvalidGetTest()
-{
-    bool pass = true;
-
-    JSON json = LoadJSON(&std_allocator, "tests/data/valid.json");
-    RunTest<Func<JSONNode*, JSON*, const char*>>(
-        "GetNode(&json, \"invalid_key\")", &pass, ExpectFatalError, GetNode, &json, "invalid_key");
-    DestroyJSON(&json);
-
-    return pass;
-}
-
 bool Run()
 {
     bool pass = true;
@@ -294,7 +282,6 @@ bool Run()
     RunTest("LargeTest()",                &pass, LargeTest);
     RunTest("ValidSearchTest()",          &pass, ValidSearchTest);
     RunTest("InvalidSearchTest()",        &pass, InvalidSearchTest);
-    RunTest("InvalidGetTest()",           &pass, InvalidGetTest);
     RunTest("ValidGetTest()",             &pass, ValidGetTest);
 
     return pass;

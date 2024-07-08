@@ -20,7 +20,6 @@ using namespace CTK;
 
 sint32 main()
 {
-    // Test();
     // SetShowPassedTests(true);
     RunTest("Array",    NULL, ArrayTest::Run);
     RunTest("FArray",   NULL, FArrayTest::Run);

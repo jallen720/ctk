@@ -10,13 +10,16 @@ struct Pair
 /// Interface
 ////////////////////////////////////////////////////////////
 template<typename Key, typename Value>
-bool FindValuePtr(const Pair<Key, Value>* pairs, uint32 pair_count, Key key, Value** value)
+bool FindValuePtr(Pair<Key, Value>* pairs, uint32 pair_count, Key key, Value** value = NULL)
 {
     for (uint32 i = 0; i < pair_count; ++i)
     {
         if (pairs[i].key == key)
         {
-            *value = &pairs[i].value;
+            if (value != NULL)
+            {
+                *value = &pairs[i].value;
+            }
             return true;
         }
     }
@@ -25,13 +28,16 @@ bool FindValuePtr(const Pair<Key, Value>* pairs, uint32 pair_count, Key key, Val
 }
 
 template<typename Key, typename Value>
-bool FindValue(const Pair<Key, Value>* pairs, uint32 pair_count, Key key, Value* value)
+bool FindValue(const Pair<Key, Value>* pairs, uint32 pair_count, Key key, Value* value = NULL)
 {
     for (uint32 i = 0; i < pair_count; ++i)
     {
         if (pairs[i].key == key)
         {
-            *value = pairs[i].value;
+            if (value != NULL)
+            {
+                *value = pairs[i].value;
+            }
             return true;
         }
     }
@@ -40,13 +46,16 @@ bool FindValue(const Pair<Key, Value>* pairs, uint32 pair_count, Key key, Value*
 }
 
 template<typename Key, typename Value>
-bool FindKeyPtr(const Pair<Key, Value>* pairs, uint32 pair_count, Value value, Key** key)
+bool FindKeyPtr(const Pair<Key, Value>* pairs, uint32 pair_count, Value value, Key** key = NULL)
 {
     for (uint32 i = 0; i < pair_count; ++i)
     {
         if (pairs[i].value == value)
         {
-            *key = &pairs[i].key;
+            if (key != NULL)
+            {
+                *key = &pairs[i].key;
+            }
             return true;
         }
     }
@@ -55,13 +64,16 @@ bool FindKeyPtr(const Pair<Key, Value>* pairs, uint32 pair_count, Value value, K
 }
 
 template<typename Key, typename Value>
-bool FindKey(const Pair<Key, Value>* pairs, uint32 pair_count, Value value, Key* key)
+bool FindKey(const Pair<Key, Value>* pairs, uint32 pair_count, Value value, Key* key = NULL)
 {
     for (uint32 i = 0; i < pair_count; ++i)
     {
         if (pairs[i].value == value)
         {
-            *key = pairs[i].key;
+            if (key != NULL)
+            {
+                *key = pairs[i].key;
+            }
             return true;
         }
     }
