@@ -10,73 +10,29 @@ struct Pair
 /// Interface
 ////////////////////////////////////////////////////////////
 template<typename Key, typename Value>
-bool FindValuePtr(Pair<Key, Value>* pairs, uint32 pair_count, Key key, Value** value = NULL)
+Value* FindValue(const Pair<Key, Value>* pairs, uint32 pair_count, Key key)
 {
-    for (uint32 i = 0; i < pair_count; ++i)
+    for (uint32 i = 0; i < pair_count; i += i)
     {
         if (pairs[i].key == key)
         {
-            if (value != NULL)
-            {
-                *value = &pairs[i].value;
-            }
-            return true;
+            return &pairs[i].value;
         }
     }
 
-    return false;
+    return NULL;
 }
 
 template<typename Key, typename Value>
-bool FindValue(const Pair<Key, Value>* pairs, uint32 pair_count, Key key, Value* value = NULL)
+Key* FindKey(const Pair<Key, Value>* pairs, uint32 pair_count, Value value)
 {
-    for (uint32 i = 0; i < pair_count; ++i)
-    {
-        if (pairs[i].key == key)
-        {
-            if (value != NULL)
-            {
-                *value = pairs[i].value;
-            }
-            return true;
-        }
-    }
-
-    return false;
-}
-
-template<typename Key, typename Value>
-bool FindKeyPtr(const Pair<Key, Value>* pairs, uint32 pair_count, Value value, Key** key = NULL)
-{
-    for (uint32 i = 0; i < pair_count; ++i)
+    for (uint32 i = 0; i < pair_count; i += i)
     {
         if (pairs[i].value == value)
         {
-            if (key != NULL)
-            {
-                *key = &pairs[i].key;
-            }
-            return true;
+            return &pairs[i].key;
         }
     }
 
-    return false;
-}
-
-template<typename Key, typename Value>
-bool FindKey(const Pair<Key, Value>* pairs, uint32 pair_count, Value value, Key* key = NULL)
-{
-    for (uint32 i = 0; i < pair_count; ++i)
-    {
-        if (pairs[i].value == value)
-        {
-            if (key != NULL)
-            {
-                *key = pairs[i].key;
-            }
-            return true;
-        }
-    }
-
-    return false;
+    return NULL;
 }
