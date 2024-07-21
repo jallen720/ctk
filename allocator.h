@@ -1,7 +1,17 @@
 /// Data
 ////////////////////////////////////////////////////////////
+enum struct AllocType
+{
+    FreeList,
+    Stack,
+};
+
+struct Allocator;
 struct Allocator
 {
+    Allocator*                                 parent;
+    void*                                      context;
+    AllocType                                  type;
     Func<uint8*, void*, uint32, uint32>        AllocateNZ;
     Func<uint8*, void*, uint32, uint32>        Allocate;
     Func<uint8*, void*, void*, uint32, uint32> ReallocateNZ;
@@ -14,7 +24,7 @@ struct Allocator
 uint8* AllocateNZ(Allocator* allocator, uint32 size, uint32 alignment)
 {
     CTK_ASSERT(allocator->AllocateNZ != NULL);
-    return allocator->AllocateNZ((void*)allocator, size, alignment);
+    return allocator->AllocateNZ(allocator->context, size, alignment);
 }
 
 template<typename Type>
@@ -32,7 +42,7 @@ Type* AllocateNZ(Allocator* allocator, uint32 count)
 uint8* Allocate(Allocator* allocator, uint32 size, uint32 alignment)
 {
     CTK_ASSERT(allocator->Allocate != NULL);
-    return allocator->Allocate((void*)allocator, size, alignment);
+    return allocator->Allocate(allocator->context, size, alignment);
 }
 
 template<typename Type>
@@ -50,7 +60,7 @@ Type* Allocate(Allocator* allocator, uint32 count)
 uint8* ReallocateNZ(Allocator* allocator, void* mem, uint32 new_size, uint32 alignment)
 {
     CTK_ASSERT(allocator->ReallocateNZ != NULL);
-    return allocator->ReallocateNZ((void*)allocator, mem, new_size, alignment);
+    return allocator->ReallocateNZ(allocator->context, mem, new_size, alignment);
 }
 
 template<typename Type>
@@ -68,7 +78,7 @@ Type* ReallocateNZ(Allocator* allocator, Type* mem, uint32 new_count)
 uint8* Reallocate(Allocator* allocator, void* mem, uint32 new_size, uint32 alignment)
 {
     CTK_ASSERT(allocator->Reallocate != NULL);
-    return allocator->Reallocate((void*)allocator, mem, new_size, alignment);
+    return allocator->Reallocate(allocator->context, mem, new_size, alignment);
 }
 
 template<typename Type>
@@ -86,7 +96,7 @@ Type* Reallocate(Allocator* allocator, Type* mem, uint32 new_count)
 void Deallocate(Allocator* allocator, void* mem)
 {
     CTK_ASSERT(allocator->Deallocate != NULL);
-    allocator->Deallocate((void*)allocator, mem);
+    allocator->Deallocate(allocator->context, mem);
 }
 
 /// STD Allocation Interface
@@ -152,27 +162,27 @@ void Deallocate(void* mem)
 
 /// STD Allocator
 ////////////////////////////////////////////////////////////
-uint8* STD_AllocateNZ(void* data, uint32 size, uint32 alignment)
+uint8* STD_AllocateNZ(void* context, uint32 size, uint32 alignment)
 {
-    CTK_UNUSED(data);
+    CTK_UNUSED(context);
     return AllocateNZ(size, alignment);
 }
 
-uint8* STD_Allocate(void* data, uint32 size, uint32 alignment)
+uint8* STD_Allocate(void* context, uint32 size, uint32 alignment)
 {
-    CTK_UNUSED(data);
+    CTK_UNUSED(context);
     return Allocate(size, alignment);
 }
 
-uint8* STD_ReallocateNZ(void* data, void* mem, uint32 new_size, uint32 alignment)
+uint8* STD_ReallocateNZ(void* context, void* mem, uint32 new_size, uint32 alignment)
 {
-    CTK_UNUSED(data);
+    CTK_UNUSED(context);
     return ReallocateNZ(mem, new_size, alignment);
 }
 
-void STD_Deallocate(void* data, void* mem)
+void STD_Deallocate(void* context, void* mem)
 {
-    CTK_UNUSED(data);
+    CTK_UNUSED(context);
     Deallocate(mem);
 }
 

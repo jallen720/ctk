@@ -90,7 +90,6 @@ void ReadFile(Type** array, uint32* size, Allocator* allocator, const char* path
     CloseHandle(file);
 }
 
-
 template<typename Type>
 Array<Type> ReadFile(Allocator* allocator, const char* path)
 {

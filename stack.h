@@ -2,46 +2,10 @@
 ////////////////////////////////////////////////////////////
 struct Stack
 {
-    Allocator  allocator;
-    Allocator* parent_allocator;
-
-    Stack* parent;
-    uint8* mem;
-    uint32 size;
-    uint32 count;
-
-    ~Stack()
-    {
-        // "Deallocate" stack from parent stack.
-        if (parent != NULL)
-        {
-            parent->count -= this->size;
-        }
-    }
-};
-
-/// Allocator
-////////////////////////////////////////////////////////////
-uint8* AllocateNZ(Stack* stack, uint32 size, uint32 alignment);
-uint8* Allocate(Stack* stack, uint32 size, uint32 alignment);
-
-uint8* Stack_AllocateNZ(void* data, uint32 size, uint32 alignment)
-{
-    return AllocateNZ((Stack*)data, size, alignment);
-}
-
-uint8* Stack_Allocate(void* data, uint32 size, uint32 alignment)
-{
-    return Allocate((Stack*)data, size, alignment);
-}
-
-constexpr Allocator STACK_ALLOCATOR =
-{
-    .AllocateNZ   = Stack_AllocateNZ,
-    .Allocate     = Stack_Allocate,
-    .ReallocateNZ = NULL,
-    .Reallocate   = NULL,
-    .Deallocate   = NULL,
+    Allocator* allocator;
+    uint8*     mem;
+    uint32     size;
+    uint32     count;
 };
 
 /// Interface
@@ -51,18 +15,16 @@ Stack CreateStack(Allocator* allocator, uint32 size)
     CTK_ASSERT(size > 0);
 
     Stack stack = {};
-    stack.allocator        = STACK_ALLOCATOR;
-    stack.parent_allocator = allocator;
-    stack.parent           = NULL;
-    stack.mem              = Allocate<uint8>(allocator, size);
-    stack.size             = size;
-    stack.count            = 0;
+    stack.allocator = allocator;
+    stack.mem       = Allocate<uint8>(allocator, size);
+    stack.size      = size;
+    stack.count     = 0;
     return stack;
 }
 
 void DestroyStack(Stack* stack)
 {
-    Deallocate(stack->parent_allocator, stack->mem);
+    Deallocate(stack->allocator, stack->mem);
     *stack = {};
 }
 
@@ -118,16 +80,34 @@ Type* Allocate(Stack* stack, uint32 count)
     return Allocate<Type>(stack, count, alignof(Type));
 }
 
-Stack CreateFrame(Stack* parent)
+/// Allocator
+////////////////////////////////////////////////////////////
+uint8* Stack_AllocateNZ(void* context, uint32 size, uint32 alignment)
 {
-    uint32 size = parent->size - parent->count;
-
-    Stack frame = {};
-    frame.allocator = STACK_ALLOCATOR;
-    frame.parent    = parent;
-    frame.mem       = Allocate<uint8>(parent, size);
-    frame.size      = size;
-    frame.count     = 0;
-    return frame;
+    return AllocateNZ((Stack*)context, size, alignment);
 }
 
+uint8* Stack_Allocate(void* context, uint32 size, uint32 alignment)
+{
+    return Allocate((Stack*)context, size, alignment);
+}
+
+Allocator CreateStackAllocator(Allocator* allocator, uint32 size)
+{
+    Stack* stack = Allocate<Stack>(allocator, 1);
+    *stack = CreateStack(allocator, size);
+
+    Allocator stack_allocator =
+    stack_allocator.allocator  = allocator;
+    stack_allocator.context    = (void*)stack;
+    stack_allocator.type       = AllocatorType::Stack;
+    stack_allocator.AllocateNZ = Stack_AllocateNZ;
+    stack_allocator.Allocate   = Stack_Allocate;
+    return stack_allocator;
+}
+
+void DestroyStackAllocator(Allocator* allocator)
+{
+    CTK_ASSERT(allocator->type == AllocatorType::Stack);
+    DestroyStack((Stack*)allocator->context);
+}
