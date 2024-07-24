@@ -10,7 +10,7 @@ void Run()
     constexpr uint32 TEST_COUNT = 1000000000;
     auto a = CreateArrayFull<uint32>(&g_std_allocator, TEST_COUNT);
     uint32 total;
-    for (uint32 i = 0; i < TEST_COUNT; ++i)
+    for (uint32 i = 0; i < TEST_COUNT; i += 1)
     {
         a.data[i] = i;
     }
@@ -18,7 +18,7 @@ void Run()
     Profile profile = {};
     BeginProfile(&profile, "index");
     total = 0;
-    for (uint32 i = 0; i < TEST_COUNT; ++i)
+    for (uint32 i = 0; i < TEST_COUNT; i += 1)
     {
         total += a.data[i];
     }
@@ -27,7 +27,7 @@ void Run()
 
     BeginProfile(&profile, "Get()");
     total = 0;
-    for (uint32 i = 0; i < TEST_COUNT; ++i)
+    for (uint32 i = 0; i < TEST_COUNT; i += 1)
     {
         total += Get(&a, i);
     }
@@ -36,7 +36,7 @@ void Run()
 
     BeginProfile(&profile, "GetPtr()");
     total = 0;
-    for (uint32 i = 0; i < TEST_COUNT; ++i)
+    for (uint32 i = 0; i < TEST_COUNT; i += 1)
     {
         total += *GetPtr(&a, i);
     }

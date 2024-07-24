@@ -73,14 +73,14 @@ void RunTest(const char* description, uint32 description_size, bool* parent_pass
     g_testing_state.tabs -= 1;
 
     // Update test stats.
-    ++g_testing_state.total_tests;
+    g_testing_state.total_tests += 1;
     if (test_passed)
     {
-        ++g_testing_state.passed_tests;
+        g_testing_state.passed_tests += 1;
     }
     else
     {
-        ++g_testing_state.failed_tests;
+        g_testing_state.failed_tests += 1;
     }
 
     // Only update parent's pass flag if the test func failed.

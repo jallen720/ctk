@@ -8,7 +8,7 @@ CRITICAL_SECTION print_lock;
 void Thread(void* data)
 {
     uint32 id = (uint32)data;
-    for (uint32 i = 0; i < 4; ++i)
+    for (uint32 i = 0; i < 4; i += 1)
     {
         EnterCriticalSection(&print_lock);
         PrintLine("thread %u: %u", id, i);

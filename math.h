@@ -48,9 +48,9 @@ float32 Get(const Matrix* m, uint32 col, uint32 row);
 void PrintMatrix(Matrix* m)
 {
     PrintLine();
-    for (uint32 row = 0; row < 4; ++row)
+    for (uint32 row = 0; row < 4; row += 1)
     {
-        for (uint32 col = 0; col < 4; ++col)
+        for (uint32 col = 0; col < 4; col += 1)
         {
             float32 val = Get(m, col, row);
 
@@ -139,7 +139,7 @@ Type* Align(Type* ptr, uint64 alignment)
 
 uint64 GetAlignment(uint64 value)
 {
-    for (uint32 i = 0; i < 64; ++i)
+    for (uint32 i = 0; i < 64; i += 1)
     {
         uint64 alignment = 1 << i;
         if (alignment & value)
@@ -624,7 +624,7 @@ Matrix operator*(const Matrix& l, const Matrix& r)
 {
     Matrix res = {};
 
-    for (uint32 col = 0; col < 4; ++col)
+    for (uint32 col = 0; col < 4; col += 1)
     {
         _mm_store_ps
         (
@@ -652,7 +652,7 @@ Matrix operator+(const Matrix& l, const Matrix& r)
 {
     Matrix res = {};
 
-    for (uint32 col = 0; col < 4; ++col)
+    for (uint32 col = 0; col < 4; col += 1)
     {
         _mm_store_ps(GetCol(&res, col), _mm_add_ps(_mm_load_ps(GetCol(&l, col)), _mm_load_ps(GetCol(&r, col))));
     }
@@ -662,7 +662,7 @@ Matrix operator+(const Matrix& l, const Matrix& r)
 
 Matrix Translate(Matrix m, Vec3<float32> trans)
 {
-    for (uint32 col = 0; col < 3; ++col)
+    for (uint32 col = 0; col < 3; col += 1)
     {
         float32 trans_val = Get(&trans, col);
         _mm_store_ps
@@ -720,8 +720,8 @@ Matrix RotateZ(Matrix m, float32 degrees)
 
 Matrix Scale(Matrix m, Vec3<float32> v)
 {
-    for (uint32 col = 0; col < 3; ++col)
-    for (uint32 row = 0; row < 3; ++row)
+    for (uint32 col = 0; col < 3; col += 1)
+    for (uint32 row = 0; row < 3; row += 1)
     {
         Set(&m, col, row, Get(&m, col, row) * Get(&v, col));
     }

@@ -37,7 +37,7 @@ bool ExpectLayout(Allocator* free_list_alloc, Array<RangeInfo> layout)
     uint32 range_count = 0;
     while (range_index != UINT32_MAX)
     {
-        ++range_count;
+        range_count += 1;
         Range* range = free_list->ranges + range_index;
 
         // Only test range if there are any left in layout.
@@ -78,7 +78,7 @@ bool ExpectLayout(Allocator* free_list_alloc, Array<RangeInfo> layout)
                 PrintActual(false, "was used");
             }
 
-            ++range_info_index;
+            range_info_index += 1;
         }
 
         range_index = range->next_range_index;
@@ -160,7 +160,7 @@ bool AllocateMultiple()
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list_alloc, CTK_WRAP_ARRAY(layout));
     }
 
-    for (uint32 curr_alloc_index = 0; curr_alloc_index < CTK_ARRAY_SIZE(test_allocs); ++curr_alloc_index)
+    for (uint32 curr_alloc_index = 0; curr_alloc_index < CTK_ARRAY_SIZE(test_allocs); curr_alloc_index += 1)
     {
         auto layout = CreateArray<RangeInfo>(&g_std_allocator, FREE_LIST_BYTE_SIZE);
         Push(&layout, RANGE_DATA_RANGE_INFO);
@@ -169,7 +169,7 @@ bool AllocateMultiple()
         uint32 remaining_byte_size = FREE_LIST_BYTE_SIZE;
 
         // Push previous allocations' used-ranges to layout.
-        for (uint32 prev_alloc_index = 0; prev_alloc_index < curr_alloc_index; ++prev_alloc_index)
+        for (uint32 prev_alloc_index = 0; prev_alloc_index < curr_alloc_index; prev_alloc_index += 1)
         {
             byte_size = test_allocs[prev_alloc_index];
             Push(&layout, { .byte_index = byte_index, .byte_size = byte_size, .is_free = false });

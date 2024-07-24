@@ -60,9 +60,9 @@ void PrintBits(void* bytes, uint32 size)
         return;
     }
 
-    for (uint32 byte_index = 0; byte_index <= size - 1; ++byte_index)
+    for (uint32 byte_index = 0; byte_index <= size - 1; byte_index += 1)
     {
-        for (uint32 bit_index = 0; bit_index < 8; ++bit_index)
+        for (uint32 bit_index = 0; bit_index < 8; bit_index += 1)
         {
             Print("%u", (((uint8*)bytes)[byte_index] >> (7 - bit_index)) & 1);
         }
@@ -107,12 +107,12 @@ void PrintBitsLine(Type data, const char* fmt, Args... args)
 void PrintBytes(uint8* bytes, uint32 size, uint32 width = 32)
 {
     uint32 col = 0;
-    for (uint32 i = 0; i < size; ++i)
+    for (uint32 i = 0; i < size; i += 1)
     {
         PrintASCIICharSingle((char)bytes[i], '.');
         if ((i + 1) % 4 == 0)
         {
-            ++col;
+            col += 1;
             if (col >= width)
             {
                 PrintLine();
@@ -129,12 +129,12 @@ void PrintBytes(uint8* bytes, uint32 size, uint32 width = 32)
 void PrintByteValues(uint8* bytes, uint32 size, uint32 width = 8)
 {
     uint32 col = 0;
-    for (uint32 i = 0; i < size; ++i)
+    for (uint32 i = 0; i < size; i += 1)
     {
         Print("\\%03u", bytes[i]);
         if ((i + 1) % 4 == 0)
         {
-            ++col;
+            col += 1;
             if (col >= width)
             {
                 PrintLine();
@@ -207,7 +207,7 @@ void PrintASCIICharUniform(char c)
 void PrintASCIIString(const char* ascii_string, uint32 size, uint32 max_width)
 {
     uint32 width = 0;
-    for (uint32 i = 0; i < size; ++i)
+    for (uint32 i = 0; i < size; i += 1)
     {
         uint32 ascii_char_width = GetASCIICharWidth(ascii_string[i]);
         if (width + ascii_char_width >= max_width)
@@ -223,7 +223,7 @@ void PrintASCIIString(const char* ascii_string, uint32 size, uint32 max_width)
 void PrintASCIIStringUniform(const char* ascii_string, uint32 size, uint32 max_width)
 {
     uint32 width = 0;
-    for (uint32 i = 0; i < size; ++i)
+    for (uint32 i = 0; i < size; i += 1)
     {
         PrintASCIICharUniform(ascii_string[i]);
         width += 2;
@@ -238,7 +238,7 @@ void PrintASCIIStringUniform(const char* ascii_string, uint32 size, uint32 max_w
 void PrintASCIIStringSingle(const char* ascii_string, uint32 size, uint32 max_width, char non_single_char)
 {
     uint32 width = 0;
-    for (uint32 i = 0; i < size; ++i)
+    for (uint32 i = 0; i < size; i += 1)
     {
         PrintASCIICharSingle(ascii_string[i], non_single_char);
         width += 1;

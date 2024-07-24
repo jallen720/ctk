@@ -79,7 +79,7 @@ void Remove(FArray<Type, size>* array, uint32 index)
     CTK_ASSERT(index < array->count);
 
     memmove(array->data + index, array->data + index + 1, (array->count - index - 1) * sizeof(Type));
-    --array->count;
+    array->count -= 1;
 }
 
 template<typename Type, uint32 size>

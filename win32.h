@@ -68,7 +68,7 @@ void InitWin32Info()
         CTK_FATAL("GetLogicalProcessorInformation() failed: %.*s", e.message_length, e.message);
     }
 
-    for (uint32 i = 0; i != buffer_size / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION); ++i)
+    for (uint32 i = 0; i != buffer_size / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION); i += 1)
     {
         if (buffer[i].Relationship == RelationCache && buffer[i].Cache.Level == 1)
         {

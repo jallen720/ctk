@@ -31,7 +31,7 @@ bool ExpectBytes(Allocator* stack, uint8* expected_bytes)
 
     auto stack_context = (Stack*)stack->context;
 
-    for (uint32 i = 0; i < stack_context->size; ++i)
+    for (uint32 i = 0; i < stack->size; i += 1)
     {
         if (stack_context->mem[i] != expected_bytes[i])
         {

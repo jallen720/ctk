@@ -149,7 +149,7 @@ void RemoveUsedRange(FreeList* free_list, uint32 used_range_index)
     }
 
     // Update used-range count.
-    --free_list->used_range_count;
+    free_list->used_range_count -= 1;
 }
 
 void RemoveFreeRange(FreeList* free_list, uint32 free_range_index)
@@ -165,7 +165,7 @@ void RemoveFreeRange(FreeList* free_list, uint32 free_range_index)
     }
 
     // Update free-range count.
-    --free_list->free_range_count;
+    free_list->free_range_count -= 1;
 }
 
 uint32 FindUsedRangeIndex(FreeList* free_list, void* mem)

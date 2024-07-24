@@ -64,7 +64,7 @@ Pool<Type> CreatePool(Allocator* allocator, uint32 size)
 
     // Point each node (except last) in pool to next node. Pool handle IDs are index + 1.
     pool.next_free = {1};
-    for (uint32 id = 1; id < pool.size; ++id)
+    for (uint32 id = 1; id < pool.size; id += 1)
     {
         pool.nodes[GetIndex(id)].next_free = {id + 1};
     }

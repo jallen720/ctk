@@ -240,7 +240,7 @@ bool KeyDown(Key key)
 
 bool KeyPressed(Key key)
 {
-    for (uint32 i = 0; i < g_input.keys_pressed.count; ++i)
+    for (uint32 i = 0; i < g_input.keys_pressed.count; i += 1)
     {
         if (Get(&g_input.keys_pressed, i) == key)
         {
@@ -253,7 +253,7 @@ bool KeyPressed(Key key)
 
 bool KeyReleased(Key key)
 {
-    for (uint32 i = 0; i < g_input.keys_released.count; ++i)
+    for (uint32 i = 0; i < g_input.keys_released.count; i += 1)
     {
         if (Get(&g_input.keys_released, i) == key)
         {

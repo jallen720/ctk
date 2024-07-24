@@ -19,14 +19,14 @@ uint32 StringSize(const char* nt_string)
     uint32 size = 0;
     while (nt_string[size] != '\0')
     {
-        ++size;
+        size += 1;
     }
     return size;
 }
 
 bool StringsMatch(const char* a, const char* b, uint32 match_size, uint32 match_start = 0)
 {
-    for (uint32 i = 0; i < match_size; ++i)
+    for (uint32 i = 0; i < match_size; i += 1)
     {
         if (a[i] != b[i])
         {
@@ -49,7 +49,7 @@ bool StringsMatch(const char* a, const char* b)
 
 bool Contains(const char* string, uint32 string_size, char c)
 {
-    for (uint32 i = 0; i < string_size; ++i)
+    for (uint32 i = 0; i < string_size; i += 1)
     {
         if (string[i] == c)
         {

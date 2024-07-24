@@ -125,7 +125,7 @@ void InitThreadPool(ThreadPool* thread_pool, Allocator* allocator, uint32 thread
     thread_pool->ready_tasks = CreateTaskList();
 
     // Create threads.
-    for (uint32 i = 0; i < thread_count; ++i)
+    for (uint32 i = 0; i < thread_count; i += 1)
     {
         HANDLE hnd = CreateThread(NULL,        // Thread Attributes
                                   0,           // Stack Size
@@ -143,7 +143,7 @@ void InitThreadPool(ThreadPool* thread_pool, Allocator* allocator, uint32 thread
     }
 
     // Initialize tasks.
-    for (uint32 i = 0; i < thread_count; ++i)
+    for (uint32 i = 0; i < thread_count; i += 1)
     {
         Task* task = GetPtr(&thread_pool->tasks, i);
         task->done = false;
@@ -153,7 +153,7 @@ void InitThreadPool(ThreadPool* thread_pool, Allocator* allocator, uint32 thread
     }
 
     // Link all tasks and set first task as idle_task.
-    for (uint32 i = 0; i < thread_count - 1; ++i)
+    for (uint32 i = 0; i < thread_count - 1; i += 1)
     {
         GetPtr(&thread_pool->tasks, i)->next = i + 1;
     }
@@ -230,21 +230,21 @@ void GetBatchRanges(Array<BatchRange>* batch_ranges, uint32 total_batch_size)
 
     // Calculate batch range start and base size.
     uint32 base_batch_size = total_batch_size / batch_ranges->count;
-    for (uint32 i = 0; i < batch_ranges->count; ++i)
+    for (uint32 i = 0; i < batch_ranges->count; i += 1)
     {
         GetPtr(batch_ranges, i)->size = base_batch_size;
     }
 
     // Add remainders to sizes where needed.
     uint32 remainders = total_batch_size % batch_ranges->count;
-    for (uint32 i = 0; i < remainders; ++i)
+    for (uint32 i = 0; i < remainders; i += 1)
     {
         GetPtr(batch_ranges, i)->size += 1;
     }
 
     // Calculate batch range start indexes.
     uint32 start = 0;
-    for (uint32 i = 0; i < batch_ranges->count; ++i)
+    for (uint32 i = 0; i < batch_ranges->count; i += 1)
     {
         BatchRange* batch_range = GetPtr(batch_ranges, i);
         batch_range->start = start;

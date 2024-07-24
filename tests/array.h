@@ -18,7 +18,7 @@ bool CompareArrayElements(Array<uint32> a, Array<uint32> b)
     else
     {
         bool array_elems_equal = true;
-        for (uint32 i = 0; i < a.count; ++i)
+        for (uint32 i = 0; i < a.count; i += 1)
         {
             if (Get(&a, i) != Get(&b, i))
             {
@@ -30,7 +30,7 @@ bool CompareArrayElements(Array<uint32> a, Array<uint32> b)
 
         PrintExpectedTag();
         Print("a: { ");
-        for (uint32 i = 0; i < a.count; ++i)
+        for (uint32 i = 0; i < a.count; i += 1)
         {
             Print("%u, ", Get(&a, i));
         }
@@ -39,7 +39,7 @@ bool CompareArrayElements(Array<uint32> a, Array<uint32> b)
 
         PrintActualTag(array_elems_equal);
         Print("b: { ");
-        for (uint32 i = 0; i < b.count; ++i)
+        for (uint32 i = 0; i < b.count; i += 1)
         {
             Print("%u, ", Get(&b, i));
         }

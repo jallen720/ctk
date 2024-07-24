@@ -36,7 +36,7 @@ uint32 GetPathDirSize(const char* path)
 {
     uint32 path_size = StringSize(path);
     uint32 dir_size = 0;
-    for (uint32 path_index = 0; path_index < path_size; ++path_index)
+    for (uint32 path_index = 0; path_index < path_size; path_index += 1)
     {
         if (path[path_index] == '/' || path[path_index] == '\\')
         {

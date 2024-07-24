@@ -97,7 +97,7 @@ void PrintAllRangesBytes(FreeList* free_list)
 
         // Print range bytes.
         uint32 range_byte_index = range->byte_index;
-        for (uint32 i = 0; i < range->byte_size; ++i)
+        for (uint32 i = 0; i < range->byte_size; i += 1)
         {
             PrintASCIICharSingle((char)free_list->mem[range_byte_index + i], '.');
         }
@@ -121,7 +121,7 @@ void PrintAllRangesByteValues(FreeList* free_list)
 
         // Print range chunk bytes.
         uint32 range_byte_index = range->byte_index;
-        for (uint32 i = 0; i < range->byte_size; ++i)
+        for (uint32 i = 0; i < range->byte_size; i += 1)
         {
             Print("\\%03u", free_list->mem[range_byte_index + i]);
         }
@@ -179,14 +179,14 @@ void PrintAllRanges(FreeList* free_list)
 void PrintRangeKeys(FreeList* free_list)
 {
     PrintLine(OutputColor::MAGENTA, "Used Ranges (count=%u):", free_list->used_range_count);
-    for (uint32 i = 0; i < free_list->used_range_count; ++i)
+    for (uint32 i = 0; i < free_list->used_range_count; i += 1)
     {
         RangeKey* range_key = &free_list->range_keys[i];
         PrintLine("[%3u] mem_byte_index: %u", i, range_key->mem_byte_index);
     }
 
     PrintLine(OutputColor::GREEN, "Free Ranges (count=%u):", free_list->free_range_count);
-    for (uint32 i = GetFreeRangesFirstIndex(free_list); i < free_list->max_range_count; ++i)
+    for (uint32 i = GetFreeRangesFirstIndex(free_list); i < free_list->max_range_count; i += 1)
     {
         RangeKey* range_key = &free_list->range_keys[i];
         PrintLine("[%3u] byte_index: %u", i, range_key->byte_index);
@@ -238,7 +238,7 @@ void PrintNeighborRanges(FreeList* free_list, uint32 range_index, uint32 neighbo
     PrintLine("\n=======================");
     uint32 start_range_index = range_index;
     uint32 prev_count = 0;
-    for (uint32 i = 0; i < neighbor_count; ++i)
+    for (uint32 i = 0; i < neighbor_count; i += 1)
     {
         uint32 prev_range_index = free_list->ranges[start_range_index].prev_range_index;
         if (prev_range_index == UINT32_MAX)
@@ -246,13 +246,13 @@ void PrintNeighborRanges(FreeList* free_list, uint32 range_index, uint32 neighbo
             break;
         }
 
-        ++prev_count;
+        prev_count += 1;
         start_range_index = prev_range_index;
     }
 
     uint32 total_count = prev_count + 1 + neighbor_count;
     uint32 curr_range_index = start_range_index;
-    for (uint32 i = 0; i < total_count; ++i)
+    for (uint32 i = 0; i < total_count; i += 1)
     {
         PrintRange(free_list, curr_range_index);
         curr_range_index = free_list->ranges[curr_range_index].next_range_index;
@@ -266,7 +266,7 @@ void PrintNeighborRanges(FreeList* free_list, uint32 range_index, uint32 neighbo
 
 void ValidateRanges(FreeList* free_list)
 {
-    for (uint32 range_index = 0; range_index < free_list->used_range_count; ++range_index)
+    for (uint32 range_index = 0; range_index < free_list->used_range_count; range_index += 1)
     {
         Range* range = &free_list->ranges[range_index];
         uint32 next_range_byte_index = range->next_range_index == UINT32_MAX
@@ -302,7 +302,7 @@ void ValidateRanges(FreeList* free_list)
         }
     }
     for (uint32 range_index = GetFreeRangesFirstIndex(free_list); range_index < free_list->max_range_count;
-         ++range_index)
+         range_index += 1)
     {
         Range* range = &free_list->ranges[range_index];
         uint32 next_range_byte_index = range->next_range_index == UINT32_MAX
