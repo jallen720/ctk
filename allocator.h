@@ -1,19 +1,9 @@
 /// Data
 ////////////////////////////////////////////////////////////
-enum struct AllocatorType
-{
-    STD,
-    FreeList,
-    Stack,
-    Frame,
-};
-
 struct Allocator;
 struct Allocator
 {
-    AllocatorType                               type;
-    void*                                       context;
-    Allocator*                                  parent;
+    Allocator*                                       parent;
     Func<uint8*, Allocator*, uint32, uint32>         Allocate;
     Func<uint8*, Allocator*, uint32, uint32>         AllocateNZ;
     Func<uint8*, Allocator*, void*,  uint32, uint32> Reallocate;
