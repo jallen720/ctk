@@ -31,7 +31,9 @@ struct ThreadPool
     Array<Task>   tasks;
     TaskList      idle_tasks;
     TaskList      ready_tasks;
-    uint32        size;
+    uint32        thread_count;
+    uint32        thread_frame_stack_size;
+    Allocator*    allocator;
 };
 
 constexpr TaskHnd NO_TASK = UINT32_MAX;
@@ -91,6 +93,13 @@ void PushTask(ThreadPool* thread_pool, TaskList* task_list, TaskHnd task_hnd)
 DWORD ThreadFunc(void* data)
 {
     auto thread_pool = (ThreadPool*)data;
+
+    // Initialize frame stack for thread if necessary.
+    if (thread_pool->thread_frame_stack_size > 0)
+    {
+        CreateThreadFrameStack(thread_pool->allocator, thread_pool->thread_frame_stack_size);
+    }
+
     for (;;)
     {
         // Pop next ready task once available.
@@ -114,15 +123,18 @@ DWORD ThreadFunc(void* data)
 
 /// Interface
 ////////////////////////////////////////////////////////////
-void InitThreadPool(ThreadPool* thread_pool, Allocator* allocator, uint32 thread_count)
+void InitThreadPool(ThreadPool* thread_pool, Allocator* allocator, uint32 thread_count,
+                    uint32 thread_frame_stack_size = 0)
 {
     CTK_ASSERT(thread_count > 0);
 
-    thread_pool->size        = thread_count;
-    thread_pool->threads     = CreateArray<HANDLE>(allocator, thread_count);
-    thread_pool->tasks       = CreateArrayFull<Task>(allocator, thread_count);
-    thread_pool->idle_tasks  = CreateTaskList();
-    thread_pool->ready_tasks = CreateTaskList();
+    thread_pool->threads                 = CreateArray<HANDLE>(allocator, thread_count);
+    thread_pool->tasks                   = CreateArrayFull<Task>(allocator, thread_count);
+    thread_pool->idle_tasks              = CreateTaskList();
+    thread_pool->ready_tasks             = CreateTaskList();
+    thread_pool->thread_count            = thread_count;
+    thread_pool->thread_frame_stack_size = thread_frame_stack_size;
+    thread_pool->allocator               = allocator;
 
     // Create threads.
     for (uint32 i = 0; i < thread_count; i += 1)
@@ -172,7 +184,7 @@ void DestroyThreadPool(ThreadPool* thread_pool)
             CTK_FATAL("TerminateThread() failed: %.*s", e.message_length, e.message);
         }
     }
-    thread_pool->size = 0;
+    thread_pool->thread_count = 0;
     DestroyArray(&thread_pool->threads);
     DestroyArray(&thread_pool->tasks);
     DestroyTaskList(&thread_pool->idle_tasks);

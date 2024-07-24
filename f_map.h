@@ -13,7 +13,7 @@ struct FMap
 template<typename Key, typename Value, uint32 size>
 Value* FindValue(FMap<Key, Value, size>* map, Key key)
 {
-    for (uint32 i = 0; i < map->count; i += i)
+    for (uint32 i = 0; i < map->count; i += 1)
     {
         if (map->keys[i] == key)
         {
@@ -27,7 +27,7 @@ Value* FindValue(FMap<Key, Value, size>* map, Key key)
 template<typename Key, typename Value, uint32 size>
 Key* FindKey(FMap<Key, Value, size>* map, Value value)
 {
-    for (uint32 i = 0; i < map->count; i += i)
+    for (uint32 i = 0; i < map->count; i += 1)
     {
         if (map->values[i] == value)
         {

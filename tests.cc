@@ -13,7 +13,7 @@ using namespace CTK;
 #include "ctk/tests/math.h"
 #include "ctk/tests/json.h"
 
-// #include "ctk/tests/thread_pool.h"
+#include "ctk/tests/thread_pool.h"
 // #include "ctk/tests/profile.h"
 // #include "ctk/tests/window.h"
 
@@ -35,7 +35,7 @@ sint32 main()
     RunTest("JSON",     NULL, JSONTest::Run);
     ShowTestStats();
 
-    // ThreadPoolTest::Run();
+    ThreadPoolTest::Run();
     // ProfileTest::Run();
     // WindowTest::Run();
 
