@@ -281,7 +281,7 @@ template<typename ...Args>
 void Append(String* string, const char* fmt_string, Args... args)
 {
     uint32 remaining_space = string->size - string->count;
-    uint32 chars_to_append = (uint32)snprintf(string->data + string->count, remaining_space, fmt_string, args...);
+    uint32 chars_to_append = (uint32)snprintf(&string->data[string->count], remaining_space, fmt_string, args...);
     string->count += chars_to_append <= remaining_space ? chars_to_append : remaining_space;
 }
 

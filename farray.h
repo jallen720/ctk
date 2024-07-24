@@ -37,7 +37,7 @@ Type* Push(FArray<Type, size>* array, Type elem)
         CTK_FATAL("can't push element to array: no space available");
     }
 
-    Type* new_elem = array->data + array->count;
+    Type* new_elem = &array->data[array->count];
     *new_elem = elem;
     array->count += 1;
     return new_elem;
@@ -63,7 +63,7 @@ void PushRange(FArray<Type, size>* array, const Type* elems, uint32 elem_count)
         CTK_FATAL("can't push %u elements to array: array has %u available slots", elem_count, available_space);
     }
 
-    memcpy(array->data + array->count, elems, elem_count * sizeof(Type));
+    memcpy(&array->data[array->count], elems, elem_count * sizeof(Type));
     array->count += elem_count;
 }
 
@@ -78,7 +78,7 @@ void Remove(FArray<Type, size>* array, uint32 index)
 {
     CTK_ASSERT(index < array->count);
 
-    memmove(array->data + index, array->data + index + 1, (array->count - index - 1) * sizeof(Type));
+    memmove(&array->data[index], &array->data[index + 1], (array->count - index - 1) * sizeof(Type));
     array->count -= 1;
 }
 
@@ -88,7 +88,7 @@ void RemoveRange(FArray<Type, size>* array, uint32 index, uint32 count)
     CTK_ASSERT(index < array->count);
     CTK_ASSERT(index + count <= array->count);
 
-    memmove(array->data + index, array->data + index + count, (array->count - index - count) * sizeof(Type));
+    memmove(&array->data[index], &array->data[index + count], (array->count - index - count) * sizeof(Type));
     array->count -= count;
 }
 
@@ -103,7 +103,7 @@ Type* GetPtr(FArray<Type, size>* array, uint32 index)
 {
     CTK_ASSERT(index < array->count);
 
-    return array->data + index;
+    return &array->data[index];
 }
 
 template<typename Type, uint32 size>

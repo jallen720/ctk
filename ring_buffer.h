@@ -52,13 +52,13 @@ Type* Next(RingBuffer<Type>* ring_buffer)
     {
         ring_buffer->index = 0;
     }
-    return ring_buffer->data + ring_buffer->index;
+    return &ring_buffer->data[ring_buffer->index];
 }
 
 template<typename Type>
 Type* GetCurrentPtr(RingBuffer<Type>* ring_buffer)
 {
-    return ring_buffer->data + ring_buffer->index;
+    return &ring_buffer->data[ring_buffer->index];
 }
 
 template<typename Type>
