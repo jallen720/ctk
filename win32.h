@@ -61,7 +61,7 @@ void InitWin32Info()
                   "undefined");
     }
 
-    auto buffer = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION*)Allocate(buffer_size, 16);
+    auto buffer = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION*)Allocate(&g_std_allocator, buffer_size, 16);
     if (!GetLogicalProcessorInformation(buffer, &buffer_size))
     {
         GetWin32Error(&e);
@@ -77,7 +77,7 @@ void InitWin32Info()
         }
     }
 
-    Deallocate(&std_allocator, buffer);
+    Deallocate(&g_std_allocator, buffer);
 
     g_win32_info.initialized = true;
 }

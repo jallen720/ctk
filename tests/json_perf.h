@@ -17,7 +17,7 @@ void Run()
         Write(&prof_name, "pass %2u", pass);
         BeginProfile(&prof, prof_name.data);
 
-        JSON json = LoadJSON(&std_allocator, "tests/data/large.json");
+        JSON json = LoadJSON(&g_std_allocator, "tests/data/large.json");
         DestroyJSON(&json);
 
         EndProfile(&prof);

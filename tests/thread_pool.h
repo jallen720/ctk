@@ -21,7 +21,7 @@ void ThreadPoolTest()
 {
     constexpr uint32 THREAD_COUNT = 4;
     ThreadPool thread_pool = {};
-    InitThreadPool(&thread_pool, &std_allocator, THREAD_COUNT);
+    InitThreadPool(&thread_pool, &g_std_allocator, THREAD_COUNT);
     InitializeCriticalSection(&print_lock);
 
     TaskHnd tasks[THREAD_COUNT] = {};

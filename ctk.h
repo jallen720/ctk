@@ -27,6 +27,7 @@ namespace CTK
 #include "ctk/stack.h"
 #include "ctk/free_list.h"
 #include "ctk/free_list_debug.h"
+#include "ctk/global_allocators.h"
 
 // Collections
 #include "ctk/array.h"

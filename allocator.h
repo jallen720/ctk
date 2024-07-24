@@ -1,22 +1,24 @@
 /// Data
 ////////////////////////////////////////////////////////////
-enum struct AllocType
+enum struct AllocatorType
 {
+    STD,
     FreeList,
     Stack,
+    Frame,
 };
 
 struct Allocator;
 struct Allocator
 {
-    Allocator*                                 parent;
-    void*                                      context;
-    AllocType                                  type;
-    Func<uint8*, void*, uint32, uint32>        AllocateNZ;
-    Func<uint8*, void*, uint32, uint32>        Allocate;
-    Func<uint8*, void*, void*, uint32, uint32> ReallocateNZ;
-    Func<uint8*, void*, void*, uint32, uint32> Reallocate;
-    Func<void, void*, void*>                   Deallocate;
+    AllocatorType                               type;
+    void*                                       context;
+    Allocator*                                  parent;
+    Func<uint8*, void*, uint32, uint32>         Allocate;
+    Func<uint8*, void*, uint32, uint32>         AllocateNZ;
+    Func<uint8*, void*, void*,  uint32, uint32> Reallocate;
+    Func<uint8*, void*, void*,  uint32, uint32> ReallocateNZ;
+    Func<void,   void*, void*>                  Deallocate;
 };
 
 /// Allocator Interface
@@ -98,100 +100,3 @@ void Deallocate(Allocator* allocator, void* mem)
     CTK_ASSERT(allocator->Deallocate != NULL);
     allocator->Deallocate(allocator->context, mem);
 }
-
-/// STD Allocation Interface
-////////////////////////////////////////////////////////////
-uint8* AllocateNZ(uint32 size, uint32 alignment)
-{
-    CTK_ASSERT(size > 0);
-    return (uint8*)_aligned_malloc(size, alignment);
-}
-
-template<typename Type>
-Type* AllocateNZ(uint32 count, uint32 alignment)
-{
-    return (Type*)AllocateNZ(SizeOf32<Type>() * count, alignment);
-}
-
-template<typename Type>
-Type* AllocateNZ(uint32 count)
-{
-    return AllocateNZ<Type>(count, alignof(Type));
-}
-
-uint8* Allocate(uint32 size, uint32 alignment)
-{
-    uint8* allocated_mem = AllocateNZ(size, alignment);
-    memset(allocated_mem, 0, size);
-    return allocated_mem;
-}
-
-template<typename Type>
-Type* Allocate(uint32 count, uint32 alignment)
-{
-    return (Type*)Allocate(SizeOf32<Type>() * count, alignment);
-}
-
-template<typename Type>
-Type* Allocate(uint32 count)
-{
-    return Allocate<Type>(count, alignof(Type));
-}
-
-uint8* ReallocateNZ(void* mem, uint32 new_size, uint32 alignment)
-{
-    return (uint8*)_aligned_realloc(mem, new_size, alignment);
-}
-
-template<typename Type>
-Type* ReallocateNZ(Type* mem, uint32 new_count, uint32 alignment)
-{
-    return (Type*)ReallocateNZ((void*)mem, SizeOf32<Type>() * new_count, alignment);
-}
-
-template<typename Type>
-Type* ReallocateNZ(Type* mem, uint32 new_count)
-{
-    return ReallocateNZ(mem, new_count, alignof(Type));
-}
-
-void Deallocate(void* mem)
-{
-    _aligned_free(mem);
-}
-
-/// STD Allocator
-////////////////////////////////////////////////////////////
-uint8* STD_AllocateNZ(void* context, uint32 size, uint32 alignment)
-{
-    CTK_UNUSED(context);
-    return AllocateNZ(size, alignment);
-}
-
-uint8* STD_Allocate(void* context, uint32 size, uint32 alignment)
-{
-    CTK_UNUSED(context);
-    return Allocate(size, alignment);
-}
-
-uint8* STD_ReallocateNZ(void* context, void* mem, uint32 new_size, uint32 alignment)
-{
-    CTK_UNUSED(context);
-    return ReallocateNZ(mem, new_size, alignment);
-}
-
-void STD_Deallocate(void* context, void* mem)
-{
-    CTK_UNUSED(context);
-    Deallocate(mem);
-}
-
-Allocator std_allocator =
-{
-    .AllocateNZ   = STD_AllocateNZ,
-    .Allocate     = STD_Allocate,
-    .ReallocateNZ = STD_ReallocateNZ,
-    .Reallocate   = NULL,
-    .Deallocate   = STD_Deallocate,
-};
-

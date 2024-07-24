@@ -33,7 +33,7 @@ bool ResizeInitializedStringTest()
 {
     bool pass = true;
 
-    String string = CreateString(&std_allocator, 6);
+    String string = CreateString(&g_std_allocator, 6);
     Push(&string, '1');
     Push(&string, '2');
     Push(&string, '3');
@@ -58,7 +58,7 @@ bool ResizeUninitializedStringTest()
 {
     bool pass = true;
 
-    String string = CreateString(&std_allocator);
+    String string = CreateString(&g_std_allocator);
     RunTest("Uninitialized String", &pass, TestStringFields, &string, 0u, 0u, true);
 
     ResizeNZ(&string, 1);
@@ -80,7 +80,7 @@ bool CanPushTest()
 {
     bool pass = true;
 
-    String string = CreateString(&std_allocator, 2);
+    String string = CreateString(&g_std_allocator, 2);
 
     if (!ExpectEqual("string(size=2,count=0); CanPush(string, 2)", true, CanPush(&string, 2)))
     {
@@ -107,7 +107,7 @@ bool RemoveTest()
 {
     bool pass = true;
 
-    String string = CreateString(&std_allocator, "1234");
+    String string = CreateString(&g_std_allocator, "1234");
     RunTest("Init Layout \"1234\"", &pass, ExpectEqual, "1234", &string);
 
     Remove(&string, 0);
@@ -130,7 +130,7 @@ bool RemoveRangeTest()
 {
     bool pass = true;
 
-    String string = CreateString(&std_allocator, "12345678");
+    String string = CreateString(&g_std_allocator, "12345678");
     RunTest("Init Layout \"12345678\"", &pass, ExpectEqual, "12345678", &string);
 
     RemoveRange(&string, 0, 2);
@@ -155,7 +155,7 @@ bool WriteTest()
 
     {
         constexpr uint32 STRING_SIZE = 5;
-        String string = CreateString(&std_allocator, STRING_SIZE);
+        String string = CreateString(&g_std_allocator, STRING_SIZE);
 
         Write(&string, "test");
         RunTest("Write(string, \"test\") (equal up to string.count)", &pass,
@@ -167,7 +167,7 @@ bool WriteTest()
     }
     {
         constexpr uint32 STRING_SIZE = 8;
-        String string = CreateString(&std_allocator, STRING_SIZE);
+        String string = CreateString(&g_std_allocator, STRING_SIZE);
 
         char expected[STRING_SIZE] = {};
         Write(&string, "test");
@@ -195,7 +195,7 @@ bool AppendTest()
         Write(expected[2], STRING_SIZE, "test1test2test3");
         Write(expected[3], STRING_SIZE, "test1test2test3test4"); // Will truncate "st4"
 
-        String string = CreateString(&std_allocator, STRING_SIZE);
+        String string = CreateString(&g_std_allocator, STRING_SIZE);
 
         Append(&string, "test1");
         RunTest("Append(string, \"test1\")", &pass, ExpectEqualFull, (const char*)expected[0], STRING_SIZE, &string);
@@ -223,7 +223,7 @@ bool ContainsTest()
 {
     bool pass = true;
 
-    String string = CreateString(&std_allocator, "1234");
+    String string = CreateString(&g_std_allocator, "1234");
     RunTest("Init string: \"1234\"", &pass, TestStringFields, &string, 4u, 4u, false);
 
     if (!ExpectEqual("Contains(string, '2')", true, Contains(&string, '2')))
@@ -250,7 +250,7 @@ bool ReverseTest()
 {
     bool pass = true;
 
-    String string = CreateString(&std_allocator, 16);
+    String string = CreateString(&g_std_allocator, 16);
 
     // Even
     PushRange(&string, "this is a test");

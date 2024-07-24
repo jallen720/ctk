@@ -14,7 +14,7 @@ void ProfileTest()
 
 void ProfileTreeTest()
 {
-    ProfileTree* profile_tree = CreateProfileTree(&std_allocator, 16);
+    ProfileTree* profile_tree = CreateProfileTree(&g_std_allocator, 16);
 
     BeginProfile(profile_tree, "layer 0");
         BeginProfile(profile_tree, "layer 1 child 0");
@@ -31,7 +31,7 @@ void ProfileTreeTest()
     EndProfile(profile_tree);
     PrintProfileTree(profile_tree);
 
-    DestroyProfileTree(profile_tree, &std_allocator);
+    DestroyProfileTree(profile_tree, &g_std_allocator);
 }
 
 void Run()

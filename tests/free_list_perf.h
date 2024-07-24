@@ -153,7 +153,7 @@ void Run()
     constexpr uint32 DEALLOC_RANGE = REALLOC_RANGE + DEALLOC_RATIO;
     constexpr uint32 TOTAL_RANGE   = DEALLOC_RANGE;
 
-    auto ops = CreateArray<Operation>(&std_allocator, OP_COUNT);
+    auto ops = CreateArray<Operation>(&g_std_allocator, OP_COUNT);
     uint32 allocate_op_count    = 0;
     uint32 reallocate_op_count  = 0;
     uint32 deallocate_op_count  = 0;
@@ -220,7 +220,7 @@ void Run()
     // Run tests.
     constexpr uint32 MAX_ALLOCATIONS = 2048;
     constexpr uint32 TEST_PASSES     = 8;
-    auto allocations = CreateArray<Allocation>(&std_allocator, max_allocation_count);
+    auto allocations = CreateArray<Allocation>(&g_std_allocator, max_allocation_count);
 
 #if 1
     // Stdlib Tests
@@ -229,7 +229,7 @@ void Run()
         PrintLine("Stdlib Test");
 
         // Run warmup test then free/clear allocations.
-        Test(&ops, &allocations, &std_allocator, WARMUP_PASS);
+        Test(&ops, &allocations, &g_std_allocator, WARMUP_PASS);
         for (uint32 allocation_index = 0; allocation_index < allocations.count; allocation_index += 1)
         {
             Deallocate(GetPtr(&allocations, allocation_index)->ptr);
@@ -240,7 +240,7 @@ void Run()
         for (uint32 pass = 0; pass < TEST_PASSES; pass += 1)
         {
             // Run test then free/clear allocations.
-            total_ms += Test(&ops, &allocations, &std_allocator, pass);
+            total_ms += Test(&ops, &allocations, &g_std_allocator, pass);
             for (uint32 allocation_index = 0; allocation_index < allocations.count; allocation_index += 1)
             {
                 Deallocate(GetPtr(&allocations, allocation_index)->ptr);
@@ -259,10 +259,10 @@ void Run()
         FreeList free_list = {};
 
         // Run warmup test then cleanup free_list and allocations for next test.
-        free_list = CreateFreeList(&std_allocator, FREE_LIST_BYTE_SIZE, { max_allocation_count * 2 });
+        free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { max_allocation_count * 2 });
         Test(&ops, &allocations, &free_list.allocator, WARMUP_PASS);
 // PrintUsage(&free_list);
-        DestroyFreeList(&free_list, &std_allocator);
+        DestroyFreeList(&free_list, &g_std_allocator);
         Clear(&allocations);
 
         // Run all test passes.
@@ -270,9 +270,9 @@ void Run()
         for (uint32 pass = 0; pass < TEST_PASSES; pass += 1)
         {
             // Run test then cleanup free_list and allocations for next test.
-            free_list = CreateFreeList(&std_allocator, FREE_LIST_BYTE_SIZE, { max_allocation_count * 2 });
+            free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { max_allocation_count * 2 });
             total_ms += Test(&ops, &allocations, &free_list.allocator, pass);
-            DestroyFreeList(&free_list, &std_allocator);
+            DestroyFreeList(&free_list, &g_std_allocator);
             Clear(&allocations);
         }
         PrintLine("average:        %.f ms", total_ms / TEST_PASSES);

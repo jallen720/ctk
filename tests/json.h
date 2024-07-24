@@ -5,7 +5,7 @@ bool ValidTest()
 {
     bool pass = true;
 
-    JSON json = LoadJSON(&std_allocator, "tests/data/valid.json");
+    JSON json = LoadJSON(&g_std_allocator, "tests/data/valid.json");
     DestroyJSON(&json);
 
     return pass;
@@ -15,7 +15,7 @@ bool ScientificENotationTest()
 {
     bool pass = true;
 
-    JSON json = LoadJSON(&std_allocator, "tests/data/scientific_e_notation.json");
+    JSON json = LoadJSON(&g_std_allocator, "tests/data/scientific_e_notation.json");
     DestroyJSON(&json);
 
     return pass;
@@ -25,7 +25,7 @@ bool ObjectKeyTest()
 {
     bool pass = true;
 
-    JSON json = LoadJSON(&std_allocator, "tests/data/object_key_test.json");
+    JSON json = LoadJSON(&g_std_allocator, "tests/data/object_key_test.json");
     DestroyJSON(&json);
 
     return pass;
@@ -35,7 +35,7 @@ bool GLTFTest()
 {
     bool pass = true;
 
-    JSON json = LoadJSON(&std_allocator, "tests/data/gltf_test.json");
+    JSON json = LoadJSON(&g_std_allocator, "tests/data/gltf_test.json");
     DestroyJSON(&json);
 
     return pass;
@@ -48,7 +48,7 @@ bool EndlessStringTest()
     bool pass = true;
 
     RunTest("LoadJSON(\"tests/data/endless_string.json\")", &pass,
-            ExpectFatalError, LoadJSON, &std_allocator, "tests/data/endless_string.json");
+            ExpectFatalError, LoadJSON, &g_std_allocator, "tests/data/endless_string.json");
 
     return pass;
 }
@@ -58,7 +58,7 @@ bool MultiDecimalTest()
     bool pass = true;
 
     RunTest("LoadJSON(\"tests/data/multi_decimal.json\")", &pass,
-            ExpectFatalError, LoadJSON, &std_allocator, "tests/data/multi_decimal.json");
+            ExpectFatalError, LoadJSON, &g_std_allocator, "tests/data/multi_decimal.json");
 
     return pass;
 }
@@ -68,7 +68,7 @@ bool DecimalFirstTest()
     bool pass = true;
 
     RunTest("LoadJSON(\"tests/data/decimal_first.json\")", &pass,
-            ExpectFatalError, LoadJSON, &std_allocator, "tests/data/decimal_first.json");
+            ExpectFatalError, LoadJSON, &g_std_allocator, "tests/data/decimal_first.json");
 
     return pass;
 }
@@ -78,7 +78,7 @@ bool NegativeNoNumTest()
     bool pass = true;
 
     RunTest("LoadJSON(\"tests/data/negative_no_num.json\")", &pass,
-            ExpectFatalError, LoadJSON, &std_allocator, "tests/data/negative_no_num.json");
+            ExpectFatalError, LoadJSON, &g_std_allocator, "tests/data/negative_no_num.json");
 
     return pass;
 }
@@ -88,7 +88,7 @@ bool NegativeDecimalFirstTest()
     bool pass = true;
 
     RunTest("LoadJSON(\"tests/data/negative_decimal_first.json\")", &pass,
-            ExpectFatalError, LoadJSON, &std_allocator, "tests/data/negative_decimal_first.json");
+            ExpectFatalError, LoadJSON, &g_std_allocator, "tests/data/negative_decimal_first.json");
 
     return pass;
 }
@@ -98,7 +98,7 @@ bool EOFBeforeEndOfStringTest()
     bool pass = true;
 
     RunTest("LoadJSON(\"tests/data/eof_string.json\")", &pass,
-            ExpectFatalError, LoadJSON, &std_allocator, "tests/data/eof_string.json");
+            ExpectFatalError, LoadJSON, &g_std_allocator, "tests/data/eof_string.json");
 
     return pass;
 }
@@ -108,7 +108,7 @@ bool NoRootTest()
     bool pass = true;
 
     RunTest("LoadJSON(\"tests/data/no_root.json\")", &pass,
-            ExpectFatalError, LoadJSON, &std_allocator, "tests/data/no_root.json");
+            ExpectFatalError, LoadJSON, &g_std_allocator, "tests/data/no_root.json");
 
     return pass;
 }
@@ -117,7 +117,7 @@ bool LargeTest()
 {
     bool pass = true;
 
-    JSON json = LoadJSON(&std_allocator, "tests/data/large.json");
+    JSON json = LoadJSON(&g_std_allocator, "tests/data/large.json");
     DestroyJSON(&json);
 
     return pass;
@@ -133,7 +133,7 @@ bool ValidSearchTest()
         JSONNodeType type;
     };
 
-    JSON json = LoadJSON(&std_allocator, "tests/data/valid.json");
+    JSON json = LoadJSON(&g_std_allocator, "tests/data/valid.json");
 
     JSONSearch searches[] =
     {
@@ -213,7 +213,7 @@ bool InvalidSearchTest()
 {
     bool pass = true;
 
-    JSON json = LoadJSON(&std_allocator, "tests/data/valid.json");
+    JSON json = LoadJSON(&g_std_allocator, "tests/data/valid.json");
     RunTest<Func<JSONNode*, JSON*, const char*>>(
         "SearchNode(&json, \"invalid_key\")", &pass, ExpectFatalError, SearchNode, &json, "invalid_key");
     DestroyJSON(&json);
@@ -225,7 +225,7 @@ bool ValidGetTest()
 {
     bool pass = true;
 
-    JSON json = LoadJSON(&std_allocator, "tests/data/valid.json");
+    JSON json = LoadJSON(&g_std_allocator, "tests/data/valid.json");
 
     RunTest("GetUInt32 (uint32)",  &pass, ExpectEqual, 1u,                   GetUInt32 (&json, "uint32"));
     RunTest("GetSInt32 (sint32)",  &pass, ExpectEqual, -1,                   GetSInt32 (&json, "sint32"));

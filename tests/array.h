@@ -89,7 +89,7 @@ bool ResizeInitializedArrayTest()
 {
     bool pass = true;
 
-    auto array = CreateArray<uint32>(&std_allocator, 6);
+    auto array = CreateArray<uint32>(&g_std_allocator, 6);
     Push(&array, 1u);
     Push(&array, 2u);
     Push(&array, 3u);
@@ -109,7 +109,7 @@ bool ResizeUninitializedArrayTest()
 {
     bool pass = true;
 
-    auto array = CreateArray<uint32>(&std_allocator);
+    auto array = CreateArray<uint32>(&g_std_allocator);
     RunTest("Uninitialized Array", &pass, TestArrayFields, &array, 0u, 0u, true);
 
     ResizeNZ(&array, 1);
@@ -131,8 +131,8 @@ bool CanPushTest()
 {
     bool pass = true;
 
-    Array<uint32> array = CreateArray<uint32>(&std_allocator, 2);
-    RunTest("CreateArray<uint32>(&std_allocator, 2)", &pass, TestArrayFields, &array, 2u, 0u, false);
+    Array<uint32> array = CreateArray<uint32>(&g_std_allocator, 2);
+    RunTest("CreateArray<uint32>(&g_std_allocator, 2)", &pass, TestArrayFields, &array, 2u, 0u, false);
 
     if (!ExpectEqual("array(size=2,count=0); CanPush(&array, 2)", true, CanPush(&array, 2)))
     {
@@ -253,7 +253,7 @@ bool ReverseTest()
 {
     bool pass = true;
 
-    auto array = CreateArray<char>(&std_allocator, 16);
+    auto array = CreateArray<char>(&g_std_allocator, 16);
 
     // Even
     const char* even = "this is a test";
@@ -288,7 +288,7 @@ bool InsertionSortTest()
 {
     bool pass = true;
 
-    auto array = CreateArray<char>(&std_allocator, 8);
+    auto array = CreateArray<char>(&g_std_allocator, 8);
 
     PushRange(&array, "1234", 4);
     RunTest("Init Layout", &pass, ExpectEqual, "1234", &array);
