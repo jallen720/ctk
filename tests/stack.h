@@ -3,21 +3,19 @@
 namespace StackTest
 {
 
-bool TestStackFields(const char* stack_name, Allocator* stack, uint32 expected_size, uint32 expected_count)
+bool TestStackFields(const char* stack_name, Stack* stack, uint32 expected_size, uint32 expected_count)
 {
     bool pass = true;
 
-    auto stack_context = (Stack*)stack->context;
-
     FString<256> description = {};
     Write(&description, "%s->size", stack_name);
-    if (!ExpectEqual(&description, expected_size, stack_context->size))
+    if (!ExpectEqual(&description, expected_size, stack->size))
     {
         pass = false;
     }
 
     Write(&description, "%s->count", stack_name);
-    if (!ExpectEqual(&description, expected_count, stack_context->count))
+    if (!ExpectEqual(&description, expected_count, stack->count))
     {
         pass = false;
     }
@@ -25,15 +23,13 @@ bool TestStackFields(const char* stack_name, Allocator* stack, uint32 expected_s
     return pass;
 }
 
-bool ExpectBytes(Allocator* stack, uint8* expected_bytes)
+bool ExpectBytes(Stack* stack, uint8* expected_bytes)
 {
     bool pass = true;
 
-    auto stack_context = (Stack*)stack->context;
-
     for (uint32 i = 0; i < stack->size; i += 1)
     {
-        if (stack_context->mem[i] != expected_bytes[i])
+        if (stack->mem[i] != expected_bytes[i])
         {
             pass = false;
             break;
@@ -41,11 +37,11 @@ bool ExpectBytes(Allocator* stack, uint8* expected_bytes)
     }
 
     PrintExpectedTag();
-    PrintBytes(expected_bytes, stack_context->size);
+    PrintBytes(expected_bytes, stack->size);
     PrintLine();
 
     PrintActualTag(pass);
-    PrintBytes(stack_context->mem, stack_context->size);
+    PrintBytes(stack->mem, stack->size);
     PrintLine();
 
     return pass;
@@ -56,7 +52,7 @@ bool AllocateTest()
     bool pass = true;
 
     constexpr uint32 STACK_BYTE_SIZE = 32;
-    Allocator stack = CreateStack(&g_std_allocator, STACK_BYTE_SIZE);
+    Stack stack = CreateStack(&g_std_allocator, STACK_BYTE_SIZE);
     char* buffer = NULL;
 
     {
@@ -88,7 +84,7 @@ bool AlignmentTest()
 
     constexpr uint32 STACK_BYTE_SIZE = 1024;
     constexpr uint32 STACK_COUNT     = 16;
-    Allocator stacks[STACK_COUNT] = {};
+    Stack stacks[STACK_COUNT] = {};
 
     CTK_ITER_PTR(stack, stacks, STACK_COUNT)
     {

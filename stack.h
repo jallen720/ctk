@@ -1,6 +1,6 @@
 /// Data
 ////////////////////////////////////////////////////////////
-struct Stack
+struct Stack : public Allocator
 {
     uint8* mem;
     uint32 size;
@@ -9,9 +9,9 @@ struct Stack
 
 /// Interface
 ////////////////////////////////////////////////////////////
-uint8* Stack_AllocateNZ(void* context, uint32 size, uint32 alignment)
+uint8* Stack_AllocateNZ(Allocator* allocator, uint32 size, uint32 alignment)
 {
-    auto stack = (Stack*)context;
+    auto stack = (Stack*)allocator;
     CTK_ASSERT(size > 0);
 
     uint32 aligned_index = Align(stack->mem + stack->count, alignment) - stack->mem;
@@ -26,44 +26,34 @@ uint8* Stack_AllocateNZ(void* context, uint32 size, uint32 alignment)
     return &stack->mem[aligned_index];
 }
 
-uint8* Stack_Allocate(void* context, uint32 size, uint32 alignment)
+uint8* Stack_Allocate(Allocator* allocator, uint32 size, uint32 alignment)
 {
-    uint8* allocated_mem = Stack_AllocateNZ(context, size, alignment);
+    uint8* allocated_mem = Stack_AllocateNZ(allocator, size, alignment);
     memset(allocated_mem, 0, size);
     return allocated_mem;
 }
 
-Allocator CreateStack(Allocator* parent, uint32 size)
+Stack CreateStack(Allocator* parent, uint32 size)
 {
     CTK_ASSERT(size > 0);
 
-    Stack* stack = Allocate<Stack>(parent, 1);
-    stack->mem   = Allocate<uint8>(parent, size);
-    stack->size  = size;
-    stack->count = 0;
-
-    Allocator stack_alloc = {};
-    stack_alloc.parent     = parent;
-    stack_alloc.context    = stack;
-    stack_alloc.type       = AllocatorType::Stack;
-    stack_alloc.Allocate   = Stack_Allocate;
-    stack_alloc.AllocateNZ = Stack_AllocateNZ;
-    return stack_alloc;
+    Stack stack = {};
+    stack.Allocate   = Stack_Allocate;
+    stack.AllocateNZ = Stack_AllocateNZ;
+    stack.parent     = parent;
+    stack.mem        = Allocate<uint8>(parent, size);
+    stack.size       = size;
+    stack.count      = 0;
+    return stack;
 }
 
-void DestroyStack(Allocator* stack_alloc)
+void DestroyStack(Stack* stack)
 {
-    CTK_ASSERT(stack_alloc->type == AllocatorType::Stack);
-
-    auto stack = (Stack*)stack_alloc->context;
-    Deallocate(stack_alloc->parent, stack->mem);
+    Deallocate(stack->parent, stack->mem);
     *stack = {};
 }
 
-void Clear(Allocator* stack_alloc)
+void Clear(Stack* stack)
 {
-    CTK_ASSERT(stack_alloc->type == AllocatorType::Stack);
-
-    auto stack = (Stack*)stack_alloc->context;
     stack->count = 0;
 }

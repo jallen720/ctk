@@ -29,7 +29,7 @@ struct FreeListInfo
     uint32 max_range_count;
 };
 
-struct FreeList
+struct FreeList : public Allocator
 {
     uint8* mem;
     uint32 byte_size;
@@ -457,29 +457,29 @@ uint8* InternalReallocate(FreeList* free_list, uint32 used_range_index, uint32 r
 
 /// Interface
 ////////////////////////////////////////////////////////////
-uint8* FreeList_AllocateNZ(void* context, uint32 size, uint32 alignment)
+uint8* FreeList_AllocateNZ(Allocator* allocator, uint32 size, uint32 alignment)
 {
     CTK_ASSERT(size > 0);
 
     // Allocate memory.
-    return InternalAllocate((FreeList*)context, size, alignment);
+    return InternalAllocate((FreeList*)allocator, size, alignment);
 }
 
-uint8* FreeList_Allocate(void* context, uint32 size, uint32 alignment)
+uint8* FreeList_Allocate(Allocator* allocator, uint32 size, uint32 alignment)
 {
     CTK_ASSERT(size > 0);
 
     // Allocate and zero memory.
-    uint8* allocated_mem = FreeList_AllocateNZ(context, size, alignment);
+    uint8* allocated_mem = FreeList_AllocateNZ(allocator, size, alignment);
     memset(allocated_mem, 0, size);
     return allocated_mem;
 }
 
-uint8* FreeList_Reallocate(void* context, void* mem, uint32 new_size, uint32 alignment)
+uint8* FreeList_Reallocate(Allocator* allocator, void* mem, uint32 new_size, uint32 alignment)
 {
     CTK_ASSERT(new_size > 0);
 
-    auto free_list = (FreeList*)context;
+    auto free_list = (FreeList*)allocator;
 
     // Find used-range belonging to mem.
     uint32 used_range_index = FindUsedRangeIndex(free_list, mem);
@@ -501,11 +501,11 @@ uint8* FreeList_Reallocate(void* context, void* mem, uint32 new_size, uint32 ali
     return reallocated_mem;
 }
 
-uint8* FreeList_ReallocateNZ(void* context, void* mem, uint32 new_size, uint32 alignment)
+uint8* FreeList_ReallocateNZ(Allocator* allocator, void* mem, uint32 new_size, uint32 alignment)
 {
     CTK_ASSERT(new_size > 0);
 
-    auto free_list = (FreeList*)context;
+    auto free_list = (FreeList*)allocator;
 
     // Find used-range belonging to mem.
     uint32 used_range_index = FindUsedRangeIndex(free_list, mem);
@@ -518,9 +518,9 @@ uint8* FreeList_ReallocateNZ(void* context, void* mem, uint32 new_size, uint32 a
     return InternalReallocate(free_list, used_range_index, new_size, alignment, (uint8*)mem);
 }
 
-void FreeList_Deallocate(void* context, void* mem)
+void FreeList_Deallocate(Allocator* allocator, void* mem)
 {
-    auto free_list = (FreeList*)context;
+    auto free_list = (FreeList*)allocator;
 
     // Find used-range belonging to mem and deallocate it.
     uint32 used_range_index = FindUsedRangeIndex(free_list, mem);
@@ -533,7 +533,7 @@ void FreeList_Deallocate(void* context, void* mem)
     InternalDeallocate(free_list, &free_list->ranges[used_range_index], used_range_index);
 }
 
-Allocator CreateFreeList(Allocator* parent, uint32 min_byte_size, FreeListInfo info)
+FreeList CreateFreeList(Allocator* parent, uint32 min_byte_size, FreeListInfo info)
 {
     CTK_ASSERT(min_byte_size > 0);
     CTK_ASSERT(info.max_range_count > 0);
@@ -555,25 +555,31 @@ Allocator CreateFreeList(Allocator* parent, uint32 min_byte_size, FreeListInfo i
     uint32 free_space_byte_size = min_byte_size;
 
     // Init free list.
-    auto free_list = Allocate<FreeList>(parent, 1);
-    free_list->mem              = Allocate<uint8>(parent, range_data_byte_size + free_space_byte_size);
-    free_list->byte_size        = range_data_byte_size + free_space_byte_size;
-    free_list->used_range_count = 0;
-    free_list->free_range_count = 0;
-    free_list->max_range_count  = max_range_count;
+    FreeList free_list = {};
+    free_list.Allocate         = FreeList_Allocate;
+    free_list.AllocateNZ       = FreeList_AllocateNZ;
+    free_list.Reallocate       = FreeList_Reallocate;
+    free_list.ReallocateNZ     = FreeList_ReallocateNZ;
+    free_list.Deallocate       = FreeList_Deallocate;
+    free_list.parent           = parent;
+    free_list.mem              = Allocate<uint8>(parent, range_data_byte_size + free_space_byte_size);
+    free_list.byte_size        = range_data_byte_size + free_space_byte_size;
+    free_list.used_range_count = 0;
+    free_list.free_range_count = 0;
+    free_list.max_range_count  = max_range_count;
 
     // Init range data.
     uint32 ranges_byte_index     = 0;
     uint32 range_keys_byte_index = ranges_byte_index + ranges_byte_size;
 
-    free_list->ranges     = (Range*)   (&free_list->mem[ranges_byte_index]);
-    free_list->range_keys = (RangeKey*)(&free_list->mem[range_keys_byte_index]);
+    free_list.ranges     = (Range*)   (&free_list.mem[ranges_byte_index]);
+    free_list.range_keys = (RangeKey*)(&free_list.mem[range_keys_byte_index]);
 
     // Add range-data used-range and free-space free-range, then link them.
     uint32 range_data_byte_index = 0;
     uint32 free_space_byte_index = range_data_byte_index + range_data_byte_size;
     uint32 range_data_range_index =
-        AddUsedRange(free_list,
+        AddUsedRange(&free_list,
                      {
                          .byte_index       = range_data_byte_index,
                          .byte_size        = range_data_byte_size,
@@ -582,39 +588,27 @@ Allocator CreateFreeList(Allocator* parent, uint32 min_byte_size, FreeListInfo i
                      },
                      {
                          .mem_byte_index = 0,
-                         .alignment      = (uint32)GetAlignment(free_list->mem),
+                         .alignment      = (uint32)GetAlignment(free_list.mem),
                      });
     uint32 free_space_range_index =
-        AddFreeRange(free_list,
+        AddFreeRange(&free_list,
                      {
                          .byte_index       = free_space_byte_index,
                          .byte_size        = free_space_byte_size,
                          .prev_range_index = UINT32_MAX,
                          .next_range_index = UINT32_MAX,
                      });
-    free_list->ranges[range_data_range_index].next_range_index = free_space_range_index;
-    free_list->ranges[free_space_range_index].prev_range_index = range_data_range_index;
+    free_list.ranges[range_data_range_index].next_range_index = free_space_range_index;
+    free_list.ranges[free_space_range_index].prev_range_index = range_data_range_index;
 
     // Range-data range is first.
-    free_list->first_range_index = range_data_range_index;
+    free_list.first_range_index = range_data_range_index;
 
-    Allocator free_list_alloc = {};
-    free_list_alloc.parent       = parent;
-    free_list_alloc.context      = free_list;
-    free_list_alloc.type         = AllocatorType::FreeList;
-    free_list_alloc.Allocate     = FreeList_Allocate;
-    free_list_alloc.AllocateNZ   = FreeList_AllocateNZ;
-    free_list_alloc.Reallocate   = FreeList_Reallocate;
-    free_list_alloc.ReallocateNZ = FreeList_ReallocateNZ;
-    free_list_alloc.Deallocate   = FreeList_Deallocate;
-    return free_list_alloc;
+    return free_list;
 }
 
-void DestroyFreeList(Allocator* free_list_alloc)
+void DestroyFreeList(FreeList* free_list)
 {
-    CTK_ASSERT(free_list_alloc->type == AllocatorType::FreeList);
-
-    auto free_list = (FreeList*)free_list_alloc->context;
-    Deallocate(free_list_alloc->parent, free_list->mem);
+    Deallocate(free_list->parent, free_list->mem);
     *free_list = {};
 }
