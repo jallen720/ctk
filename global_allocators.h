@@ -39,20 +39,68 @@ Allocator g_std_allocator =
     .Deallocate   = STD_Deallocate,
 };
 
-// /// Frame Allocator
-// ////////////////////////////////////////////////////////////
-// struct Frame : Allocator
-// {
-//     uint32 index;
-//     ~Frame()
-//     {
+/// Frame Allocator
+////////////////////////////////////////////////////////////
+static constexpr uint32 MAX_FRAME_THREADS = 64;
+static constexpr uint32 FRAME_STACK_SIZE = Kilobyte32<4>();
+FMap<DWORD, Stack, MAX_FRAME_THREADS> frame_stacks;
 
-//     }
-// }
+struct Frame : public Allocator
+{
+    Stack* stack;
+    uint32 start_count;
+    ~Frame()
+    {
+        stack->count = start_count;
+    }
+};
 
-// Frame CreateFrame()
-// {
-//     Frame frame = {};
-//     frame.Allocate   = Stack_Allocate;
-//     frame.AllocateNZ = Stack_AllocateNZ;
-// }
+void CreateThreadFrameStack(Allocator* allocator, uint32 size)
+{
+    DWORD thread_id = GetCurrentThreadId();
+    if (!CanPush(&frame_stacks, thread_id))
+    {
+        CTK_FATAL("can't create thread frame stack: frame stack already created for this thread");
+    }
+
+    Push(&frame_stacks, thread_id, CreateStack(allocator, size));
+}
+
+void DestroyThreadFrameStack()
+{
+    Stack* frame_stack = FindValue(&frame_stacks, GetCurrentThreadId());
+    if (frame_stack == NULL)
+    {
+        CTK_FATAL("can't destroy thread frame stack: frame stack doesn't exist for this thread");
+    }
+
+    DestroyStack(frame_stack);
+}
+
+uint8* Frame_Allocate(Allocator* allocator, uint32 size, uint32 alignment)
+{
+    auto frame = (Frame*)allocator;
+    return Stack_Allocate(frame->stack, size, alignment);
+}
+
+uint8* Frame_AllocateNZ(Allocator* allocator, uint32 size, uint32 alignment)
+{
+    auto frame = (Frame*)allocator;
+    return Stack_AllocateNZ(frame->stack, size, alignment);
+}
+
+Frame CreateFrame()
+{
+    Stack* frame_stack = FindValue(&frame_stacks, GetCurrentThreadId());
+    if (frame_stack == NULL)
+    {
+        CTK_FATAL("can't create frame; frame stack for this thread has not been initialized");
+    }
+
+    Frame frame = {};
+    frame.Allocate    = Frame_Allocate;
+    frame.AllocateNZ  = Frame_AllocateNZ;
+    frame.stack       = frame_stack;
+    frame.start_count = frame_stack->count;
+    return frame;
+}

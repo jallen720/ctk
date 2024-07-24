@@ -3,50 +3,6 @@
 namespace StackTest
 {
 
-bool TestStackFields(const char* stack_name, Stack* stack, uint32 expected_size, uint32 expected_count)
-{
-    bool pass = true;
-
-    FString<256> description = {};
-    Write(&description, "%s->size", stack_name);
-    if (!ExpectEqual(&description, expected_size, stack->size))
-    {
-        pass = false;
-    }
-
-    Write(&description, "%s->count", stack_name);
-    if (!ExpectEqual(&description, expected_count, stack->count))
-    {
-        pass = false;
-    }
-
-    return pass;
-}
-
-bool ExpectBytes(Stack* stack, uint8* expected_bytes)
-{
-    bool pass = true;
-
-    for (uint32 i = 0; i < stack->size; i += 1)
-    {
-        if (stack->mem[i] != expected_bytes[i])
-        {
-            pass = false;
-            break;
-        }
-    }
-
-    PrintExpectedTag();
-    PrintBytes(expected_bytes, stack->size);
-    PrintLine();
-
-    PrintActualTag(pass);
-    PrintBytes(stack->mem, stack->size);
-    PrintLine();
-
-    return pass;
-}
-
 bool AllocateTest()
 {
     bool pass = true;
@@ -57,21 +13,23 @@ bool AllocateTest()
 
     {
         buffer = Allocate<char>(&stack, STACK_BYTE_SIZE);
-        uint8 expected_bytes[STACK_BYTE_SIZE] = {};
+        FString<STACK_BYTE_SIZE> expected_bytes = {};
+
         FString<256> description = {};
         Write(&description, "Allocate(&stack, %u)", STACK_BYTE_SIZE);
 
         RunTest(&description, &pass, TestStackFields, "&stack", &stack, STACK_BYTE_SIZE, STACK_BYTE_SIZE);
-        RunTest(&description, &pass, ExpectBytes, &stack, expected_bytes);
+        RunTest(&description, &pass, ExpectBytes, &stack, (uint8*)expected_bytes.data);
     }
     {
-        uint8 expected_bytes[STACK_BYTE_SIZE] = {};
-        Write((char*)expected_bytes, STACK_BYTE_SIZE, "test");
         Write(buffer, STACK_BYTE_SIZE, "test");
+
+        FString<STACK_BYTE_SIZE> expected_bytes = {};
+        Write(&expected_bytes, "test");
 
         FString<256> description = {};
         Write(&description, "Write(buffer, %u, \"test\")", STACK_BYTE_SIZE);
-        RunTest(&description, &pass, ExpectBytes, &stack, expected_bytes);
+        RunTest(&description, &pass, ExpectBytes, &stack, (uint8*)expected_bytes.data);
     }
 
     DestroyStack(&stack);
