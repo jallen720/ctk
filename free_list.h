@@ -351,7 +351,7 @@ void MoveToNewAllocation(FreeList* free_list, Range* used_range, uint32 used_ran
 }
 
 uint8* InternalReallocate(FreeList* free_list, uint32 used_range_index, uint32 reallocate_byte_size,
-                                 uint32 alignment, uint8* mem)
+                          uint32 alignment, uint8* mem)
 {
     Range* used_range = &free_list->ranges[used_range_index];
     uint8* reallocated_mem = mem;
