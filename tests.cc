@@ -14,15 +14,17 @@ using namespace CTK;
 #include "ctk/tests/json.h"
 
 #include "ctk/tests/thread_pool.h"
-// #include "ctk/tests/profile.h"
-// #include "ctk/tests/window.h"
+#include "ctk/tests/profile.h"
+#include "ctk/tests/window.h"
 
-// #include "ctk/tests/json_perf.h"
-// #include "ctk/tests/free_list_perf.h"
-// #include "ctk/tests/iterator_perf.h"
+#include "ctk/tests/json_perf.h"
+#include "ctk/tests/free_list_perf.h"
+#include "ctk/tests/iterator_perf.h"
 
 sint32 main()
 {
+    CreateThreadFrameStack(&g_std_allocator, Kilobyte32<4>());
+
     SetShowPassedTests(true);
     RunTest("FArray",   NULL, FArrayTest::Run);
     RunTest("FString",  NULL, FStringTest::Run);
