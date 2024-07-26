@@ -556,12 +556,12 @@ FreeList CreateFreeList(Allocator* parent, uint32 min_byte_size, FreeListInfo in
 
     // Init free list.
     FreeList free_list = {};
+    free_list.parent           = parent;
     free_list.Allocate         = FreeList_Allocate;
     free_list.AllocateNZ       = FreeList_AllocateNZ;
     free_list.Reallocate       = FreeList_Reallocate;
     free_list.ReallocateNZ     = FreeList_ReallocateNZ;
     free_list.Deallocate       = FreeList_Deallocate;
-    free_list.parent           = parent;
     free_list.mem              = Allocate<uint8>(parent, range_data_byte_size + free_space_byte_size);
     free_list.byte_size        = range_data_byte_size + free_space_byte_size;
     free_list.used_range_count = 0;

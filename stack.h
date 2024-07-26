@@ -38,9 +38,9 @@ Stack CreateStack(Allocator* parent, uint32 size)
     CTK_ASSERT(size > 0);
 
     Stack stack = {};
+    stack.parent     = parent;
     stack.Allocate   = Stack_Allocate;
     stack.AllocateNZ = Stack_AllocateNZ;
-    stack.parent     = parent;
     stack.mem        = Allocate<uint8>(parent, size);
     stack.size       = size;
     stack.count      = 0;
