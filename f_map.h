@@ -3,7 +3,7 @@
 template<typename Key, typename Value, uint32 size>
 struct FMap
 {
-    Key    keys[size];
+    Key    keys  [size];
     Value  values[size];
     uint32 count;
 };
@@ -11,31 +11,45 @@ struct FMap
 /// Interface
 ////////////////////////////////////////////////////////////
 template<typename Key, typename Value, uint32 size>
-Value* FindValue(FMap<Key, Value, size>* map, Key key)
+uint32 FindValueIndex(FMap<Key, Value, size>* map, Key key)
 {
     for (uint32 i = 0; i < map->count; i += 1)
     {
         if (map->keys[i] == key)
         {
-            return &map->values[i];
+            return i;
         }
     }
 
-    return NULL;
+    return UINT32_MAX;
 }
 
 template<typename Key, typename Value, uint32 size>
-Key* FindKey(FMap<Key, Value, size>* map, Value value)
+uint32 FindKeyIndex(FMap<Key, Value, size>* map, Value value)
 {
     for (uint32 i = 0; i < map->count; i += 1)
     {
         if (map->values[i] == value)
         {
-            return &map->keys[i];
+            return i;
         }
     }
 
-    return NULL;
+    return UINT32_MAX;
+}
+
+template<typename Key, typename Value, uint32 size>
+Value* FindValue(FMap<Key, Value, size>* map, Key key)
+{
+    uint32 value_index = FindValueIndex(map, key);
+    return value_index == UINT32_MAX ? NULL : &map->values[value_index];
+}
+
+template<typename Key, typename Value, uint32 size>
+Key* FindKey(FMap<Key, Value, size>* map, Value value)
+{
+    uint32 key_index = FindValueIndex(map, value);
+    return key_index == UINT32_MAX ? NULL : &map->keys[key_index];
 }
 
 template<typename Key, typename Value, uint32 size>
@@ -87,4 +101,18 @@ constexpr uint32 GetSize(FMap<Key, Value, size>* map)
 {
     CTK_UNUSED(map);
     return size;
+}
+
+template<typename Key, typename Value, uint32 size>
+void Remove(FMap<Key, Value, size>* map, Key key)
+{
+    uint32 index = FindValueIndex(map, key);
+    if (index == UINT32_MAX)
+    {
+        CTK_FATAL("can't remove map entry with key: key does not exist in map");
+    }
+
+    memmove(&map->keys  [index], &map->keys  [index + 1], (map->count - index - 1) * sizeof(Key));
+    memmove(&map->values[index], &map->values[index + 1], (map->count - index - 1) * sizeof(Value));
+    map->count -= 1;
 }
