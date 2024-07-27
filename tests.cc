@@ -23,8 +23,6 @@ using namespace CTK;
 
 sint32 main()
 {
-    CreateThreadFrameStack(&g_std_allocator, Kilobyte32<4>());
-
     SetShowPassedTests(true);
     RunTest("FArray",   NULL, FArrayTest::Run);
     RunTest("FString",  NULL, FStringTest::Run);

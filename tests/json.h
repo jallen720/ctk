@@ -268,6 +268,8 @@ bool Run()
 {
     bool pass = true;
 
+    CreateThreadFrameStack(&g_std_allocator, Kilobyte32<4>());
+
     RunTest("ValidTest()",                &pass, ValidTest);
     RunTest("ScientificENotationTest()",  &pass, ScientificENotationTest);
     RunTest("ObjectKeyTest()",            &pass, ObjectKeyTest);
@@ -283,6 +285,8 @@ bool Run()
     RunTest("ValidSearchTest()",          &pass, ValidSearchTest);
     RunTest("InvalidSearchTest()",        &pass, InvalidSearchTest);
     RunTest("ValidGetTest()",             &pass, ValidGetTest);
+
+    DestroyThreadFrameStack();
 
     return pass;
 }
