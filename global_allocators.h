@@ -68,13 +68,15 @@ void CreateThreadFrameStack(Allocator* allocator, uint32 size)
 
 void DestroyThreadFrameStack()
 {
-    Stack* frame_stack = FindValue(&frame_stacks, GetCurrentThreadId());
+    DWORD thread_id = GetCurrentThreadId();
+    Stack* frame_stack = FindValue(&frame_stacks, thread_id);
     if (frame_stack == NULL)
     {
         CTK_FATAL("can't destroy thread frame stack: frame stack doesn't exist for this thread");
     }
 
     DestroyStack(frame_stack);
+    Remove(&frame_stacks, thread_id);
 }
 
 uint8* Frame_Allocate(Allocator* allocator, uint32 size, uint32 alignment)
