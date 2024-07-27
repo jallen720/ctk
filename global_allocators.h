@@ -42,7 +42,7 @@ Allocator g_std_allocator =
 /// Frame Allocator
 ////////////////////////////////////////////////////////////
 static constexpr uint32 MAX_FRAME_THREADS = 64;
-static constexpr uint32 FRAME_STACK_SIZE = Kilobyte32<4>();
+static constexpr uint32 FRAME_STACK_SIZE  = Kilobyte32<4>();
 FMap<DWORD, Stack, MAX_FRAME_THREADS> g_frame_stacks;
 
 struct Frame : public Allocator
