@@ -17,7 +17,7 @@ uint32 StringSize(const char* nt_string)
 
 bool StringsMatch(const char* a, const char* b, uint32 match_size, uint32 match_start = 0)
 {
-    for (uint32 i = 0; i < match_size; i += 1)
+    for (uint32 i = match_start; i < match_size; i += 1)
     {
         if (a[i] != b[i])
         {
