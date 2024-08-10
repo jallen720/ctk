@@ -198,7 +198,7 @@ bool ToBool(const char* string, uint32 size)
 {
     if (size == 4)
     {
-        if (StringsMatch(string, "true", 4))  { return true;  }
+        if (StringsMatch(string, "true",  4)) { return true;  }
     }
     else if (size == 5)
     {
