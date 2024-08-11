@@ -10,8 +10,11 @@ void Thread(void* data)
     uint32 id = (uint32)data;
     for (uint32 i = 0; i < 4; i += 1)
     {
+        Frame frame = CreateFrame();
+        uint32* x = Allocate<uint32>(&frame, 1);
+        *x = i;
         EnterCriticalSection(&print_lock);
-        PrintLine("thread %u: %u", id, i);
+        PrintLine("thread %u x: (%p) %u", id, x, *x);
         LeaveCriticalSection(&print_lock);
         Sleep(250);
     }
@@ -21,7 +24,7 @@ void ThreadPoolTest()
 {
     constexpr uint32 THREAD_COUNT = 4;
     ThreadPool thread_pool = {};
-    InitThreadPool(&thread_pool, &g_std_allocator, THREAD_COUNT);
+    InitThreadPool(&thread_pool, &g_std_allocator, THREAD_COUNT, 512u);
     InitializeCriticalSection(&print_lock);
 
     TaskHnd tasks[THREAD_COUNT] = {};

@@ -32,7 +32,7 @@ struct ThreadPool
     TaskList      idle_tasks;
     TaskList      ready_tasks;
     uint32        thread_count;
-    uint32        thread_frame_stack_size;
+    uint32        thread_frame_allocator_size;
     Allocator*    allocator;
 };
 
@@ -95,9 +95,9 @@ DWORD ThreadFunc(void* data)
     auto thread_pool = (ThreadPool*)data;
 
     // Initialize frame stack for thread if necessary.
-    if (thread_pool->thread_frame_stack_size > 0)
+    if (thread_pool->thread_frame_allocator_size > 0)
     {
-        CreateThreadFrameStack(thread_pool->allocator, thread_pool->thread_frame_stack_size);
+        InitFrameAllocator(thread_pool->allocator, thread_pool->thread_frame_allocator_size);
     }
 
     for (;;)
@@ -124,17 +124,17 @@ DWORD ThreadFunc(void* data)
 /// Interface
 ////////////////////////////////////////////////////////////
 void InitThreadPool(ThreadPool* thread_pool, Allocator* allocator, uint32 thread_count,
-                    uint32 thread_frame_stack_size = 0)
+                    uint32 thread_frame_allocator_size = 0)
 {
     CTK_ASSERT(thread_count > 0);
 
-    thread_pool->threads                 = CreateArray<HANDLE>(allocator, thread_count);
-    thread_pool->tasks                   = CreateArrayFull<Task>(allocator, thread_count);
-    thread_pool->idle_tasks              = CreateTaskList();
-    thread_pool->ready_tasks             = CreateTaskList();
-    thread_pool->thread_count            = thread_count;
-    thread_pool->thread_frame_stack_size = thread_frame_stack_size;
-    thread_pool->allocator               = allocator;
+    thread_pool->threads                     = CreateArray<HANDLE>(allocator, thread_count);
+    thread_pool->tasks                       = CreateArrayFull<Task>(allocator, thread_count);
+    thread_pool->idle_tasks                  = CreateTaskList();
+    thread_pool->ready_tasks                 = CreateTaskList();
+    thread_pool->thread_count                = thread_count;
+    thread_pool->thread_frame_allocator_size = thread_frame_allocator_size;
+    thread_pool->allocator                   = allocator;
 
     // Create threads.
     for (uint32 i = 0; i < thread_count; i += 1)
