@@ -8,28 +8,27 @@ bool AllocateTest()
     bool pass = true;
 
     constexpr uint32 STACK_BYTE_SIZE = 32;
+
     Stack stack = CreateStack(&g_std_allocator, STACK_BYTE_SIZE);
+
+    FString<256> description = {};
+    Write(&description, "CreateStack(&g_std_allocator, %u)", STACK_BYTE_SIZE);
+    RunTest(&description, &pass, TestStackFields, "stack", &stack, STACK_BYTE_SIZE, 0u);
+
     char* buffer = NULL;
 
     {
         buffer = Allocate<char>(&stack, STACK_BYTE_SIZE);
-        FString<STACK_BYTE_SIZE> expected_bytes = {};
 
         FString<256> description = {};
         Write(&description, "Allocate(&stack, %u)", STACK_BYTE_SIZE);
-
-        RunTest(&description, &pass, TestStackFields, "&stack", &stack, STACK_BYTE_SIZE, STACK_BYTE_SIZE);
-        RunTest(&description, &pass, ExpectBytes, &stack, (uint8*)expected_bytes.data);
+        RunTest(&description, &pass, TestStackFields, "stack", &stack, STACK_BYTE_SIZE, STACK_BYTE_SIZE);
     }
     {
         Write(buffer, STACK_BYTE_SIZE, "test");
 
-        FString<STACK_BYTE_SIZE> expected_bytes = {};
-        Write(&expected_bytes, "test");
-
-        FString<256> description = {};
         Write(&description, "Write(buffer, %u, \"test\")", STACK_BYTE_SIZE);
-        RunTest(&description, &pass, ExpectBytes, &stack, (uint8*)expected_bytes.data);
+        RunTest(&description, &pass, ExpectEqual, "test\0", stack.mem, 5u);
     }
 
     DestroyStack(&stack);

@@ -161,6 +161,36 @@ bool ExpectEqual(const char* expected, uint32 expected_size, const char* actual,
     return pass;
 }
 
+bool ExpectEqual(const char* expected, const char* actual, uint32 size)
+{
+    return ExpectEqual(expected, size, actual, size);
+}
+
+bool ExpectEqual(const char* expected, char* actual, uint32 size)
+{
+    return ExpectEqual(expected, size, actual, size);
+}
+
+bool ExpectEqual(const char* expected, const uint8* actual, uint32 size)
+{
+    return ExpectEqual(expected, size, (const char*)actual, size);
+}
+
+bool ExpectEqual(const char* expected, uint8* actual, uint32 size)
+{
+    return ExpectEqual(expected, size, (const char*)actual, size);
+}
+
+bool ExpectEqual(const char* expected, const sint8* actual, uint32 size)
+{
+    return ExpectEqual(expected, size, (const char*)actual, size);
+}
+
+bool ExpectEqual(const char* expected, sint8* actual, uint32 size)
+{
+    return ExpectEqual(expected, size, (const char*)actual, size);
+}
+
 /// String
 ////////////////////////////////////////////////////////////
 bool ExpectEqual(const char* expected, const char* actual)

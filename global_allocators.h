@@ -48,10 +48,11 @@ FMap<DWORD, Stack, MAX_FRAME_THREADS> g_frame_stacks;
 struct Frame : public Allocator
 {
     Stack* stack;
-    uint32 start_count;
+    uint32 start;
+    // uint32 count;
     ~Frame()
     {
-        stack->count = start_count;
+        stack->count = start;
     }
 };
 
@@ -103,6 +104,6 @@ Frame CreateFrame()
     frame.Allocate    = Frame_Allocate;
     frame.AllocateNZ  = Frame_AllocateNZ;
     frame.stack       = frame_stack;
-    frame.start_count = frame_stack->count;
+    frame.start       = frame_stack->count;
     return frame;
 }
