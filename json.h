@@ -850,7 +850,7 @@ void ParseValue(JSON*               json,
 }
 
 uint32 ParseArrayChildren(JSON*               json,
-                          String*        json_file,
+                          String*             json_file,
                           Array<JSONToken>*   tokens,
                           JSONNodeParseState* parse_state,
                           uint32              token_index)
@@ -887,7 +887,7 @@ uint32 ParseArrayChildren(JSON*               json,
 }
 
 uint32 ParseObjectChildren(JSON*               json,
-                           String*        json_file,
+                           String*             json_file,
                            Array<JSONToken>*   tokens,
                            JSONNodeParseState* parse_state,
                            uint32              token_index)
