@@ -63,7 +63,7 @@ void PrintActual(bool pass, const char* msg, Args... args)
 ////////////////////////////////////////////////////////////
 template<typename... Args>
 void RunTest(const char* description, uint32 description_size, bool* parent_pass, Func<bool, Args...> TestFunc,
-                    Args... args)
+             Args... args)
 {
     TestPrintLine(CTK_ANSI_HIGHLIGHT(SKY, "Test") ": %.*s", description_size, description);
 
