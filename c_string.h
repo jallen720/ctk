@@ -92,7 +92,7 @@ FloatType ToFloat(const char* string, uint32 size)
             }
             decimal_found = true;
         }
-        else if (!IS_NUMERIC[c])
+        else if (!ASCII_NUMERIC[c])
         {
             break;
         }
@@ -155,7 +155,7 @@ IntType ToInt(const char* string, uint32 size)
     while (index < size)
     {
         char c = string[index];
-        if (!IS_NUMERIC[c])
+        if (!ASCII_NUMERIC[c])
         {
             // Skip all non-numeric characters at end of string, including trailing spaces.
             break;

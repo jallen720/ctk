@@ -105,7 +105,7 @@ struct PrintChildFuncs
     PrintChildFunc object;
 };
 
-constexpr bool IS_SYMBOL[128] =
+constexpr bool JSON_SYMBOL[128] =
 {
     /*0*/   false, false, false,     false,     false,     false,     false, false,
     /*8*/   false, false, false,     false,     false,     false,     false, false,
@@ -125,7 +125,7 @@ constexpr bool IS_SYMBOL[128] =
     /*120*/ false, false, false,     true/*{*/, false,     true/*}*/, false, false,
 };
 
-constexpr bool IS_SKIPPABLE[128] =
+constexpr bool JSON_SKIPPABLE[128] =
 {
     /*0*/   true/*\0*/, false,      false,      false, false, false,      false, false,
     /*8*/   false,      true/*\t*/, true/*\n*/, false, false, true/*\r*/, false, false,
@@ -145,7 +145,7 @@ constexpr bool IS_SKIPPABLE[128] =
     /*120*/ false,      false,      false,      false, false, false,      false, false,
 };
 
-constexpr JSONTokenType SYMBOL_TOKEN_TYPE[128] =
+constexpr JSONTokenType JSON_TOKEN_TYPE_SYMBOL[128] =
 {
     /*0*/   JSONTokenType::NONE, JSONTokenType::NONE, JSONTokenType::NONE,  JSONTokenType::NONE,                JSONTokenType::NONE,  JSONTokenType::NONE,                 JSONTokenType::NONE, JSONTokenType::NONE,
     /*8*/   JSONTokenType::NONE, JSONTokenType::NONE, JSONTokenType::NONE,  JSONTokenType::NONE,                JSONTokenType::NONE,  JSONTokenType::NONE,                 JSONTokenType::NONE, JSONTokenType::NONE,
@@ -315,7 +315,7 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
 
             // Parsing ends after last char of value; no need to increment parse_state.char_index.
         }
-        else if (IS_NUMERIC[c] || c == '-')
+        else if (ASCII_NUMERIC[c] || c == '-')
         {
             max_tokens += 1;
             parse_state.char_index += 1;
@@ -332,7 +332,7 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
                               parse_state.line,
                               parse_state.column);
                 }
-                if (!IS_NUMERIC[json_file->data[parse_state.char_index]])
+                if (!ASCII_NUMERIC[json_file->data[parse_state.char_index]])
                 {
                     CTK_FATAL("non-numeric character following negative sign on line %u column %u: '%c'",
                               parse_state.line,
@@ -366,7 +366,7 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
                     parse_state.char_index += 1;
                     parse_state.column += 1;
                     num_char = json_file->data[parse_state.char_index];
-                    if (num_char != '-' && num_char != '+' && !IS_NUMERIC[num_char])
+                    if (num_char != '-' && num_char != '+' && !ASCII_NUMERIC[num_char])
                     {
                         CTK_FATAL("character following e on line %u column %u must be '-', '+' or a numeric value for "
                                   "the exponent",
@@ -381,7 +381,7 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
                     while (parse_state.char_index < json_file->count)
                     {
                         num_char = json_file->data[parse_state.char_index];
-                        if (!IS_NUMERIC[num_char])
+                        if (!ASCII_NUMERIC[num_char])
                         {
                             break;
                         }
@@ -390,7 +390,7 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
                     }
                     break;
                 }
-                else if (!IS_NUMERIC[num_char])
+                else if (!ASCII_NUMERIC[num_char])
                 {
                     break;
                 }
@@ -400,7 +400,7 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
 
             // Parsing ends after last char of value; no need to increment parse_state.char_index.
         }
-        else if (IS_SKIPPABLE[c])
+        else if (JSON_SKIPPABLE[c])
         {
             // Skip
             if (c == '\n')
@@ -411,11 +411,11 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
             parse_state.char_index += 1;
             parse_state.column += 1;
         }
-        else if (IS_SYMBOL[c])
+        else if (JSON_SYMBOL[c])
         {
             max_tokens += 1;
 
-            JSONTokenType token_type = SYMBOL_TOKEN_TYPE[c];
+            JSONTokenType token_type = JSON_TOKEN_TYPE_SYMBOL[c];
             if (token_type == JSONTokenType::NONE)
             {
                 CTK_FATAL("failed to find symbol token type for symbol character on line %u column %u: \'%c\'",
@@ -570,7 +570,7 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
 
             // Parsing ends on char after value; no need to increment parse_state.char_index.
         }
-        else if (IS_NUMERIC[c] || c == '-')
+        else if (ASCII_NUMERIC[c] || c == '-')
         {
             // Every numeric token will have its own node.
             if (is_array)
@@ -614,7 +614,7 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
                     while (parse_state.char_index < json_file->count)
                     {
                         num_char = json_file->data[parse_state.char_index];
-                        if (!IS_NUMERIC[num_char])
+                        if (!ASCII_NUMERIC[num_char])
                         {
                             break;
                         }
@@ -623,7 +623,7 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
                     }
                     break;
                 }
-                else if (!IS_NUMERIC[num_char])
+                else if (!ASCII_NUMERIC[num_char])
                 {
                     break;
                 }
@@ -633,15 +633,15 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
 
             // Parsing ends on char after value; no need to increment parse_state.char_index.
         }
-        else if (IS_SKIPPABLE[c])
+        else if (JSON_SKIPPABLE[c])
         {
             // Skip
             parse_state.char_index += 1;
         }
-        else if (IS_SYMBOL[c])
+        else if (JSON_SYMBOL[c])
         {
             JSONToken* token = Push(&tokens);
-            token->type  = SYMBOL_TOKEN_TYPE[c];
+            token->type  = JSON_TOKEN_TYPE_SYMBOL[c];
             token->index = parse_state.char_index;
             token->size  = 1; // Symbols are always 1 character.
 
@@ -1525,7 +1525,7 @@ JSONNode* SearchNode(JSON* json, JSONNode* node, const char* search)
                 {
                     break;
                 }
-                if (!IS_NUMERIC[term_char])
+                if (!ASCII_NUMERIC[term_char])
                 {
                     CTK_FATAL("non-numeric character in subscript index at search term column %u", term_offset)
                 }

@@ -1,4 +1,4 @@
-constexpr bool IS_NUMERIC[128] =
+constexpr bool ASCII_NUMERIC[128] =
 {
     /*0*/   false, false, false, false, false, false, false, false,
     /*8*/   false, false, false, false, false, false, false, false,
