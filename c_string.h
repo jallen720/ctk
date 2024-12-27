@@ -38,6 +38,11 @@ bool StringsMatch(const char* a, const char* b)
     return StringsMatch(a, StringSize(a), b, StringSize(b));
 }
 
+bool StringsMatch(const char* a, uint32 a_size, const char* b)
+{
+    return StringsMatch(a, a_size, b, StringSize(b));
+}
+
 bool Contains(const char* string, uint32 string_size, char c)
 {
     for (uint32 i = 0; i < string_size; i += 1)
