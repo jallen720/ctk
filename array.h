@@ -180,10 +180,10 @@ void PushRange(Array<Type>* array, Array<Type>* other)
     PushRange(array, other->data, other->count);
 }
 
-template<typename Type>
-void PushRange(Array<Type>* array, Array<Type> other)
+template<typename Type, uint32 size>
+void PushRange(Array<Type>* array, FArray<Type, size>* other)
 {
-    PushRange(array, other.data, other.count);
+    PushRange(array, other->data, other->count);
 }
 
 template<typename Type>
@@ -202,10 +202,11 @@ void PushRangeResize(Array<Type>* array, Array<Type>* other, uint32 additional_s
     PushRangeResize(array, other->data, other->count, additional_space);
 }
 
-template<typename Type>
-void PushRangeResize(Array<Type>* array, Array<Type> other, Allocator* allocator, uint32 additional_space)
+
+template<typename Type, uint32 size>
+void PushRangeResize(Array<Type>* array, FArray<Type, size>* other, uint32 additional_space)
 {
-    PushRangeResize(array, other.data, other.count, allocator, additional_space);
+    PushRangeResize(array, other->data, other->count, additional_space);
 }
 
 template<typename Type>
