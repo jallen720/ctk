@@ -179,15 +179,15 @@ void OpenWindow(WindowInfo* info)
     RegisterClass(&win_class);
     g_window.hnd = CreateWindowEx(0,                                     // Optional Styles
                                   CLASS_NAME,                            // Class
-                                  info->title,
-                                  WINDOW_STYLE,
+                                  info->title,                           // Window Name
+                                  WINDOW_STYLE,                          // Window Style
                                   window_rect.left,                      // X
                                   window_rect.top,                       // Y
                                   window_rect.right  - window_rect.left, // Width
                                   window_rect.bottom - window_rect.top,  // Height
                                   NULL,                                  // Parent
                                   NULL,                                  // Menu
-                                  instance,
+                                  instance,                              // Instance
                                   NULL);                                 // App Data
     if (g_window.hnd == NULL)
     {
