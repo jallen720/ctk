@@ -125,11 +125,16 @@ void PrintLines(uint32 count)
     }
 }
 
-void PrintTabs(uint32 count)
+void PrintTabs(uint32 count, uint32 tab_size = 4)
 {
+    static constexpr const char* TAB_BUFFER =
+        "                                                                "
+        "                                                                "
+        "                                                                "
+        "                                                                ";
     CTK_REPEAT(count)
     {
-        Print("    ");
+        Print("%.*s", tab_size, TAB_BUFFER);
     }
 }
 
