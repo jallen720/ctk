@@ -82,37 +82,61 @@ void DestroyArray(Array<Type>* array)
     *array = {};
 }
 
-#define CTK_ARRAY_RESIZE_FUNC(NAME, REALLOCATE_FUNC) \
-template<typename Type> \
-void NAME(Array<Type>* array, uint32 new_size) \
-{ \
-    if (array->size > 0 && new_size == 0) \
-    { \
-        Deallocate(array->allocator, array->data); \
-        array->data  = NULL; \
-        array->size  = 0; \
-        array->count = 0; \
-    } \
-    else if (array->size == 0 && new_size > 0) \
-    { \
-        array->data  = Allocate<Type>(array->allocator, new_size); \
-        array->size  = new_size; \
-        array->count = 0; \
-    } \
-    else \
-    { \
-        array->size = new_size; \
-        if (array->count >= new_size) \
-        { \
-            array->count = new_size; \
-        } \
- \
-        array->data = REALLOCATE_FUNC(array->allocator, array->data, new_size); \
-    } \
+template<typename Type>
+void Resize(Array<Type>* array, uint32 new_size)
+{
+    if (array->size > 0 && new_size == 0)
+    {
+        Deallocate(array->allocator, array->data);
+        array->data  = NULL;
+        array->size  = 0;
+        array->count = 0;
+    }
+    else if (array->size == 0 && new_size > 0)
+    {
+        array->data  = Allocate<Type>(array->allocator, new_size);
+        array->size  = new_size;
+        array->count = 0;
+    }
+    else
+    {
+        array->size = new_size;
+        if (array->count >= new_size)
+        {
+            array->count = new_size;
+        }
+
+        array->data = Reallocate(array->allocator, array->data, new_size);
+    }
 }
 
-CTK_ARRAY_RESIZE_FUNC(ResizeNZ, ReallocateNZ)
-CTK_ARRAY_RESIZE_FUNC(Resize,   Reallocate)
+template<typename Type>
+void ResizeNZ(Array<Type>* array, uint32 new_size)
+{
+    if (array->size > 0 && new_size == 0)
+    {
+        Deallocate(array->allocator, array->data);
+        array->data  = NULL;
+        array->size  = 0;
+        array->count = 0;
+    }
+    else if (array->size == 0 && new_size > 0)
+    {
+        array->data  = AllocateNZ<Type>(array->allocator, new_size);
+        array->size  = new_size;
+        array->count = 0;
+    }
+    else
+    {
+        array->size = new_size;
+        if (array->count >= new_size)
+        {
+            array->count = new_size;
+        }
+
+        array->data = ReallocateNZ(array->allocator, array->data, new_size);
+    }
+}
 
 template<typename Type>
 bool CanPush(Array<Type>* array, uint32 count)
