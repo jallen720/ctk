@@ -70,7 +70,7 @@ bool AllocateTest()
                 ExpectEqual, "test1\0", frame1.stack->mem, 6u);
     }
 
-    DestroyFrameAllocator();
+    DeinitFrameAllocator();
 
     return pass;
 }
@@ -98,7 +98,7 @@ bool AllocateOverwriteTest()
             ExpectFatalError, Allocate, (Allocator*)&frame1, 6u);
     }
 
-    DestroyFrameAllocator();
+    DeinitFrameAllocator();
 
     return pass;
 }

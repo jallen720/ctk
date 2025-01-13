@@ -69,7 +69,8 @@ void InitFrameAllocator(Allocator* allocator, uint32 size)
     DWORD thread_id = GetCurrentThreadId();
     if (!CanPush(&g_stack_lists, thread_id))
     {
-        CTK_FATAL("can't create thread frame stack: frame stack already created for this thread");
+        CTK_FATAL("can't initialize frame stack on thread %u: frame stack already initialized for this thread",
+                  thread_id);
     }
 
     StackList* stack_list = Push(&g_stack_lists, thread_id);
@@ -77,13 +78,14 @@ void InitFrameAllocator(Allocator* allocator, uint32 size)
     stack_list->top  = &stack_list->base;
 }
 
-void DestroyFrameAllocator()
+void DeinitFrameAllocator()
 {
     DWORD thread_id = GetCurrentThreadId();
     StackList* stack_list = FindValue(&g_stack_lists, thread_id);
     if (stack_list == NULL)
     {
-        CTK_FATAL("can't destroy thread frame stack: frame stack doesn't exist for this thread");
+        CTK_FATAL("can't di-initialize frame stack on thread %u: frame stack doesn't exist for this thread",
+                  thread_id);
     }
 
     DestroyStack(&stack_list->base);
@@ -104,10 +106,11 @@ uint8* Frame_AllocateNZ(Allocator* allocator, uint32 size, uint32 alignment)
 
 Frame CreateFrame()
 {
-    StackList* stack_list = FindValue(&g_stack_lists, GetCurrentThreadId());
+    DWORD thread_id = GetCurrentThreadId();
+    StackList* stack_list = FindValue(&g_stack_lists, thread_id);
     if (stack_list == NULL)
     {
-        CTK_FATAL("can't create frame; frame stack for this thread has not been initialized");
+        CTK_FATAL("can't create frame; frame stack for this thread (%u) has not been initialized", thread_id);
     }
 
     // Allocate new stack for top stack.

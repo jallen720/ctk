@@ -286,7 +286,7 @@ bool Run()
     RunTest("InvalidSearchTest()",        &pass, InvalidSearchTest);
     RunTest("ValidGetTest()",             &pass, ValidGetTest);
 
-    DestroyFrameAllocator();
+    DeinitFrameAllocator();
 
     return pass;
 }
