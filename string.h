@@ -49,6 +49,11 @@ void PushRange(String* string, const char* nt_src_string)
     PushRange(string, nt_src_string, StringSize(nt_src_string));
 }
 
+void PushRangeResize(String* string, const char* nt_src_string, uint32 additional_space)
+{
+    PushRangeResize(string, nt_src_string, StringSize(nt_src_string), additional_space);
+}
+
 template<typename ...Args>
 void Write(String* string, const char* fmt_string, Args... args)
 {
