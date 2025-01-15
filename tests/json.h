@@ -268,7 +268,7 @@ bool Run()
 {
     bool pass = true;
 
-    InitFrameAllocator(&g_std_allocator, Kilobyte32<4>());
+    InitTempStack(&g_std_allocator, Kilobyte32<4>());
 
     RunTest("ValidTest()",                &pass, ValidTest);
     RunTest("ScientificENotationTest()",  &pass, ScientificENotationTest);
@@ -286,7 +286,7 @@ bool Run()
     RunTest("InvalidSearchTest()",        &pass, InvalidSearchTest);
     RunTest("ValidGetTest()",             &pass, ValidGetTest);
 
-    DeinitFrameAllocator();
+    DeinitTempStack();
 
     return pass;
 }

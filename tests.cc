@@ -1,14 +1,11 @@
 #include "ctk/ctk.h"
 using namespace CTK;
 
-#include "ctk/tests/utils.h"
-
 #include "ctk/tests/f_array.h"
 #include "ctk/tests/f_string.h"
 #include "ctk/tests/array.h"
 #include "ctk/tests/string.h"
 #include "ctk/tests/stack.h"
-#include "ctk/tests/frame.h"
 #include "ctk/tests/free_list.h"
 #include "ctk/tests/math.h"
 #include "ctk/tests/json.h"
@@ -29,7 +26,6 @@ sint32 main()
     RunTest("Array",    NULL, ArrayTest::Run);
     RunTest("String",   NULL, StringTest::Run);
     RunTest("Stack",    NULL, StackTest::Run);
-    RunTest("Frame",    NULL, FrameTest::Run);
     RunTest("FreeList", NULL, FreeListTest::Run);
     RunTest("Math",     NULL, MathTest::Run);
     RunTest("JSON",     NULL, JSONTest::Run);

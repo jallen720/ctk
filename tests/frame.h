@@ -22,7 +22,7 @@ bool AllocateTest()
         RunTest("CreateFrame()", &pass,
                 TestStackFields, "frame1.stack", frame1.stack, frame1_expected_size, 0u);
 
-        auto buf1 = Allocate<char>(&frame1, 6);
+        auto buf1 = Allocate<char>(&frame1.allocator, 6);
         RunTest("Allocate<char>(&frame1, 6)", &pass,
                 TestStackFields, "frame1.stack", frame1.stack, frame1_expected_size, 6u);
 
@@ -35,7 +35,7 @@ bool AllocateTest()
             RunTest("CreateFrame()", &pass,
                     TestStackFields, "frame2.stack", frame2.stack, frame2_expected_size, 0u);
 
-            auto buf2 = Allocate<char>(&frame2, 6);
+            auto buf2 = Allocate<char>(&frame2.allocator, 6);
             RunTest("Allocate<char>(&frame2, 6)", &pass,
                     TestStackFields, "frame2.stack", frame2.stack, frame2_expected_size, 6u);
 
@@ -55,7 +55,7 @@ bool AllocateTest()
             RunTest("CreateFrame()", &pass,
                     TestStackFields, "frame3.stack", frame3.stack, frame3_expected_size, 0u);
 
-            auto buf3 = Allocate<char>(&frame3, 6);
+            auto buf3 = Allocate<char>(&frame3.allocator, 6);
             RunTest("Allocate<char>(&frame3, 6)", &pass,
                     TestStackFields, "frame3.stack", frame3.stack, frame3_expected_size, 6u);
 
@@ -83,13 +83,13 @@ bool AllocateOverwriteTest()
     InitFrameAllocator(&g_std_allocator, FRAME_ALLOCATOR_SIZE);
 
     Frame frame1 = CreateFrame();
-    auto buf1 = Allocate<char>(&frame1, 8u);
+    auto buf1 = Allocate<char>(&frame1.allocator, 8u);
     Write(buf1, 6u, "test1");
     RunTest("Write(buf1, 6u, \"test1\")", &pass, ExpectEqual, "test1\0", frame1.stack->mem, 6u);
 
     {
         Frame frame2 = CreateFrame();
-        auto buf2 = Allocate<char>(&frame2, 6u);
+        auto buf2 = Allocate<char>(&frame2.allocator, 6u);
         Write(buf2, 6u, "test2");
         RunTest("Write(buf2, 6u, \"test2\")", &pass, ExpectEqual, "test2\0", frame2.stack->mem, 6u);
 

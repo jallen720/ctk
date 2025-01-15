@@ -8,15 +8,19 @@ CRITICAL_SECTION print_lock;
 void Thread(void* data)
 {
     uint32 id = (uint32)data;
+    Allocator* temp_stack_allocator = TempStackAllocator();
     for (uint32 i = 0; i < 4; i += 1)
     {
-        Frame frame = CreateFrame();
-        uint32* x = Allocate<uint32>(&frame, 1);
+        uint32 frame = PushTempStackFrame();
+
+        uint32* x = Allocate<uint32>(temp_stack_allocator, 1);
         *x = i;
         EnterCriticalSection(&print_lock);
         PrintLine("thread %u x: (%p) %u", id, x, *x);
         LeaveCriticalSection(&print_lock);
         Sleep(250);
+
+        PopTempStackFrame(frame);
     }
 }
 

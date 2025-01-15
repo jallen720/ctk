@@ -29,8 +29,11 @@ struct FreeListInfo
     uint32 max_range_count;
 };
 
-struct FreeList : public Allocator
+struct FreeList
 {
+    Allocator  allocator;
+    Allocator* parent;
+
     uint8* mem;
     uint32 byte_size;
     uint32 first_range_index;
@@ -556,17 +559,17 @@ FreeList CreateFreeList(Allocator* parent, uint32 min_byte_size, FreeListInfo in
 
     // Init free list.
     FreeList free_list = {};
-    free_list.parent           = parent;
-    free_list.Allocate         = FreeList_Allocate;
-    free_list.AllocateNZ       = FreeList_AllocateNZ;
-    free_list.Reallocate       = FreeList_Reallocate;
-    free_list.ReallocateNZ     = FreeList_ReallocateNZ;
-    free_list.Deallocate       = FreeList_Deallocate;
-    free_list.mem              = Allocate<uint8>(parent, range_data_byte_size + free_space_byte_size);
-    free_list.byte_size        = range_data_byte_size + free_space_byte_size;
-    free_list.used_range_count = 0;
-    free_list.free_range_count = 0;
-    free_list.max_range_count  = max_range_count;
+    free_list.allocator.Allocate     = FreeList_Allocate;
+    free_list.allocator.AllocateNZ   = FreeList_AllocateNZ;
+    free_list.allocator.Reallocate   = FreeList_Reallocate;
+    free_list.allocator.ReallocateNZ = FreeList_ReallocateNZ;
+    free_list.allocator.Deallocate   = FreeList_Deallocate;
+    free_list.parent                 = parent;
+    free_list.mem                    = Allocate<uint8>(parent, range_data_byte_size + free_space_byte_size);
+    free_list.byte_size              = range_data_byte_size + free_space_byte_size;
+    free_list.used_range_count       = 0;
+    free_list.free_range_count       = 0;
+    free_list.max_range_count        = max_range_count;
 
     // Init range data.
     uint32 ranges_byte_index     = 0;

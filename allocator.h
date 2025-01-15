@@ -3,7 +3,6 @@
 struct Allocator;
 struct Allocator
 {
-    Allocator*                                       parent;
     Func<uint8*, Allocator*, uint32, uint32>         Allocate;
     Func<uint8*, Allocator*, uint32, uint32>         AllocateNZ;
     Func<uint8*, Allocator*, void*,  uint32, uint32> Reallocate;

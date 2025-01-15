@@ -232,8 +232,6 @@ void ParseLiteralToken(JSONTokenParseState* parse_state, String* json_file, cons
 
 Array<JSONToken> ParseTokens(JSON* json, String* json_file)
 {
-    Frame frame = CreateFrame();
-
     auto tokens = CreateArray<JSONToken>(json->allocator);
 
     // Parse File
@@ -475,7 +473,8 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
 
     // Track what list tokens belong to. An extra level is added to stack to allow resetting is_array flag on the final
     // close bracket. This removes the need to check is_array_stack.count > 0 every time is_array needs reset.
-    auto is_array_stack = CreateArray<bool>(&frame, max_depth + 1);
+    uint32 frame = PushTempStackFrame();
+    auto is_array_stack = CreateArray<bool>(TempStackAllocator(), max_depth + 1);
     bool is_array = false;
     Push(&is_array_stack, false);
 
@@ -683,6 +682,7 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
             parse_state.char_index += 1;
         }
     }
+    PopTempStackFrame(frame);
     return tokens;
 }
 

@@ -1,7 +1,10 @@
 /// Data
 ////////////////////////////////////////////////////////////
-struct Stack : public Allocator
+struct Stack
 {
+    Allocator  allocator;
+    Allocator* parent;
+
     uint8* mem;
     uint32 size;
     uint32 count;
@@ -38,12 +41,12 @@ Stack CreateStack(Allocator* parent, uint32 size)
     CTK_ASSERT(size > 0);
 
     Stack stack = {};
-    stack.parent     = parent;
-    stack.Allocate   = Stack_Allocate;
-    stack.AllocateNZ = Stack_AllocateNZ;
-    stack.mem        = Allocate<uint8>(parent, size);
-    stack.size       = size;
-    stack.count      = 0;
+    stack.allocator.Allocate   = Stack_Allocate;
+    stack.allocator.AllocateNZ = Stack_AllocateNZ;
+    stack.parent               = parent;
+    stack.mem                  = Allocate<uint8>(parent, size);
+    stack.size                 = size;
+    stack.count                = 0;
     return stack;
 }
 

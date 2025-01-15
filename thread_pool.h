@@ -97,7 +97,7 @@ DWORD ThreadFunc(void* data)
     // Initialize frame stack for thread if necessary.
     if (thread_pool->thread_frame_allocator_size > 0)
     {
-        InitFrameAllocator(thread_pool->allocator, thread_pool->thread_frame_allocator_size);
+        InitTempStack(thread_pool->allocator, thread_pool->thread_frame_allocator_size);
     }
 
     for (;;)

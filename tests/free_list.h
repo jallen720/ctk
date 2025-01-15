@@ -187,7 +187,7 @@ bool AllocateMultiple()
             Push(&layout, { .byte_index = byte_index, .byte_size = remaining_byte_size, .is_free = true });
         }
 
-        Allocate<uint8>(&free_list, test_allocs[curr_alloc_index]);
+        Allocate<uint8>(&free_list.allocator, test_allocs[curr_alloc_index]);
         FString<256> description = {};
         Write(&description, "Allocate<uint8>(&free_list, %u)", test_allocs[curr_alloc_index]);
         RunTest(&description, &pass, ExpectLayout, &free_list, layout);
@@ -221,7 +221,7 @@ bool AllocateFullFreeList()
     }
 
     {
-        alloc = Allocate<uint8>(&free_list, FREE_LIST_BYTE_SIZE);
+        alloc = Allocate<uint8>(&free_list.allocator, FREE_LIST_BYTE_SIZE);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -236,7 +236,7 @@ bool AllocateFullFreeList()
         RunTest(&description, &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        Deallocate(&free_list, alloc);
+        Deallocate(&free_list.allocator, alloc);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -261,14 +261,14 @@ bool DeallocateDoubleMerge()
     FreeList free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
     uint8* allocs[] =
     {
-        Allocate<uint8>(&free_list, 12),
-        Allocate<uint8>(&free_list, 8),
-        Allocate<uint8>(&free_list, 4),
-        Allocate<uint8>(&free_list, 2),
-        Allocate<uint8>(&free_list, 16),
-        Allocate<uint8>(&free_list, 1),
-        Allocate<uint8>(&free_list, 6),
-        Allocate<uint8>(&free_list, 1),
+        Allocate<uint8>(&free_list.allocator, 12),
+        Allocate<uint8>(&free_list.allocator, 8),
+        Allocate<uint8>(&free_list.allocator, 4),
+        Allocate<uint8>(&free_list.allocator, 2),
+        Allocate<uint8>(&free_list.allocator, 16),
+        Allocate<uint8>(&free_list.allocator, 1),
+        Allocate<uint8>(&free_list.allocator, 6),
+        Allocate<uint8>(&free_list.allocator, 1),
     };
 
     RangeInfo layout[] =
@@ -291,7 +291,7 @@ bool DeallocateDoubleMerge()
     for (uint32 alloc_index = 0; alloc_index < CTK_ARRAY_SIZE(allocs); alloc_index += 2)
     {
         // Deallocate and update expected layout.
-        Deallocate(&free_list, allocs[alloc_index]);
+        Deallocate(&free_list.allocator, allocs[alloc_index]);
         FreeLayoutRange(&expected_layout, alloc_index);
 
         // Run test.
@@ -304,7 +304,7 @@ bool DeallocateDoubleMerge()
     for (uint32 alloc_index = 1; alloc_index < CTK_ARRAY_SIZE(allocs); alloc_index += 2)
     {
         // Deallocate and update expected layout.
-        Deallocate(&free_list, allocs[alloc_index]);
+        Deallocate(&free_list.allocator, allocs[alloc_index]);
         FreeLayoutRange(&expected_layout, 1);
 
         // Run test.
@@ -325,10 +325,10 @@ bool DeallocatePrevMerge()
     FreeList free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
     uint8* allocs[] =
     {
-        Allocate<uint8>(&free_list, 24),
-        Allocate<uint8>(&free_list, 16),
-        Allocate<uint8>(&free_list, 8),
-        Allocate<uint8>(&free_list, 4),
+        Allocate<uint8>(&free_list.allocator, 24),
+        Allocate<uint8>(&free_list.allocator, 16),
+        Allocate<uint8>(&free_list.allocator, 8),
+        Allocate<uint8>(&free_list.allocator, 4),
     };
 
     {
@@ -344,7 +344,7 @@ bool DeallocatePrevMerge()
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        Deallocate(&free_list, allocs[0]);
+        Deallocate(&free_list.allocator, allocs[0]);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -357,7 +357,7 @@ bool DeallocatePrevMerge()
         RunTest("Deallocate(&free_list, allocs[0])", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        Deallocate(&free_list, allocs[1]);
+        Deallocate(&free_list.allocator, allocs[1]);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -381,10 +381,10 @@ bool DeallocateNextMerge()
     FreeList free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
     uint8* allocs[] =
     {
-        Allocate<uint8>(&free_list, 24),
-        Allocate<uint8>(&free_list, 16),
-        Allocate<uint8>(&free_list, 8),
-        Allocate<uint8>(&free_list, 4),
+        Allocate<uint8>(&free_list.allocator, 24),
+        Allocate<uint8>(&free_list.allocator, 16),
+        Allocate<uint8>(&free_list.allocator, 8),
+        Allocate<uint8>(&free_list.allocator, 4),
     };
 
     {
@@ -400,7 +400,7 @@ bool DeallocateNextMerge()
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        Deallocate(&free_list, allocs[1]);
+        Deallocate(&free_list.allocator, allocs[1]);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -413,7 +413,7 @@ bool DeallocateNextMerge()
         RunTest("Deallocate(&free_list, allocs[1])", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        Deallocate(&free_list, allocs[0]);
+        Deallocate(&free_list.allocator, allocs[0]);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -446,7 +446,7 @@ bool ReallocateSameSize()
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        alloc = Allocate<uint8>(&free_list, 1);
+        alloc = Allocate<uint8>(&free_list.allocator, 1);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -456,7 +456,7 @@ bool ReallocateSameSize()
         RunTest("Allocate<uint8>(&free_list, 1)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        alloc = Reallocate(&free_list, alloc, 1);
+        alloc = Reallocate(&free_list.allocator, alloc, 1);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -487,7 +487,7 @@ bool ReallocateSmallerNoNextHeader()
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        alloc = Allocate<uint8>(&free_list, 5);
+        alloc = Allocate<uint8>(&free_list.allocator, 5);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -496,7 +496,7 @@ bool ReallocateSmallerNoNextHeader()
         RunTest("Allocate<uint8>(&free_list, 5)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        alloc = Reallocate(&free_list, alloc, 3);
+        alloc = Reallocate(&free_list.allocator, alloc, 3);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -506,7 +506,7 @@ bool ReallocateSmallerNoNextHeader()
         RunTest("Reallocate(&free_list, alloc, 3)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        Allocate<uint8>(&free_list, 2);
+        Allocate<uint8>(&free_list.allocator, 2);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -537,8 +537,8 @@ bool ReallocateSmallerNextHeaderIsUsed()
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        alloc = Allocate<uint8>(&free_list, 3);
-        Allocate<uint8>(&free_list, 2);
+        alloc = Allocate<uint8>(&free_list.allocator, 3);
+        Allocate<uint8>(&free_list.allocator, 2);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -549,7 +549,7 @@ bool ReallocateSmallerNextHeaderIsUsed()
                 ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        alloc = Reallocate(&free_list, alloc, 1);
+        alloc = Reallocate(&free_list.allocator, alloc, 1);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -581,7 +581,7 @@ bool ReallocateSmallerNextHeaderIsFree()
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        alloc = Allocate<uint8>(&free_list, 5);
+        alloc = Allocate<uint8>(&free_list.allocator, 5);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -590,7 +590,7 @@ bool ReallocateSmallerNextHeaderIsFree()
         RunTest("Allocate<uint8>(&free_list, 5)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        alloc = Reallocate(&free_list, alloc, 4);
+        alloc = Reallocate(&free_list.allocator, alloc, 4);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -600,7 +600,7 @@ bool ReallocateSmallerNextHeaderIsFree()
         RunTest("Reallocate(&free_list, alloc, 4)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        alloc = Reallocate(&free_list, alloc, 3);
+        alloc = Reallocate(&free_list.allocator, alloc, 3);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -610,7 +610,7 @@ bool ReallocateSmallerNextHeaderIsFree()
         RunTest("Reallocate(&free_list, alloc, 3)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        alloc = Reallocate(&free_list, alloc, 2);
+        alloc = Reallocate(&free_list.allocator, alloc, 2);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -620,7 +620,7 @@ bool ReallocateSmallerNextHeaderIsFree()
         RunTest("Reallocate(&free_list, alloc, 2)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        alloc = Reallocate(&free_list, alloc, 1);
+        alloc = Reallocate(&free_list.allocator, alloc, 1);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -630,7 +630,7 @@ bool ReallocateSmallerNextHeaderIsFree()
         RunTest("Reallocate(&free_list, alloc, 1)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        Allocate<uint8>(&free_list, 2);
+        Allocate<uint8>(&free_list.allocator, 2);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -653,11 +653,11 @@ bool ReallocateLargerMergeEntireNextFreeRange()
     FreeList free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
     uint8* allocs[] =
     {
-        Allocate<uint8>(&free_list, 3),
-        Allocate<uint8>(&free_list, 2),
-        Allocate<uint8>(&free_list, 1),
+        Allocate<uint8>(&free_list.allocator, 3),
+        Allocate<uint8>(&free_list.allocator, 2),
+        Allocate<uint8>(&free_list.allocator, 1),
     };
-    Deallocate(&free_list, allocs[1]);
+    Deallocate(&free_list.allocator, allocs[1]);
 
     {
         RangeInfo layout[] =
@@ -670,7 +670,7 @@ bool ReallocateLargerMergeEntireNextFreeRange()
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        allocs[0] = Reallocate(&free_list, allocs[0], 5);
+        allocs[0] = Reallocate(&free_list.allocator, allocs[0], 5);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -701,7 +701,7 @@ bool ReallocateLargerMergePartialNextFreeRange()
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        alloc = Allocate<uint8>(&free_list, 1);
+        alloc = Allocate<uint8>(&free_list.allocator, 1);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -711,7 +711,7 @@ bool ReallocateLargerMergePartialNextFreeRange()
         RunTest("Allocate<uint8>(&free_list, 1)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        alloc = Reallocate(&free_list, alloc, 2);
+        alloc = Reallocate(&free_list.allocator, alloc, 2);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -721,7 +721,7 @@ bool ReallocateLargerMergePartialNextFreeRange()
         RunTest("Reallocate(&free_list, alloc, 2)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        alloc = Reallocate(&free_list, alloc, 3);
+        alloc = Reallocate(&free_list.allocator, alloc, 3);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -731,7 +731,7 @@ bool ReallocateLargerMergePartialNextFreeRange()
         RunTest("Reallocate(&free_list, alloc, 3)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        alloc = Reallocate(&free_list, alloc, 4);
+        alloc = Reallocate(&free_list.allocator, alloc, 4);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -741,7 +741,7 @@ bool ReallocateLargerMergePartialNextFreeRange()
         RunTest("Reallocate(&free_list, alloc, 4)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        alloc = Reallocate(&free_list, alloc, 5);
+        alloc = Reallocate(&free_list.allocator, alloc, 5);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -751,7 +751,7 @@ bool ReallocateLargerMergePartialNextFreeRange()
         RunTest("Reallocate(&free_list, alloc, 5)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        alloc = Reallocate(&free_list, alloc, 6);
+        alloc = Reallocate(&free_list.allocator, alloc, 6);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -772,8 +772,8 @@ bool ReallocateLargerNewAllocationPostRange()
     FreeList free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
     uint8* allocs[] =
     {
-        Allocate<uint8>(&free_list, 1),
-        Allocate<uint8>(&free_list, 1),
+        Allocate<uint8>(&free_list.allocator, 1),
+        Allocate<uint8>(&free_list.allocator, 1),
     };
 
     {
@@ -787,7 +787,7 @@ bool ReallocateLargerNewAllocationPostRange()
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        allocs[0] = Reallocate(&free_list, allocs[0], 2);
+        allocs[0] = Reallocate(&free_list.allocator, allocs[0], 2);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -810,11 +810,11 @@ bool ReallocateLargerNewAllocationPreRange()
     FreeList free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
     uint8* allocs[] =
     {
-        Allocate<uint8>(&free_list, 2),
-        Allocate<uint8>(&free_list, 1),
-        Allocate<uint8>(&free_list, 1),
+        Allocate<uint8>(&free_list.allocator, 2),
+        Allocate<uint8>(&free_list.allocator, 1),
+        Allocate<uint8>(&free_list.allocator, 1),
     };
-    Deallocate(&free_list, allocs[0]);
+    Deallocate(&free_list.allocator, allocs[0]);
 
     {
         RangeInfo layout[] =
@@ -827,7 +827,7 @@ bool ReallocateLargerNewAllocationPreRange()
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
     {
-        allocs[2] = Reallocate(&free_list, allocs[2], 2);
+        allocs[2] = Reallocate(&free_list.allocator, allocs[2], 2);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -858,14 +858,14 @@ bool ZeroAllocatedMemory()
         char test_buf[ALLOC_SIZE] = {};
         FString<256> description = {};
 
-        char* alloc = Allocate<char>(&free_list, ALLOC_SIZE);
+        char* alloc = Allocate<char>(&free_list.allocator, ALLOC_SIZE);
         Write(&description, "Allocate<char>(&free_list, %u)", ALLOC_SIZE);
         RunTest(&description, &pass,
                 ExpectEqual,
                 (const char*)test_buf, ALLOC_SIZE,
                 (const char*)alloc,    ALLOC_SIZE);
 
-        Deallocate(&free_list, alloc);
+        Deallocate(&free_list.allocator, alloc);
         RunTest("Deallocate(&free_list, alloc) (Deallocate() doesn't zero memory)", &pass,
                 ExpectEqual,
                 (const char*)test_buf, ALLOC_SIZE,
@@ -876,13 +876,13 @@ bool ZeroAllocatedMemory()
         char test_buf[FREE_LIST_BYTE_SIZE] = {};
         FString<256> description = {};
 
-        char* alloc = Allocate<char>(&free_list, ALLOC_SIZE);
+        char* alloc = Allocate<char>(&free_list.allocator, ALLOC_SIZE);
         Write(&description, "Allocate<char>(&free_list, %u)", ALLOC_SIZE);
         RunTest(&description, &pass, ExpectEqual,
                 (const char*)test_buf, ALLOC_SIZE,
                 (const char*)alloc,    ALLOC_SIZE);
 
-        Deallocate(&free_list, alloc);
+        Deallocate(&free_list.allocator, alloc);
         RunTest("Deallocate(&free_list, alloc) doesn't zero memory", &pass,
                 ExpectEqual,
                 (const char*)test_buf, ALLOC_SIZE,
@@ -907,12 +907,12 @@ bool ZeroReallocatedMemory()
     constexpr uint32 INIT_ALLOC_BYTE_SIZE = 8;
     char* allocs[3] =
     {
-        Allocate<char>(&free_list, INIT_ALLOC_BYTE_SIZE),
-        Allocate<char>(&free_list, INIT_ALLOC_BYTE_SIZE),
-        Allocate<char>(&free_list, INIT_ALLOC_BYTE_SIZE),
+        Allocate<char>(&free_list.allocator, INIT_ALLOC_BYTE_SIZE),
+        Allocate<char>(&free_list.allocator, INIT_ALLOC_BYTE_SIZE),
+        Allocate<char>(&free_list.allocator, INIT_ALLOC_BYTE_SIZE),
     };
     Write(allocs[1], INIT_ALLOC_BYTE_SIZE, "1234567"); // Write to second allocation that will be reallocated into.
-    Deallocate(&free_list, allocs[1]); // Deallocating second allocation should leave data untouched.
+    Deallocate(&free_list.allocator, allocs[1]); // Deallocating second allocation should leave data untouched.
 
     {
         RangeInfo layout[] =
@@ -941,7 +941,7 @@ bool ZeroReallocatedMemory()
         FString<256> description = {};
         Write(&description, "Reallocate(&free_list, allocs[0], %u) partial merge next", REALLOC_BYTE_SIZE);
 
-        allocs[0] = Reallocate(&free_list, allocs[0], REALLOC_BYTE_SIZE);
+        allocs[0] = Reallocate(&free_list.allocator, allocs[0], REALLOC_BYTE_SIZE);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -964,7 +964,7 @@ bool ZeroReallocatedMemory()
         FString<256> description = {};
         Write(&description, "Reallocate(&free_list, allocs[0], %u) full merge next", REALLOC_BYTE_SIZE);
 
-        allocs[0] = Reallocate(&free_list, allocs[0], REALLOC_BYTE_SIZE);
+        allocs[0] = Reallocate(&free_list.allocator, allocs[0], REALLOC_BYTE_SIZE);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -1004,14 +1004,14 @@ bool NonZeroAllocatedMemory()
         char test_buf[ALLOC_SIZE] = {};
         memset(test_buf, '#', ALLOC_SIZE);
 
-        char* alloc = AllocateNZ<char>(&free_list, ALLOC_SIZE);
+        char* alloc = AllocateNZ<char>(&free_list.allocator, ALLOC_SIZE);
         Write(&description, "AllocateNZ<char>(&free_list, %u) (shouldn't zero memory)", ALLOC_SIZE);
         RunTest(&description, &pass,
                 ExpectEqual,
                 (const char*)test_buf, ALLOC_SIZE,
                 (const char*)alloc,    ALLOC_SIZE);
 
-        Deallocate(&free_list, alloc);
+        Deallocate(&free_list.allocator, alloc);
         RunTest("Deallocate(&free_list, alloc) (doesn't zero memory)", &pass,
                 ExpectEqual,
                 (const char*)test_buf, ALLOC_SIZE,
@@ -1025,13 +1025,13 @@ bool NonZeroAllocatedMemory()
         char test_buf[FREE_LIST_BYTE_SIZE] = {};
         memset(test_buf, '#', FREE_LIST_BYTE_SIZE);
 
-        char* alloc = AllocateNZ<char>(&free_list, ALLOC_SIZE);
+        char* alloc = AllocateNZ<char>(&free_list.allocator, ALLOC_SIZE);
         Write(&description, "AllocateNZ<char>(&free_list, %u) (shouldn't zero memory)", ALLOC_SIZE);
         RunTest(&description, &pass, ExpectEqual,
                 (const char*)test_buf, ALLOC_SIZE,
                 (const char*)alloc,    ALLOC_SIZE);
 
-        Deallocate(&free_list, alloc);
+        Deallocate(&free_list.allocator, alloc);
         RunTest("Deallocate(&free_list, alloc) (doesn't zero memory)", &pass,
                 ExpectEqual,
                 (const char*)test_buf, ALLOC_SIZE,
@@ -1056,11 +1056,11 @@ bool NonZeroReallocatedMemory()
     constexpr uint32 INIT_ALLOC_BYTE_SIZE = 2;
     char* allocs[3] =
     {
-        AllocateNZ<char>(&free_list, INIT_ALLOC_BYTE_SIZE),
-        AllocateNZ<char>(&free_list, INIT_ALLOC_BYTE_SIZE),
-        AllocateNZ<char>(&free_list, INIT_ALLOC_BYTE_SIZE),
+        AllocateNZ<char>(&free_list.allocator, INIT_ALLOC_BYTE_SIZE),
+        AllocateNZ<char>(&free_list.allocator, INIT_ALLOC_BYTE_SIZE),
+        AllocateNZ<char>(&free_list.allocator, INIT_ALLOC_BYTE_SIZE),
     };
-    Deallocate(&free_list, allocs[1]); // Deallocating second allocation should leave data untouched.
+    Deallocate(&free_list.allocator, allocs[1]); // Deallocating second allocation should leave data untouched.
 
     {
         RangeInfo layout[] =
@@ -1089,7 +1089,7 @@ bool NonZeroReallocatedMemory()
         FString<256> description = {};
         Write(&description, "ReallocateNZ(&free_list, allocs[0], %u) partial merge next", REALLOC_BYTE_SIZE);
 
-        allocs[0] = ReallocateNZ(&free_list, allocs[0], REALLOC_BYTE_SIZE);
+        allocs[0] = ReallocateNZ(&free_list.allocator, allocs[0], REALLOC_BYTE_SIZE);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -1114,7 +1114,7 @@ bool NonZeroReallocatedMemory()
         FString<256> description = {};
         Write(&description, "ReallocateNZ(&free_list, allocs[0], %u) full merge next", REALLOC_BYTE_SIZE);
 
-        allocs[0] = ReallocateNZ(&free_list, allocs[0], REALLOC_BYTE_SIZE);
+        allocs[0] = ReallocateNZ(&free_list.allocator, allocs[0], REALLOC_BYTE_SIZE);
         RangeInfo layout[] =
         {
             RANGE_DATA_RANGE_INFO,
@@ -1152,7 +1152,7 @@ bool AllocateAlignmentTest()
         {
             FString<256> description = {};
             Write(&description, "Allocate(free_list, size: 1, alignment: %u) is aligned to %u", alignment, alignment);
-            uint32 allocation_alignment = GetAlignment(Allocate(free_list, 1, alignment));
+            uint32 allocation_alignment = GetAlignment(Allocate(&free_list->allocator, 1, alignment));
             RunTest(&description, &pass, ExpectGTEqual, alignment, allocation_alignment);
         }
     }
@@ -1177,13 +1177,13 @@ bool ReallocateAlignmentTest()
     CTK_ITER_PTR(free_list, free_lists, FREE_LIST_COUNT)
     {
         *free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
-        uint8* allocation = Allocate(free_list, 1, 1);
+        uint8* allocation = Allocate(&free_list->allocator, 1, 1);
         for (uint32 alignment = 1; alignment <= 32; alignment *= 2)
         {
             FString<256> description = {};
             Write(&description, "allocation = Reallocate(free_list, allocation, 1, alignment: %u) is aligned to %u",
                   alignment, alignment);
-            uint32 allocation_alignment = GetAlignment(allocation = Reallocate(free_list, allocation, 1, alignment));
+            uint32 allocation_alignment = GetAlignment(allocation = Reallocate(&free_list->allocator, allocation, 1, alignment));
             RunTest(&description, &pass, ExpectGTEqual, alignment, allocation_alignment);
         }
     }

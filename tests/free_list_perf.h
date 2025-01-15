@@ -260,7 +260,7 @@ void Run()
 
         // Run warmup test then cleanup free_list and allocations for next test.
         free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { max_allocation_count * 2 });
-        Test(&ops, &allocations, &free_list, WARMUP_PASS);
+        Test(&ops, &allocations, &free_list.allocator, WARMUP_PASS);
 // PrintUsage(&free_list);
         DestroyFreeList(&free_list);
         Clear(&allocations);
@@ -271,7 +271,7 @@ void Run()
         {
             // Run test then cleanup free_list and allocations for next test.
             free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { max_allocation_count * 2 });
-            total_ms += Test(&ops, &allocations, &free_list, pass);
+            total_ms += Test(&ops, &allocations, &free_list.allocator, pass);
             DestroyFreeList(&free_list);
             Clear(&allocations);
         }

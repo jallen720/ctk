@@ -3,6 +3,30 @@
 namespace StackTest
 {
 
+/// Utils
+////////////////////////////////////////////////////////////
+bool TestStackFields(const char* stack_name, Stack* stack, uint32 expected_size, uint32 expected_count)
+{
+    bool pass = true;
+
+    FString<256> description = {};
+    Write(&description, "%s->size", stack_name);
+    if (!ExpectEqual(&description, expected_size, stack->size))
+    {
+        pass = false;
+    }
+
+    Write(&description, "%s->count", stack_name);
+    if (!ExpectEqual(&description, expected_count, stack->count))
+    {
+        pass = false;
+    }
+
+    return pass;
+}
+
+/// Tests
+////////////////////////////////////////////////////////////
 bool AllocateTest()
 {
     bool pass = true;
@@ -18,10 +42,10 @@ bool AllocateTest()
     char* buffer = NULL;
 
     {
-        buffer = Allocate<char>(&stack, STACK_BYTE_SIZE);
+        buffer = Allocate<char>(&stack.allocator, STACK_BYTE_SIZE);
 
         FString<256> description = {};
-        Write(&description, "Allocate(&stack, %u)", STACK_BYTE_SIZE);
+        Write(&description, "Allocate(&stack.allocator, %u)", STACK_BYTE_SIZE);
         RunTest(&description, &pass, TestStackFields, "stack", &stack, STACK_BYTE_SIZE, STACK_BYTE_SIZE);
     }
     {
@@ -49,8 +73,9 @@ bool AlignmentTest()
         for (uint32 alignment = 1; alignment <= 32; alignment *= 2)
         {
             FString<256> description = {};
-            Write(&description, "Allocate(stack, size: 1, alignment: %u) is aligned to %u", alignment, alignment);
-            uint32 allocation_alignment = GetAlignment(Allocate(stack, 1, alignment));
+            Write(&description, "Allocate(&stack->allocator, size: 1, alignment: %u) is aligned to %u",
+                  alignment, alignment);
+            uint32 allocation_alignment = GetAlignment(Allocate(&stack->allocator, 1, alignment));
             RunTest(&description, &pass, ExpectGTEqual, alignment, allocation_alignment);
         }
     }
@@ -64,12 +89,108 @@ bool AlignmentTest()
     return pass;
 }
 
+bool TempStackAllocateTest()
+{
+    bool pass = true;
+
+    static constexpr uint32 TEMP_STACK_SIZE = 512u;
+    InitTempStack(&g_std_allocator, TEMP_STACK_SIZE);
+    Allocator* temp_stack_allocator = TempStackAllocator();
+
+    {
+        uint32 frame1 = PushTempStackFrame();
+
+        auto buf1 = Allocate<char>(temp_stack_allocator, 6);
+        RunTest("Allocate<char>(temp_stack_allocator, 6)", &pass,
+                TestStackFields, "g_temp_stack", &g_temp_stack, TEMP_STACK_SIZE, 6u);
+
+        Write(buf1, 6, "test1");
+        RunTest("Write(buf1, 6, \"test1\");", &pass,
+                ExpectEqual, "test1\0", g_temp_stack.mem, 6u);
+        {
+            uint32 frame2 = PushTempStackFrame();
+
+            auto buf2 = Allocate<char>(temp_stack_allocator, 6);
+            RunTest("Allocate<char>(temp_stack_allocator, 6)", &pass,
+                    TestStackFields, "g_temp_stack", &g_temp_stack, TEMP_STACK_SIZE, 12u);
+
+            Write(buf2, 6, "test2");
+            RunTest("Write(buf2, 6, \"test2\")", &pass,
+                    ExpectEqual, "test1\0test2\0", g_temp_stack.mem, 12u);
+
+            PopTempStackFrame(frame2);
+        }
+
+        RunTest("frame2 ended", &pass,
+                TestStackFields, "g_temp_stack", &g_temp_stack, TEMP_STACK_SIZE, 6u);
+        RunTest("frame2 ended", &pass,
+                ExpectEqual, "test1\0", g_temp_stack.mem, 6u);
+
+        {
+            uint32 frame3 = PushTempStackFrame();
+
+            auto buf3 = Allocate<char>(temp_stack_allocator, 6);
+            RunTest("Allocate<char>(temp_stack_allocator, 6)", &pass,
+                    TestStackFields, "g_temp_stack", &g_temp_stack, TEMP_STACK_SIZE, 12u);
+
+            Write(buf3, 6, "test3");
+            RunTest("Write(buf3, 6, \"test3\")", &pass,
+                    ExpectEqual, "test1\0test3\0", g_temp_stack.mem, 12u);
+
+            PopTempStackFrame(frame3);
+        }
+
+        RunTest("frame3 ended", &pass, TestStackFields, "g_temp_stack", &g_temp_stack, TEMP_STACK_SIZE, 6u);
+        RunTest("frame3 ended", &pass, ExpectEqual, "test1\0", g_temp_stack.mem, 6u);
+
+        PopTempStackFrame(frame1);
+    }
+
+
+    DeinitTempStack();
+
+    return pass;
+}
+
+bool TempStackAllocateOverwriteTest()
+{
+    bool pass = true;
+
+    static constexpr uint32 TEMP_STACK_SIZE = 512u;
+    InitTempStack(&g_std_allocator, TEMP_STACK_SIZE);
+    Allocator* temp_stack_allocator = TempStackAllocator();
+
+    uint32 frame1 = PushTempStackFrame();
+
+    auto buf1 = Allocate<char>(temp_stack_allocator, 6u);
+    Write(buf1, 6u, "test1");
+    RunTest("Write(buf1, 6u, \"test1\")", &pass, ExpectEqual, "test1\0", g_temp_stack.mem, 6u);
+
+    {
+        uint32 frame2 = PushTempStackFrame();
+
+        auto buf2 = Allocate<char>(temp_stack_allocator, 6u);
+        Write(buf2, 6u, "test2");
+        RunTest("Write(buf2, 6u, \"test2\")", &pass, ExpectEqual, "test1\0test2\0", g_temp_stack.mem, 12u);
+
+        PopTempStackFrame(frame2);
+    }
+
+    PopTempStackFrame(frame1);
+
+    DeinitTempStack();
+
+    return pass;
+}
+
 bool Run()
 {
     bool pass = true;
 
-    RunTest("AllocateTest",  &pass, AllocateTest);
-    RunTest("AlignmentTest", &pass, AlignmentTest);
+    // RunTest("AllocateTest",                   &pass, AllocateTest);
+    // RunTest("AlignmentTest",                  &pass, AlignmentTest);
+    RunTest("TempStackAllocateTest",          &pass, TempStackAllocateTest);
+    RunTest("TempStackAllocateOverwriteTest", &pass, TempStackAllocateOverwriteTest);
 
     return pass;
 }

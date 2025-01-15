@@ -31,7 +31,6 @@ void STD_Deallocate(Allocator* allocator, void* mem)
 
 Allocator g_std_allocator =
 {
-    .parent       = NULL,
     .Allocate     = STD_Allocate,
     .AllocateNZ   = STD_AllocateNZ,
     .Reallocate   = NULL,
@@ -39,92 +38,59 @@ Allocator g_std_allocator =
     .Deallocate   = STD_Deallocate,
 };
 
-/// Frame Allocator
+/// Temp Stack Allocator
 ////////////////////////////////////////////////////////////
-struct StackList
+static Stack g_temp_stack;
+
+void InitTempStack(Allocator* parent, uint32 size)
 {
-    Stack  base;
-    Stack* top;
-};
-
-struct Frame : public Allocator
-{
-    StackList* stack_list;
-    Stack*     stack;
-    Stack*     parent;
-    uint32     parent_base_count;
-    ~Frame()
-    {
-        parent->count = parent_base_count;
-        stack_list->top = parent;
-    }
-};
-
-static constexpr uint32 MAX_STACK_LISTS  = 64;
-static constexpr uint32 FRAME_STACK_SIZE = Kilobyte32<4>();
-FMap<DWORD, StackList, MAX_STACK_LISTS> g_stack_lists;
-
-void InitFrameAllocator(Allocator* allocator, uint32 size)
-{
-    DWORD thread_id = GetCurrentThreadId();
-    if (!CanPush(&g_stack_lists, thread_id))
-    {
-        CTK_FATAL("can't initialize frame stack on thread %u: frame stack already initialized for this thread",
-                  thread_id);
-    }
-
-    StackList* stack_list = Push(&g_stack_lists, thread_id);
-    stack_list->base = CreateStack(allocator, size);
-    stack_list->top  = &stack_list->base;
+    CTK_ASSERT(size > 0);
+    g_temp_stack = CreateStack(parent, size);
 }
 
-void DeinitFrameAllocator()
+void DeinitTempStack()
 {
-    DWORD thread_id = GetCurrentThreadId();
-    StackList* stack_list = FindValue(&g_stack_lists, thread_id);
-    if (stack_list == NULL)
+    DestroyStack(&g_temp_stack);
+}
+
+uint32 PushTempStackFrame()
+{
+    if (g_temp_stack.size == 0)
     {
-        CTK_FATAL("can't di-initialize frame stack on thread %u: frame stack doesn't exist for this thread",
-                  thread_id);
+        CTK_FATAL("can't push temp stack frame; temp stack is not initialized");
     }
 
-    DestroyStack(&stack_list->base);
-    Remove(&g_stack_lists, thread_id);
-}
-
-uint8* Frame_Allocate(Allocator* allocator, uint32 size, uint32 alignment)
-{
-    auto frame = (Frame*)allocator;
-    return Stack_Allocate(frame->stack, size, alignment);
-}
-
-uint8* Frame_AllocateNZ(Allocator* allocator, uint32 size, uint32 alignment)
-{
-    auto frame = (Frame*)allocator;
-    return Stack_AllocateNZ(frame->stack, size, alignment);
-}
-
-Frame CreateFrame()
-{
-    DWORD thread_id = GetCurrentThreadId();
-    StackList* stack_list = FindValue(&g_stack_lists, thread_id);
-    if (stack_list == NULL)
+    if (g_temp_stack.count >= g_temp_stack.size)
     {
-        CTK_FATAL("can't create frame; frame stack for this thread (%u) has not been initialized", thread_id);
+        CTK_FATAL("can't push temp stack frame; temp stack is full");
     }
 
-    // Allocate new stack for top stack.
-    Stack* parent = stack_list->top;
-    uint32 parent_base_count = parent->count;
-    stack_list->top = Allocate<Stack>(parent, 1);
-    *stack_list->top = CreateStack(parent, parent->size - parent->count);
+    return g_temp_stack.count;
+}
 
-    Frame frame = {};
-    frame.Allocate          = Frame_Allocate;
-    frame.AllocateNZ        = Frame_AllocateNZ;
-    frame.stack_list        = stack_list;
-    frame.stack             = stack_list->top;
-    frame.parent            = parent;
-    frame.parent_base_count = parent_base_count;
-    return frame;
+void PopTempStackFrame(uint32 frame)
+{
+    if (g_temp_stack.size == 0)
+    {
+        CTK_FATAL("can't pop temp stack frame; temp stack is not initialized");
+    }
+
+    if (frame > g_temp_stack.count)
+    {
+        CTK_FATAL("can't pop temp stack frame; frame is higher than current temp stack index, meaning a frame pushed "
+                  "before this one has already been popped. Check the order in which PopTempStackFrame() is called "
+                  "with other temp stack frames.");
+    }
+
+    g_temp_stack.count = frame;
+}
+
+Allocator* TempStackAllocator()
+{
+    if (g_temp_stack.size == 0)
+    {
+        CTK_FATAL("can't get temp stack allocator; temp stack is not initialized");
+    }
+
+    return &g_temp_stack.allocator;
 }
