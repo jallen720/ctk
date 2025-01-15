@@ -14,9 +14,9 @@ void Thread(void* data)
         uint32 frame = PushTempStackFrame();
 
         uint32* x = Allocate<uint32>(temp_stack_allocator, 1);
-        *x = i;
+        *x = id * i;
         EnterCriticalSection(&print_lock);
-        PrintLine("thread %u x: (%p) %u", id, x, *x);
+        PrintLine("thread %u x (%u * %u): (%p) %u", id, i, id, x, *x);
         LeaveCriticalSection(&print_lock);
         Sleep(250);
 

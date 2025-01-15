@@ -40,57 +40,91 @@ Allocator g_std_allocator =
 
 /// Temp Stack Allocator
 ////////////////////////////////////////////////////////////
-static Stack g_temp_stack;
+static constexpr uint32 MAX_THREAD_TEMP_STACKS = 256;
+static FMap<DWORD, Stack, MAX_THREAD_TEMP_STACKS> g_temp_stacks;
 
 void InitTempStack(Allocator* parent, uint32 size)
 {
     CTK_ASSERT(size > 0);
-    g_temp_stack = CreateStack(parent, size);
+
+    DWORD thread_id = GetCurrentThreadId();
+    Stack* temp_stack = FindValue(&g_temp_stacks, thread_id);
+    if (temp_stack != NULL)
+    {
+        CTK_FATAL("can't initialize temp stack on thread %u; temp stack already initialized", thread_id);
+    }
+
+    Push(&g_temp_stacks, thread_id, CreateStack(parent, size));
 }
 
 void DeinitTempStack()
 {
-    DestroyStack(&g_temp_stack);
+    DWORD thread_id = GetCurrentThreadId();
+    Stack* temp_stack = FindValue(&g_temp_stacks, thread_id);
+    if (temp_stack == NULL)
+    {
+        CTK_FATAL("can't de-initialize temp stack on thread %u; temp stack is not initialized", thread_id);
+    }
+
+    DestroyStack(temp_stack);
 }
 
 uint32 PushTempStackFrame()
 {
-    if (g_temp_stack.size == 0)
+    DWORD thread_id = GetCurrentThreadId();
+    Stack* temp_stack = FindValue(&g_temp_stacks, thread_id);
+    if (temp_stack == NULL)
     {
-        CTK_FATAL("can't push temp stack frame; temp stack is not initialized");
+        CTK_FATAL("can't push temp stack frame on thread %u; temp stack is not initialized", thread_id);
     }
 
-    if (g_temp_stack.count >= g_temp_stack.size)
+    if (temp_stack->count >= temp_stack->size)
     {
         CTK_FATAL("can't push temp stack frame; temp stack is full");
     }
 
-    return g_temp_stack.count;
+    return temp_stack->count;
 }
 
 void PopTempStackFrame(uint32 frame)
 {
-    if (g_temp_stack.size == 0)
+    DWORD thread_id = GetCurrentThreadId();
+    Stack* temp_stack = FindValue(&g_temp_stacks, thread_id);
+    if (temp_stack == NULL)
     {
-        CTK_FATAL("can't pop temp stack frame; temp stack is not initialized");
+        CTK_FATAL("can't pop temp stack frame on thread %u; temp stack is not initialized", thread_id);
     }
 
-    if (frame > g_temp_stack.count)
+    if (frame > temp_stack->count)
     {
         CTK_FATAL("can't pop temp stack frame; frame is higher than current temp stack index, meaning a frame pushed "
                   "before this one has already been popped. Check the order in which PopTempStackFrame() is called "
                   "with other temp stack frames.");
     }
 
-    g_temp_stack.count = frame;
+    temp_stack->count = frame;
 }
 
 Allocator* TempStackAllocator()
 {
-    if (g_temp_stack.size == 0)
+    DWORD thread_id = GetCurrentThreadId();
+    Stack* temp_stack = FindValue(&g_temp_stacks, thread_id);
+    if (temp_stack == NULL)
     {
-        CTK_FATAL("can't get temp stack allocator; temp stack is not initialized");
+        CTK_FATAL("can't get temp stack allocator on thread %u; temp stack is not initialized", thread_id);
     }
 
-    return &g_temp_stack.allocator;
+    return &temp_stack->allocator;
+}
+
+Stack* TempStack()
+{
+    DWORD thread_id = GetCurrentThreadId();
+    Stack* temp_stack = FindValue(&g_temp_stacks, thread_id);
+    if (temp_stack == NULL)
+    {
+        CTK_FATAL("can't get temp stack on thread %u; temp stack is not initialized", thread_id);
+    }
+
+    return temp_stack;
 }
