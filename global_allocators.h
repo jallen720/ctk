@@ -67,9 +67,31 @@ TempStack* TempStackOrFatal(const char* func)
     return temp_stack;
 }
 
+void PrintUsedFrames(TempStack* temp_stack, uint32 start_frame_index)
+{
+    for (uint32 i = start_frame_index; i < temp_stack->frames.count; i += 1)
+    {
+        Frame* nested_frame = GetPtr(&temp_stack->frames, i);
+        PrintError("    used_frame (index = %u):", i);
+        PrintError("        file:        %s", nested_frame->file);
+        PrintError("        line_num:    %u", nested_frame->line_num);
+        PrintError("        stack_index: %u", nested_frame->stack_index);
+    }
+}
+
+void TempStack_VerifyNoFramesOrFatal_Internal(TempStack* temp_stack)
+{
+    if (temp_stack->frames.count != 0)
+    {
+        PrintError("frames are still in use:");
+        PrintUsedFrames(temp_stack, 0);
+        CTK_FATAL("TempStack_VerifyNoFramesOrFatal failed on thread %u", GetCurrentThreadId());
+    }
+}
+
 /// Interface
 ////////////////////////////////////////////////////////////
-void InitTempStack(Allocator* parent, uint32 size)
+void TempStack_Init(Allocator* parent, uint32 size)
 {
     CTK_ASSERT(size > 0);
 
@@ -77,21 +99,34 @@ void InitTempStack(Allocator* parent, uint32 size)
     TempStack* temp_stack = FindValue(&g_temp_stacks, thread_id);
     if (temp_stack != NULL)
     {
-        CTK_FATAL("InitTempStack() failed on thread %u; temp stack already initialized", thread_id);
+        CTK_FATAL("TempStack_Init() failed on thread %u; temp stack already initialized", thread_id);
     }
 
     temp_stack = Push(&g_temp_stacks, thread_id);
     temp_stack->stack = CreateStack(parent, size);
 }
 
-void DeinitTempStack()
+void TempStack_Deinit()
 {
     TempStack* temp_stack = TempStackOrFatal(__FUNCTION__);
+    TempStack_VerifyNoFramesOrFatal_Internal(temp_stack);
     DestroyStack(&temp_stack->stack);
     Remove(&g_temp_stacks, GetCurrentThreadId());
 }
 
-uint32 PushTempStackFrame(const char* file, uint32 line_num)
+void TempStack_VerifyNoFramesOrFatal()
+{
+    TempStack* temp_stack = TempStackOrFatal(__FUNCTION__);
+    TempStack_VerifyNoFramesOrFatal_Internal(temp_stack);
+    if (temp_stack->frames.count != 0)
+    {
+        PrintError("frames are still in use:");
+        PrintUsedFrames(temp_stack, 0);
+        CTK_FATAL("TempStack_VerifyNoFramesOrFatal() failed on thread %u", GetCurrentThreadId());
+    }
+}
+
+uint32 TempStack_PushFrame(const char* file, uint32 line_num)
 {
     TempStack* temp_stack = TempStackOrFatal(__FUNCTION__);
     if (temp_stack->stack.count >= temp_stack->stack.size)
@@ -106,47 +141,41 @@ uint32 PushTempStackFrame(const char* file, uint32 line_num)
     frame->stack_index = temp_stack->stack.count;
     return frame_index;
 }
-#define PushTempStackFrame() PushTempStackFrame(__FILE__, __LINE__)
+#define TempStack_PushFrame() TempStack_PushFrame(__FILE__, __LINE__)
 
-void PopTempStackFrame(uint32 frame_index, const char* file, uint32 line_num)
+void TempStack_PopFrame(uint32 frame_index, const char* file, uint32 line_num)
 {
     TempStack* temp_stack = TempStackOrFatal(__FUNCTION__);
-    if (frame_index == GetLastIndex(&temp_stack->frames))
+
+    if (frame_index < temp_stack->frames.count &&
+        frame_index == GetLastIndex(&temp_stack->frames))
     {
         temp_stack->stack.count = PopPtr(&temp_stack->frames)->stack_index;
     }
     else
     {
-        Frame* frame = GetPtr(&temp_stack->frames, frame_index);
-        PrintError("frame for frame_index passed to PopTempStackFrame():");
-        PrintError("    frame (index = %u):", frame_index);
-        PrintError("        file:        %s", frame->file);
-        PrintError("        line_num:    %u", frame->line_num);
-        PrintError("        stack_index: %u", frame->stack_index);
-        PrintError("frame_index passed to PopTempStackFrame() doesn't refer to top frame in temp stack's frame list; "
-                   "frames must be popped in reverse order to the order they were pushed (FILO).");
         if (frame_index >= temp_stack->frames.count)
         {
-            PrintError("somehow you managed to pass a frame_index that is outside the range of current frames...");
+            PrintError("frame index %u has already been popped from the temp stack or is invalid", frame_index);
         }
         else
         {
-            PrintError("there are frames pushed to the temp stack that still haven't been popped; they are listed "
-                       "below:");
-            for (uint32 i = frame_index + 1; i < temp_stack->frames.count; i += 1)
-            {
-                Frame* nested_frame = GetPtr(&temp_stack->frames, i);
-                PrintError("    nested_frame (index = %u):", i);
-                PrintError("        file:        %s", nested_frame->file);
-                PrintError("        line_num:    %u", nested_frame->line_num);
-                PrintError("        stack_index: %u", nested_frame->stack_index);
-            }
+            Frame* frame = GetPtr(&temp_stack->frames, frame_index);
+            PrintError("frame for frame_index passed to TempStack_PopFrame():");
+            PrintError("    frame (index = %u):", frame_index);
+            PrintError("        file:        %s", frame->file);
+            PrintError("        line_num:    %u", frame->line_num);
+            PrintError("        stack_index: %u", frame->stack_index);
+            PrintError("frame_index passed to TempStack_PopFrame() doesn't refer to top frame in temp stack's frame "
+                       "list; frames must be popped in reverse order to the order they were pushed (FILO); these are "
+                       "the frames that haven't been popped:");
+            PrintUsedFrames(temp_stack, frame_index + 1);
         }
 
-        CTK_FATAL("PopTempStackFrame() failed on thread %u; frame is not top frame", GetCurrentThreadId());
+        CTK_FATAL("TempStack_PopFrame() failed on thread %u", GetCurrentThreadId());
     }
 }
-#define PopTempStackFrame(frame_index) PopTempStackFrame(frame_index, __FILE__, __LINE__)
+#define TempStack_PopFrame(frame_index) TempStack_PopFrame(frame_index, __FILE__, __LINE__)
 
 Stack* TempStack_Stack()
 {

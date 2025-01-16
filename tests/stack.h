@@ -94,61 +94,60 @@ bool TempStackAllocateTest()
     bool pass = true;
 
     static constexpr uint32 TEMP_STACK_SIZE = 512u;
-    InitTempStack(&g_std_allocator, TEMP_STACK_SIZE);
+    TempStack_Init(&g_std_allocator, TEMP_STACK_SIZE);
     Stack* temp_stack = TempStack_Stack();
     Allocator* temp_stack_allocator = TempStack_Allocator();
 
+    uint32 frame1 = TempStack_PushFrame();
+
+    auto buf1 = Allocate<char>(temp_stack_allocator, 6);
+    RunTest("Allocate<char>(temp_stack_allocator, 6)", &pass,
+            TestStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 6u);
+
+    Write(buf1, 6, "test1");
+    RunTest("Write(buf1, 6, \"test1\");", &pass,
+            ExpectEqual, "test1\0", temp_stack->mem, 6u);
     {
-        uint32 frame1 = PushTempStackFrame();
+        uint32 frame2 = TempStack_PushFrame();
 
-        auto buf1 = Allocate<char>(temp_stack_allocator, 6);
+        auto buf2 = Allocate<char>(temp_stack_allocator, 6);
         RunTest("Allocate<char>(temp_stack_allocator, 6)", &pass,
-                TestStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 6u);
+                TestStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 12u);
 
-        Write(buf1, 6, "test1");
-        RunTest("Write(buf1, 6, \"test1\");", &pass,
-                ExpectEqual, "test1\0", temp_stack->mem, 6u);
-        {
-            uint32 frame2 = PushTempStackFrame();
+        Write(buf2, 6, "test2");
+        RunTest("Write(buf2, 6, \"test2\")", &pass,
+                ExpectEqual, "test1\0test2\0", temp_stack->mem, 12u);
 
-            auto buf2 = Allocate<char>(temp_stack_allocator, 6);
-            RunTest("Allocate<char>(temp_stack_allocator, 6)", &pass,
-                    TestStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 12u);
-
-            Write(buf2, 6, "test2");
-            RunTest("Write(buf2, 6, \"test2\")", &pass,
-                    ExpectEqual, "test1\0test2\0", temp_stack->mem, 12u);
-
-            PopTempStackFrame(frame2);
-        }
-
-        RunTest("frame2 ended", &pass,
-                TestStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 6u);
-        RunTest("frame2 ended", &pass,
-                ExpectEqual, "test1\0", temp_stack->mem, 6u);
-
-        {
-            uint32 frame3 = PushTempStackFrame();
-
-            auto buf3 = Allocate<char>(temp_stack_allocator, 6);
-            RunTest("Allocate<char>(temp_stack_allocator, 6)", &pass,
-                    TestStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 12u);
-
-            Write(buf3, 6, "test3");
-            RunTest("Write(buf3, 6, \"test3\")", &pass,
-                    ExpectEqual, "test1\0test3\0", temp_stack->mem, 12u);
-
-            PopTempStackFrame(frame3);
-        }
-
-        RunTest("frame3 ended", &pass, TestStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 6u);
-        RunTest("frame3 ended", &pass, ExpectEqual, "test1\0", temp_stack->mem, 6u);
-
-        PopTempStackFrame(frame1);
+        TempStack_PopFrame(frame2);
     }
 
+    RunTest("frame2 ended", &pass,
+            TestStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 6u);
+    RunTest("frame2 ended", &pass,
+            ExpectEqual, "test1\0", temp_stack->mem, 6u);
 
-    DeinitTempStack();
+    {
+        uint32 frame3 = TempStack_PushFrame();
+
+        auto buf3 = Allocate<char>(temp_stack_allocator, 6);
+        RunTest("Allocate<char>(temp_stack_allocator, 6)", &pass,
+                TestStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 12u);
+
+        Write(buf3, 6, "test3");
+        RunTest("Write(buf3, 6, \"test3\")", &pass,
+                ExpectEqual, "test1\0test3\0", temp_stack->mem, 12u);
+
+        TempStack_PopFrame(frame3);
+    }
+
+    RunTest("frame3 ended", &pass, TestStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 6u);
+    RunTest("frame3 ended", &pass, ExpectEqual, "test1\0", temp_stack->mem, 6u);
+
+    TempStack_PopFrame(frame1);
+
+    RunTest("frame1 ended", &pass, TestStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 0u);
+
+    TempStack_Deinit();
 
     return pass;
 }
@@ -158,29 +157,95 @@ bool TempStackAllocateOverwriteTest()
     bool pass = true;
 
     static constexpr uint32 TEMP_STACK_SIZE = 512u;
-    InitTempStack(&g_std_allocator, TEMP_STACK_SIZE);
+    TempStack_Init(&g_std_allocator, TEMP_STACK_SIZE);
     Stack* temp_stack = TempStack_Stack();
     Allocator* temp_stack_allocator = TempStack_Allocator();
 
-    uint32 frame1 = PushTempStackFrame();
+    uint32 frame1 = TempStack_PushFrame();
 
     auto buf1 = Allocate<char>(temp_stack_allocator, 6u);
     Write(buf1, 6u, "test1");
     RunTest("Write(buf1, 6u, \"test1\")", &pass, ExpectEqual, "test1\0", temp_stack->mem, 6u);
 
     {
-        uint32 frame2 = PushTempStackFrame();
+        uint32 frame2 = TempStack_PushFrame();
 
         auto buf2 = Allocate<char>(temp_stack_allocator, 6u);
         Write(buf2, 6u, "test2");
         RunTest("Write(buf2, 6u, \"test2\")", &pass, ExpectEqual, "test1\0test2\0", temp_stack->mem, 12u);
 
-        PopTempStackFrame(frame2);
+        TempStack_PopFrame(frame2);
     }
 
-    PopTempStackFrame(frame1);
+    TempStack_PopFrame(frame1);
 
-    DeinitTempStack();
+    TempStack_Deinit();
+
+    return pass;
+}
+
+#define ExpectFatalError(FUNC_CALL)\
+    PrintExpected("fatal error");\
+    try\
+    {\
+        FUNC_CALL;\
+        pass = false;\
+        PrintActual(pass, "no fatal error");\
+    }\
+    catch (sint32 _)\
+    {\
+        PrintActual(pass, "fatal error");\
+    }
+
+bool TempStackVerifyNoFramesOrFatalFailure()
+{
+    bool pass = true;
+
+    static constexpr uint32 TEMP_STACK_SIZE = 512u;
+    TempStack_Init(&g_std_allocator, TEMP_STACK_SIZE);
+
+    uint32 frame1 = TempStack_PushFrame();
+        ExpectFatalError(TempStack_VerifyNoFramesOrFatal());
+        ExpectFatalError(TempStack_Deinit());
+    TempStack_PopFrame(frame1);
+
+    TempStack_VerifyNoFramesOrFatal();
+    TempStack_Deinit();
+
+    return pass;
+}
+
+bool TempStackMissingNestedPopTest()
+{
+    bool pass = true;
+
+    static constexpr uint32 TEMP_STACK_SIZE = 512u;
+    TempStack_Init(&g_std_allocator, TEMP_STACK_SIZE);
+
+    uint32 frame1 = TempStack_PushFrame();
+        Allocate<uint32>(TempStack_Allocator(), 64);
+        uint32 frame2 = TempStack_PushFrame();
+        ExpectFatalError(TempStack_PopFrame(frame1));
+        TempStack_PopFrame(frame2);
+    TempStack_PopFrame(frame1);
+
+    TempStack_Deinit();
+
+    return pass;
+}
+
+bool TempStackDoublePopTest()
+{
+    bool pass = true;
+
+    static constexpr uint32 TEMP_STACK_SIZE = 512u;
+    TempStack_Init(&g_std_allocator, TEMP_STACK_SIZE);
+
+    uint32 frame1 = TempStack_PushFrame();
+    TempStack_PopFrame(frame1);
+    ExpectFatalError(TempStack_PopFrame(frame1));
+
+    TempStack_Deinit();
 
     return pass;
 }
@@ -189,10 +254,13 @@ bool Run()
 {
     bool pass = true;
 
-    // RunTest("AllocateTest",                   &pass, AllocateTest);
-    // RunTest("AlignmentTest",                  &pass, AlignmentTest);
-    RunTest("TempStackAllocateTest",          &pass, TempStackAllocateTest);
-    RunTest("TempStackAllocateOverwriteTest", &pass, TempStackAllocateOverwriteTest);
+    RunTest("AllocateTest",                          &pass, AllocateTest);
+    RunTest("AlignmentTest",                         &pass, AlignmentTest);
+    RunTest("TempStackAllocateTest",                 &pass, TempStackAllocateTest);
+    RunTest("TempStackAllocateOverwriteTest",        &pass, TempStackAllocateOverwriteTest);
+    RunTest("TempStackVerifyNoFramesOrFatalFailure", &pass, TempStackVerifyNoFramesOrFatalFailure);
+    RunTest("TempStackMissingNestedPopTest",         &pass, TempStackMissingNestedPopTest);
+    RunTest("TempStackDoublePopTest",                &pass, TempStackDoublePopTest);
 
     return pass;
 }

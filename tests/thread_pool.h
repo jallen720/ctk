@@ -11,7 +11,7 @@ void Thread(void* data)
     Allocator* temp_stack_allocator = TempStack_Allocator();
     for (uint32 i = 0; i < 4; i += 1)
     {
-        uint32 frame = PushTempStackFrame();
+        uint32 frame = TempStack_PushFrame();
 
         uint32* x = Allocate<uint32>(temp_stack_allocator, 1);
         *x = id * i;
@@ -20,7 +20,7 @@ void Thread(void* data)
         LeaveCriticalSection(&print_lock);
         Sleep(250);
 
-        PopTempStackFrame(frame);
+        TempStack_PopFrame(frame);
     }
 }
 
