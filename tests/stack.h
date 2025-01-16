@@ -95,8 +95,8 @@ bool TempStackAllocateTest()
 
     static constexpr uint32 TEMP_STACK_SIZE = 512u;
     InitTempStack(&g_std_allocator, TEMP_STACK_SIZE);
-    Stack* temp_stack = TempStack();
-    Allocator* temp_stack_allocator = TempStackAllocator();
+    Stack* temp_stack = TempStack_Stack();
+    Allocator* temp_stack_allocator = TempStack_Allocator();
 
     {
         uint32 frame1 = PushTempStackFrame();
@@ -159,8 +159,8 @@ bool TempStackAllocateOverwriteTest()
 
     static constexpr uint32 TEMP_STACK_SIZE = 512u;
     InitTempStack(&g_std_allocator, TEMP_STACK_SIZE);
-    Stack* temp_stack = TempStack();
-    Allocator* temp_stack_allocator = TempStackAllocator();
+    Stack* temp_stack = TempStack_Stack();
+    Allocator* temp_stack_allocator = TempStack_Allocator();
 
     uint32 frame1 = PushTempStackFrame();
 

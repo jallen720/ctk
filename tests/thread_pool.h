@@ -8,7 +8,7 @@ CRITICAL_SECTION print_lock;
 void Thread(void* data)
 {
     uint32 id = (uint32)data;
-    Allocator* temp_stack_allocator = TempStackAllocator();
+    Allocator* temp_stack_allocator = TempStack_Allocator();
     for (uint32 i = 0; i < 4; i += 1)
     {
         uint32 frame = PushTempStackFrame();

@@ -474,7 +474,7 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
     // Track what list tokens belong to. An extra level is added to stack to allow resetting is_array flag on the final
     // close bracket. This removes the need to check is_array_stack.count > 0 every time is_array needs reset.
     uint32 frame = PushTempStackFrame();
-    auto is_array_stack = CreateArray<bool>(TempStackAllocator(), max_depth + 1);
+    auto is_array_stack = CreateArray<bool>(TempStack_Allocator(), max_depth + 1);
     bool is_array = false;
     Push(&is_array_stack, false);
 

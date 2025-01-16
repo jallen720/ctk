@@ -25,13 +25,13 @@ sint32 main()
     // RunTest("FString",  NULL, FStringTest::Run);
     // RunTest("Array",    NULL, ArrayTest::Run);
     // RunTest("String",   NULL, StringTest::Run);
-    // RunTest("Stack",    NULL, StackTest::Run);
+    RunTest("Stack",    NULL, StackTest::Run);
     // RunTest("FreeList", NULL, FreeListTest::Run);
     // RunTest("Math",     NULL, MathTest::Run);
     // RunTest("JSON",     NULL, JSONTest::Run);
     ShowTestStats();
 
-    ThreadPoolTest::Run();
+    // ThreadPoolTest::Run();
     // ProfileTest::Run();
     // WindowTest::Run();
 
