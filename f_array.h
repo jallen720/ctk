@@ -166,3 +166,55 @@ void InsertionSort(FArray<Type, size>* array, Func<bool, Type*, Type*> SortFunc)
 {
     InsertionSort(array->data, array->count, SortFunc);
 }
+
+template<typename Type, uint32 size>
+Type Pop(FArray<Type, size>* array)
+{
+    if (array->count == 0)
+    {
+        CTK_FATAL("can't pop element from array; array is empty");
+    }
+    array->count -= 1;
+    return array->data[array->count];
+}
+
+template<typename Type, uint32 size>
+Type* PopPtr(FArray<Type, size>* array)
+{
+    if (array->count == 0)
+    {
+        CTK_FATAL("can't pop element from array; array is empty");
+    }
+    array->count -= 1;
+    return &array->data[array->count];
+}
+
+template<typename Type, uint32 size>
+Type GetLast(FArray<Type, size>* array)
+{
+    if (array->count == 0)
+    {
+        CTK_FATAL("can't get last element from array; array is empty");
+    }
+    return array->data[array->count - 1];
+}
+
+template<typename Type, uint32 size>
+Type* GetLastPtr(FArray<Type, size>* array)
+{
+    if (array->count == 0)
+    {
+        CTK_FATAL("can't get last element from array; array is empty");
+    }
+    return &array->data[array->count - 1];
+}
+
+template<typename Type, uint32 size>
+uint32 GetLastIndex(FArray<Type, size>* array)
+{
+    if (array->count == 0)
+    {
+        CTK_FATAL("can't get last element from array; array is empty");
+    }
+    return array->count - 1;
+}

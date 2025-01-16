@@ -1,8 +1,3 @@
-/// Macros
-////////////////////////////////////////////////////////////
-#define CTK_WRAP_ARRAY(ARRAY) WrapArray(ARRAY, CTK_ARRAY_SIZE(ARRAY))
-#define CTK_WRAP_ARRAY_1(PTR) WrapArray(PTR, 1)
-
 /// Data
 ////////////////////////////////////////////////////////////
 template<typename Type>
@@ -309,15 +304,9 @@ bool Contains(Array<Type>* array, Type val)
 }
 
 template<typename Type>
-Array<Type> WrapArray(Type* data, uint32 size)
+void Reverse(Array<Type>* array)
 {
-    CTK_ASSERT(size > 0);
-
-    Array<Type> array = {};
-    array.data  = data;
-    array.size  = size;
-    array.count = size;
-    return array;
+    Reverse(array->data, array->count);
 }
 
 template<typename Type, typename ...Args>
@@ -327,13 +316,74 @@ void InsertionSort(Array<Type>* array, Func<bool, Type*, Type*, Args...> SortFun
 }
 
 template<typename Type>
-void Reverse(Array<Type>* array)
+Type Pop(Array<Type>* array)
 {
-    Reverse(array->data, array->count);
+    if (array->count == 0)
+    {
+        CTK_FATAL("can't pop element from array; array is empty");
+    }
+    array->count -= 1;
+    return array->data[array->count];
+}
+
+template<typename Type>
+Type* PopPtr(Array<Type>* array)
+{
+    if (array->count == 0)
+    {
+        CTK_FATAL("can't pop element from array; array is empty");
+    }
+    array->count -= 1;
+    return &array->data[array->count];
+}
+
+template<typename Type>
+Type GetLast(Array<Type>* array)
+{
+    if (array->count == 0)
+    {
+        CTK_FATAL("can't get last element from array; array is empty");
+    }
+    return array->data[array->count - 1];
+}
+
+template<typename Type>
+Type* GetLastPtr(Array<Type>* array)
+{
+    if (array->count == 0)
+    {
+        CTK_FATAL("can't get last element from array; array is empty");
+    }
+    return &array->data[array->count - 1];
+}
+
+template<typename Type>
+uint32 GetLastIndex(Array<Type>* array)
+{
+    if (array->count == 0)
+    {
+        CTK_FATAL("can't get last element from array; array is empty");
+    }
+    return array->count - 1;
 }
 
 template<typename Type>
 bool IsInitialized(Array<Type>* array)
 {
     return array->data != NULL && array->size > 0;
+}
+
+#define CTK_WRAP_ARRAY(ARRAY) WrapArray(ARRAY, CTK_ARRAY_SIZE(ARRAY))
+#define CTK_WRAP_ARRAY_1(PTR) WrapArray(PTR, 1)
+
+template<typename Type>
+Array<Type> WrapArray(Type* data, uint32 size)
+{
+    CTK_ASSERT(size > 0);
+
+    Array<Type> array = {};
+    array.data  = data;
+    array.size  = size;
+    array.count = size;
+    return array;
 }
