@@ -76,10 +76,12 @@ void DestroyProfileTree(ProfileTree* prof_tree, Allocator* allocator)
     Deallocate(allocator, prof_tree);
 }
 
-void BeginProfile(Profile* profile, const char* name)
+Profile BeginProfile(const char* name)
 {
-    profile->name  = name;
-    profile->begin = clock();
+    Profile profile = {};
+    profile.name  = name;
+    profile.begin = clock();
+    return profile;
 }
 
 ProfileNodeHnd BeginProfile(ProfileTree* prof_tree, const char* name)
@@ -100,7 +102,7 @@ ProfileNodeHnd BeginProfile(ProfileTree* prof_tree, const char* name)
     prof_tree->curr_node_hnd = profile_node_hnd;
 
     // Begin profile after profile node has been added to tree.
-    BeginProfile(&profile_node->profile, name);
+    profile_node->profile = BeginProfile(name);
 
     return profile_node_hnd;
 }
