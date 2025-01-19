@@ -350,9 +350,5 @@ MigrationBackup/
 
 # Custom
 *.sublime-*
-todo.txt
-memory.txt
-*.example.*
-archive/
-old/
 *.rdbg
+archive/

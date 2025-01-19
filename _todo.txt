@@ -1,0 +1,5 @@
+[o] allocator rework
+[o] global allocators
+null-term compliant strings
+improve ReadFile()
+IterStart()/IterEnd() container initialized check
