@@ -51,7 +51,7 @@ bool CompareArrayElements(Array<uint32> a, Array<uint32> b)
 }
 
 template<typename Type>
-bool TestArrayFields(Array<Type>* array, uint32 expected_size, uint32 expected_count, bool null_data = false)
+bool TestArrayFields(Array<Type>* array, uint32 expected_size, uint32 expected_count, bool null_data)
 {
     bool pass = true;
 
@@ -315,6 +315,34 @@ bool InsertionSortTest()
     return pass;
 }
 
+bool ReserveTest()
+{
+    bool pass = true;
+
+    static constexpr uint32 STACK_SIZE_UINT8  = 512u;
+    static constexpr uint32 STACK_SIZE_UINT32 = STACK_SIZE_UINT8 / SizeOf32<uint32>();
+    Stack stack = CreateStack(&g_std_allocator, STACK_SIZE_UINT8);
+
+    auto test_array = ReserveArray<uint32>(&stack);
+
+    RunTest("test_array = ReserveArray<uint32>(&stack); stack fields", &pass,
+            TestStackFields, "stack", &stack, STACK_SIZE_UINT8, STACK_SIZE_UINT8);
+    RunTest("test_array = ReserveArray<uint32>(&stack); test_array fields", &pass,
+            TestArrayFields, &test_array, STACK_SIZE_UINT32, 0u, false);
+
+    test_array.count = STACK_SIZE_UINT32 / 2;
+    CommitArray(&test_array, &stack);
+
+    RunTest("test_array.count = STACK_SIZE_UINT32 / 2; CommitArray(&test_array, &stack); stack fields", &pass,
+            TestStackFields, "stack", &stack, STACK_SIZE_UINT8, STACK_SIZE_UINT8 / 2);
+    RunTest("test_array.count = STACK_SIZE_UINT32 / 2; CommitArray(&test_array, &stack); test_array fields", &pass,
+            TestArrayFields, &test_array, STACK_SIZE_UINT32 / 2, STACK_SIZE_UINT32 / 2, false);
+
+    DestroyStack(&stack);
+
+    return pass;
+}
+
 bool Run()
 {
     bool pass = true;
@@ -327,6 +355,7 @@ bool Run()
     RunTest("ContainsTest()",                 &pass, ContainsTest);
     RunTest("ReverseTest()",                  &pass, ReverseTest);
     RunTest("InsertionSortTest()",            &pass, InsertionSortTest);
+    RunTest("ReserveTest",                    &pass, ReserveTest);
 
     return pass;
 }
