@@ -5,8 +5,7 @@ namespace ProfileTest
 
 void ProfileTest()
 {
-    Profile test_profile = {};
-    BeginProfile(&test_profile, "test profile");
+    Profile test_profile = BeginProfile("test profile");
     Sleep(500);
     EndProfile(&test_profile);
     PrintProfileLine(&test_profile);

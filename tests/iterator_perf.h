@@ -15,8 +15,7 @@ void Run()
         a.data[i] = i;
     }
 
-    Profile profile = {};
-    BeginProfile(&profile, "index");
+    Profile profile = BeginProfile("index");
     total = 0;
     for (uint32 i = 0; i < TEST_COUNT; i += 1)
     {
@@ -25,7 +24,7 @@ void Run()
     EndProfile(&profile);
     PrintProfileLine(&profile);
 
-    BeginProfile(&profile, "Get()");
+    profile = BeginProfile("Get()");
     total = 0;
     for (uint32 i = 0; i < TEST_COUNT; i += 1)
     {
@@ -34,7 +33,7 @@ void Run()
     EndProfile(&profile);
     PrintProfileLine(&profile);
 
-    BeginProfile(&profile, "GetPtr()");
+    profile = BeginProfile("GetPtr()");
     total = 0;
     for (uint32 i = 0; i < TEST_COUNT; i += 1)
     {
@@ -43,7 +42,7 @@ void Run()
     EndProfile(&profile);
     PrintProfileLine(&profile);
 
-    BeginProfile(&profile, "CTK_ITER");
+    profile = BeginProfile("CTK_ITER");
     total = 0;
     CTK_ITER(a_val, &a)
     {

@@ -88,7 +88,7 @@ float64 Test(Array<Operation>* ops, Array<Allocation>* allocations, Allocator* a
     {
         FString<128> profile_name = {};
         Write(&profile_name, "test (pass %2u)", pass);
-        BeginProfile(&test_profile, profile_name.data);
+        test_profile = BeginProfile(profile_name.data);
     }
     else
     {

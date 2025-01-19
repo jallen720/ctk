@@ -7,7 +7,6 @@ void Run()
 {
     PrintLine("\nJSON Performance Test");
 
-    Profile prof = {};
     float64 file_size_gb = GetFileSize("tests/data/large.json") / 1000000000.0;
     constexpr uint32 TEST_PASSES = 100;
     float64 total_ms = 0;
@@ -15,7 +14,7 @@ void Run()
     {
         FString<16> prof_name = {};
         Write(&prof_name, "pass %2u", pass);
-        BeginProfile(&prof, prof_name.data);
+        Profile prof = BeginProfile(prof_name.data);
 
         JSON json = LoadJSON(&g_std_allocator, "tests/data/large.json");
         DestroyJSON(&json);

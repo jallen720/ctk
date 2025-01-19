@@ -34,15 +34,15 @@ struct FreeList
     Allocator  allocator;
     Allocator* parent;
 
-    uint8* mem;
-    uint32 byte_size;
-    uint32 first_range_index;
+    uint8*     mem;
+    uint32     byte_size;
+    uint32     first_range_index;
 
-    Range*    ranges;
-    RangeKey* range_keys;
-    uint32    used_range_count;
-    uint32    free_range_count;
-    uint32    max_range_count;
+    Range*     ranges;
+    RangeKey*  range_keys;
+    uint32     used_range_count;
+    uint32     free_range_count;
+    uint32     max_range_count;
 };
 
 /// Utils

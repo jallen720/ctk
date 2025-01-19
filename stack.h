@@ -5,17 +5,18 @@ struct Stack
     Allocator  allocator;
     Allocator* parent;
 
-    uint8* mem;
-    uint32 size;
-    uint32 count;
+    uint8*     mem;
+    uint32     size;
+    uint32     count;
 };
 
 /// Interface
 ////////////////////////////////////////////////////////////
 uint8* Stack_AllocateNZ(Allocator* allocator, uint32 size, uint32 alignment)
 {
-    auto stack = (Stack*)allocator;
     CTK_ASSERT(size > 0);
+
+    auto stack = (Stack*)allocator;
 
     uint32 aligned_index = Align(stack->mem + stack->count, alignment) - stack->mem;
     if (aligned_index + size > stack->size)
