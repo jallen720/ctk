@@ -12,11 +12,9 @@ struct Stack
 
 /// Interface
 ////////////////////////////////////////////////////////////
-uint8* Stack_AllocateNZ(Allocator* allocator, uint32 size, uint32 alignment)
+uint8* AllocateNZ(Stack* stack, uint32 size, uint32 alignment)
 {
     CTK_ASSERT(size > 0);
-
-    auto stack = (Stack*)allocator;
 
     uint32 aligned_index = Align(stack->mem + stack->count, alignment) - stack->mem;
     if (aligned_index + size > stack->size)
@@ -30,11 +28,21 @@ uint8* Stack_AllocateNZ(Allocator* allocator, uint32 size, uint32 alignment)
     return &stack->mem[aligned_index];
 }
 
-uint8* Stack_Allocate(Allocator* allocator, uint32 size, uint32 alignment)
+uint8* Allocate(Stack* stack, uint32 size, uint32 alignment)
 {
-    uint8* allocated_mem = Stack_AllocateNZ(allocator, size, alignment);
+    uint8* allocated_mem = AllocateNZ(stack, size, alignment);
     memset(allocated_mem, 0, size);
     return allocated_mem;
+}
+
+uint8* Stack_AllocateNZ(Allocator* allocator, uint32 size, uint32 alignment)
+{
+    return AllocateNZ((Stack*)allocator, size, alignment);
+}
+
+uint8* Stack_Allocate(Allocator* allocator, uint32 size, uint32 alignment)
+{
+    return Allocate((Stack*)allocator, size, alignment);
 }
 
 Stack CreateStack(Allocator* parent, uint32 size)
