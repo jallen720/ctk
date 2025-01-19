@@ -184,11 +184,11 @@ bool TempStackAllocateOverwriteTest()
     return pass;
 }
 
-#define ExpectFatalError(FUNC_CALL)\
+#define EXPECT_FATAL_ERROR(EXPR)\
     PrintExpected("fatal error");\
     try\
     {\
-        FUNC_CALL;\
+        EXPR;\
         pass = false;\
         PrintActual(pass, "no fatal error");\
     }\
@@ -205,8 +205,8 @@ bool TempStackVerifyNoFramesOrFatalFailure()
     TempStack_Init(&g_std_allocator, TEMP_STACK_SIZE);
 
     uint32 frame1 = TempStack_PushFrame();
-        ExpectFatalError(TempStack_VerifyNoFramesOrFatal());
-        ExpectFatalError(TempStack_Deinit());
+        EXPECT_FATAL_ERROR(TempStack_VerifyNoFramesOrFatal());
+        EXPECT_FATAL_ERROR(TempStack_Deinit());
     TempStack_PopFrame(frame1);
 
     TempStack_VerifyNoFramesOrFatal();
@@ -225,7 +225,7 @@ bool TempStackMissingNestedPopTest()
     uint32 frame1 = TempStack_PushFrame();
         Allocate<uint32>(TempStack_Allocator(), 64);
         uint32 frame2 = TempStack_PushFrame();
-        ExpectFatalError(TempStack_PopFrame(frame1));
+        EXPECT_FATAL_ERROR(TempStack_PopFrame(frame1));
         TempStack_PopFrame(frame2);
     TempStack_PopFrame(frame1);
 
@@ -243,7 +243,7 @@ bool TempStackDoublePopTest()
 
     uint32 frame1 = TempStack_PushFrame();
     TempStack_PopFrame(frame1);
-    ExpectFatalError(TempStack_PopFrame(frame1));
+    EXPECT_FATAL_ERROR(TempStack_PopFrame(frame1));
 
     TempStack_Deinit();
 
