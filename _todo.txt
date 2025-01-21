@@ -1,6 +1,6 @@
 [o] allocator rework
-[o] global allocators
-re-implement stack with temp stack push/pop functions
+    [ ] remove global allocator
+    re-implement stack with temp stack push/pop functions
 remove temp stack (shouldn't be provided by CTK, user should implement)
 null-term compliant strings
 improve ReadFile()
