@@ -319,24 +319,67 @@ bool ReserveTest()
 {
     bool pass = true;
 
-    static constexpr uint32 STACK_SIZE_UINT8  = 512u;
-    static constexpr uint32 STACK_SIZE_UINT32 = STACK_SIZE_UINT8 / SizeOf32<uint32>();
-    Stack stack = CreateStack(&g_std_allocator, STACK_SIZE_UINT8);
+    Stack stack = CreateStack(&g_std_allocator, 512u);
 
-    auto test_array = ReserveArray<uint32>(&stack);
+    auto array = ReserveArray<uint32>(&stack);
 
-    RunTest("test_array = ReserveArray<uint32>(&stack); stack fields", &pass,
-            TestStackFields, "stack", &stack, STACK_SIZE_UINT8, STACK_SIZE_UINT8);
-    RunTest("test_array = ReserveArray<uint32>(&stack); test_array fields", &pass,
-            TestArrayFields, &test_array, STACK_SIZE_UINT32, 0u, false);
+    RunTest("array = ReserveArray<uint32>(&stack); stack fields", &pass,
+            TestStackFields, "stack", &stack, stack.size, stack.size);
+    RunTest("array.data == stack->mem + stack->reserve_start_index", &pass,
+            ExpectEqual, (uint64)array.data, (uint64)(stack.mem + stack.reserve_start_index));
+    RunTest("array.size == stack.size / sizeof(uint32)", &pass, ExpectEqual, array.size, stack.size / SizeOf32<uint32>());
 
-    test_array.count = STACK_SIZE_UINT32 / 2;
-    CommitArray(&test_array, &stack);
+    array.count = array.size / 2;
+    CommitArray(&array, &stack);
 
-    RunTest("test_array.count = STACK_SIZE_UINT32 / 2; CommitArray(&test_array, &stack); stack fields", &pass,
-            TestStackFields, "stack", &stack, STACK_SIZE_UINT8, STACK_SIZE_UINT8 / 2);
-    RunTest("test_array.count = STACK_SIZE_UINT32 / 2; CommitArray(&test_array, &stack); test_array fields", &pass,
-            TestArrayFields, &test_array, STACK_SIZE_UINT32 / 2, STACK_SIZE_UINT32 / 2, false);
+    RunTest("array.count = array.size / 2; CommitArray(&array, &stack); stack fields", &pass,
+            TestStackFields, "stack", &stack, stack.size, stack.count);
+    RunTest("array.size == array.count", &pass, ExpectEqual, array.size, array.count);
+
+    DestroyStack(&stack);
+
+    return pass;
+}
+
+bool DoubleReserveTest()
+{
+    bool pass = true;
+
+    Stack stack = CreateStack(&g_std_allocator, 512u);
+
+    auto array = ReserveArray<uint32>(&stack);
+    RunTest("ReserveArray<uint32>(&stack) called twice", &pass,
+            ExpectFatalError, ReserveArray<uint32>, &stack);
+
+    DestroyStack(&stack);
+
+    return pass;
+}
+
+bool ReserveAlignmentTest()
+{
+    bool pass = true;
+
+    Stack stack = CreateStack(&g_std_allocator, 8u);
+
+    Allocate(&stack, 2, alignof(uint8));
+    RunTest("Allocate(&stack, 2, alignof(uint8));", &pass,
+            TestStackFields, "stack", &stack, stack.size, 2u);
+
+    RunTest("ReserveArray<uint64>(&stack); 8-byte aligned data will overflow stack", &pass,
+            ExpectFatalError, ReserveArray<uint64>, &stack);
+
+    auto array = ReserveArray<uint32>(&stack);
+    RunTest("ReserveArray<uint32>(&stack); 4-byte aligned data works fine", &pass,
+            TestStackFields, "stack", &stack, stack.size, stack.size);
+    RunTest("array.data == stack.mem + 4", &pass,
+            ExpectEqual, (uint64)array.data, (uint64)(stack.mem + 4u));
+
+    array.count += 1;
+    CommitArray(&array, &stack);
+    RunTest("array.count += 1; Commit(&array, &stack);", &pass,
+            TestStackFields, "stack", &stack, stack.size, stack.size);
+    RunTest("array.size == array.count", &pass, ExpectEqual, array.size, array.count);
 
     DestroyStack(&stack);
 
@@ -356,6 +399,8 @@ bool Run()
     RunTest("ReverseTest()",                  &pass, ReverseTest);
     RunTest("InsertionSortTest()",            &pass, InsertionSortTest);
     RunTest("ReserveTest",                    &pass, ReserveTest);
+    RunTest("DoubleReserveTest",              &pass, DoubleReserveTest);
+    RunTest("ReserveAlignmentTest",           &pass, ReserveAlignmentTest);
 
     return pass;
 }

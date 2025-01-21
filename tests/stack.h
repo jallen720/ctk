@@ -228,6 +228,82 @@ bool TempStackDoublePopTest()
     return pass;
 }
 
+bool ReserveTest()
+{
+    bool pass = true;
+
+    Stack stack = CreateStack(&g_std_allocator, 512u);
+
+    uint32* data;
+    uint32  data_size;
+    Reserve(&stack, &data, &data_size);
+
+    RunTest("Reserve(&stack, &data, &data_size); stack fields", &pass,
+            TestStackFields, "stack", &stack, stack.size, stack.size);
+    RunTest("data == stack->mem + stack->reserve_start_index", &pass,
+            ExpectEqual, (uint64)data, (uint64)(stack.mem + stack.reserve_start_index));
+    RunTest("data_size == stack.size / sizeof(uint32)", &pass, ExpectEqual, data_size, stack.size / SizeOf32<uint32>());
+
+    data_size /= 2;
+    Commit(&stack, sizeof(uint32), data_size);
+
+    RunTest("data_size /= 2; Commit(&stack, sizeof(uint32), data_size); stack fields", &pass,
+            TestStackFields, "stack", &stack, stack.size, data_size * SizeOf32<uint32>());
+
+    DestroyStack(&stack);
+
+    return pass;
+}
+
+bool DoubleReserveTest()
+{
+    bool pass = true;
+
+    Stack stack = CreateStack(&g_std_allocator, 512u);
+
+    uint32* data      = NULL;
+    uint32  data_size = 0;
+    Reserve(&stack, &data, &data_size);
+    RunTest("Reserve(&stack, &data, &data_size) called twice", &pass,
+            ExpectFatalError, Reserve<uint32>, &stack, &data, &data_size);
+
+    DestroyStack(&stack);
+
+    return pass;
+}
+
+bool ReserveAlignmentTest()
+{
+    bool pass = true;
+
+    Stack stack = CreateStack(&g_std_allocator, 8u);
+
+    Allocate(&stack, 2, alignof(uint8));
+    RunTest("Allocate(&stack, 2, alignof(uint8));", &pass,
+            TestStackFields, "stack", &stack, stack.size, 2u);
+
+    uint64* uint64_data = NULL;
+    uint32* uint32_data = NULL;
+    uint32  data_size   = 0;
+
+    RunTest("Reserve(&stack, &uint64_data, &data_size); 8-byte aligned data will overflow stack", &pass,
+            ExpectFatalError, Reserve<uint64>, &stack, &uint64_data, &data_size);
+
+    Reserve(&stack, &uint32_data, &data_size);
+    RunTest("Reserve(&stack, &uint32_data, &data_size); 4-byte aligned data works fine", &pass,
+            TestStackFields, "stack", &stack, stack.size, stack.size);
+    RunTest("uint32_data == stack.mem + 4", &pass,
+            ExpectEqual, (uint64)uint32_data, (uint64)(stack.mem + 4u));
+
+    Commit(&stack, sizeof(uint32), 1);
+    RunTest("data_size += 1; Commit(&stack, data_size);", &pass,
+            TestStackFields, "stack", &stack, stack.size, stack.size);
+
+    DestroyStack(&stack);
+
+    return pass;
+}
+
 bool Run()
 {
     bool pass = true;
@@ -239,6 +315,9 @@ bool Run()
     RunTest("TempStackVerifyNoFramesOrFatalFailure", &pass, TempStackVerifyNoFramesOrFatalFailure);
     RunTest("TempStackMissingNestedPopTest",         &pass, TempStackMissingNestedPopTest);
     RunTest("TempStackDoublePopTest",                &pass, TempStackDoublePopTest);
+    RunTest("ReserveTest",                           &pass, ReserveTest);
+    RunTest("DoubleReserveTest",                     &pass, DoubleReserveTest);
+    RunTest("ReserveAlignmentTest",                  &pass, ReserveAlignmentTest);
 
     return pass;
 }

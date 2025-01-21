@@ -68,20 +68,16 @@ Array<Type> CreateArrayFull(Allocator* allocator, uint32 size)
 template<typename Type>
 Array<Type> ReserveArray(Stack* stack)
 {
-    uint32 stack_remaining_bytes = stack->size - stack->count;
-
     Array<Type> array = {};
-    array.size  = stack_remaining_bytes / sizeof(Type);
     array.count = 0;
-    array.data  = (Type*)Allocate(stack, stack_remaining_bytes, alignof(Type));
+    Reserve(stack, &array.data, &array.size);
     return array;
 }
 
 template<typename Type>
 void CommitArray(Array<Type>* array, Stack* stack)
 {
-    uint32 array_remaining_elems = array->size - array->count;
-    stack->count -= array_remaining_elems * sizeof(Type);
+    Commit(stack, sizeof(Type), array->count);
     array->size = array->count;
 }
 
