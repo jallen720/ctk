@@ -319,22 +319,20 @@ bool ReserveTest()
 {
     bool pass = true;
 
-    Stack stack = CreateStack(&g_std_allocator, 512u);
+    static constexpr uint32 STACK_SIZE = 512u;
+    Stack stack = CreateStack(&g_std_allocator, STACK_SIZE);
 
     auto array = ReserveArray<uint32>(&stack);
-
-    RunTest("array = ReserveArray<uint32>(&stack); stack fields", &pass,
-            TestStackFields, "stack", &stack, stack.size, stack.size);
     RunTest("array.data == stack->mem + stack->reserve_start_index", &pass,
             ExpectEqual, (uint64)array.data, (uint64)(stack.mem + stack.reserve_start_index));
-    RunTest("array.size == stack.size / sizeof(uint32)", &pass, ExpectEqual, array.size, stack.size / SizeOf32<uint32>());
+    RunTest("array.size == STACK_SIZE / sizeof(uint32)", &pass,
+            ExpectEqual, array.size, STACK_SIZE / SizeOf32<uint32>());
 
     array.count = array.size / 2;
     CommitArray(&array, &stack);
 
-    RunTest("array.count = array.size / 2; CommitArray(&array, &stack); stack fields", &pass,
-            TestStackFields, "stack", &stack, stack.size, stack.count);
-    RunTest("array.size == array.count", &pass, ExpectEqual, array.size, array.count);
+    RunTest("array.size == array.count", &pass,
+            ExpectEqual, array.size, array.count);
 
     DestroyStack(&stack);
 
@@ -363,22 +361,16 @@ bool ReserveAlignmentTest()
     Stack stack = CreateStack(&g_std_allocator, 8u);
 
     Allocate(&stack, 2, alignof(uint8));
-    RunTest("Allocate(&stack, 2, alignof(uint8));", &pass,
-            TestStackFields, "stack", &stack, stack.size, 2u);
 
     RunTest("ReserveArray<uint64>(&stack); 8-byte aligned data will overflow stack", &pass,
             ExpectFatalError, ReserveArray<uint64>, &stack);
 
     auto array = ReserveArray<uint32>(&stack);
-    RunTest("ReserveArray<uint32>(&stack); 4-byte aligned data works fine", &pass,
-            TestStackFields, "stack", &stack, stack.size, stack.size);
     RunTest("array.data == stack.mem + 4", &pass,
             ExpectEqual, (uint64)array.data, (uint64)(stack.mem + 4u));
 
     array.count += 1;
     CommitArray(&array, &stack);
-    RunTest("array.count += 1; Commit(&array, &stack);", &pass,
-            TestStackFields, "stack", &stack, stack.size, stack.size);
     RunTest("array.size == array.count", &pass, ExpectEqual, array.size, array.count);
 
     DestroyStack(&stack);

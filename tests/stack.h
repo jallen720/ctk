@@ -3,6 +3,37 @@
 namespace StackTest
 {
 
+/// Utils
+////////////////////////////////////////////////////////////
+bool ExpectStackFields(const char* stack_name, Stack* stack,
+                       uint32 expected_size,
+                       uint32 expected_count,
+                       uint32 expected_reserve_start_index)
+{
+    bool pass = true;
+
+    FString<256> description = {};
+    Write(&description, "%s->size", stack_name);
+    if (!ExpectEqual(&description, expected_size, stack->size))
+    {
+        pass = false;
+    }
+
+    Write(&description, "%s->count", stack_name);
+    if (!ExpectEqual(&description, expected_count, stack->count))
+    {
+        pass = false;
+    }
+
+    Write(&description, "%s->reserve_start_index", stack_name);
+    if (!ExpectEqual(&description, expected_reserve_start_index, stack->reserve_start_index))
+    {
+        pass = false;
+    }
+
+    return pass;
+}
+
 /// Tests
 ////////////////////////////////////////////////////////////
 bool AllocateTest()
@@ -15,7 +46,7 @@ bool AllocateTest()
 
     FString<256> description = {};
     Write(&description, "CreateStack(&g_std_allocator, %u)", STACK_BYTE_SIZE);
-    RunTest(&description, &pass, TestStackFields, "stack", &stack, STACK_BYTE_SIZE, 0u);
+    RunTest(&description, &pass, ExpectStackFields, "stack", &stack, STACK_BYTE_SIZE, 0u, UINT32_MAX);
 
     char* buffer = NULL;
 
@@ -24,7 +55,7 @@ bool AllocateTest()
 
         FString<256> description = {};
         Write(&description, "Allocate(&stack.allocator, %u)", STACK_BYTE_SIZE);
-        RunTest(&description, &pass, TestStackFields, "stack", &stack, STACK_BYTE_SIZE, STACK_BYTE_SIZE);
+        RunTest(&description, &pass, ExpectStackFields, "stack", &stack, STACK_BYTE_SIZE, STACK_BYTE_SIZE, UINT32_MAX);
     }
     {
         Write(buffer, STACK_BYTE_SIZE, "test");
@@ -80,7 +111,7 @@ bool TempStackAllocateTest()
 
     auto buf1 = Allocate<char>(temp_stack_allocator, 6);
     RunTest("Allocate<char>(temp_stack_allocator, 6)", &pass,
-            TestStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 6u);
+            ExpectStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 6u, UINT32_MAX);
 
     Write(buf1, 6, "test1");
     RunTest("Write(buf1, 6, \"test1\");", &pass,
@@ -90,7 +121,7 @@ bool TempStackAllocateTest()
 
         auto buf2 = Allocate<char>(temp_stack_allocator, 6);
         RunTest("Allocate<char>(temp_stack_allocator, 6)", &pass,
-                TestStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 12u);
+                ExpectStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 12u, UINT32_MAX);
 
         Write(buf2, 6, "test2");
         RunTest("Write(buf2, 6, \"test2\")", &pass,
@@ -100,7 +131,7 @@ bool TempStackAllocateTest()
     }
 
     RunTest("frame2 ended", &pass,
-            TestStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 6u);
+            ExpectStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 6u, UINT32_MAX);
     RunTest("frame2 ended", &pass,
             ExpectEqual, "test1\0", temp_stack->mem, 6u);
 
@@ -109,7 +140,7 @@ bool TempStackAllocateTest()
 
         auto buf3 = Allocate<char>(temp_stack_allocator, 6);
         RunTest("Allocate<char>(temp_stack_allocator, 6)", &pass,
-                TestStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 12u);
+                ExpectStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 12u, UINT32_MAX);
 
         Write(buf3, 6, "test3");
         RunTest("Write(buf3, 6, \"test3\")", &pass,
@@ -118,12 +149,12 @@ bool TempStackAllocateTest()
         TempStack_PopFrame(frame3);
     }
 
-    RunTest("frame3 ended", &pass, TestStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 6u);
+    RunTest("frame3 ended", &pass, ExpectStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 6u, UINT32_MAX);
     RunTest("frame3 ended", &pass, ExpectEqual, "test1\0", temp_stack->mem, 6u);
 
     TempStack_PopFrame(frame1);
 
-    RunTest("frame1 ended", &pass, TestStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 0u);
+    RunTest("frame1 ended", &pass, ExpectStackFields, "g_temp_stack", temp_stack, TEMP_STACK_SIZE, 0u, UINT32_MAX);
 
     TempStack_Deinit();
 
@@ -232,23 +263,24 @@ bool ReserveTest()
 {
     bool pass = true;
 
-    Stack stack = CreateStack(&g_std_allocator, 512u);
+    static constexpr uint32 STACK_SIZE = 512u;
+    Stack stack = CreateStack(&g_std_allocator, STACK_SIZE);
 
     uint32* data;
     uint32  data_size;
     Reserve(&stack, &data, &data_size);
 
-    RunTest("Reserve(&stack, &data, &data_size); stack fields", &pass,
-            TestStackFields, "stack", &stack, stack.size, stack.size);
+    RunTest("Reserve(&stack, &data, &data_size);", &pass,
+            ExpectStackFields, "stack", &stack, STACK_SIZE, STACK_SIZE, 0u);
     RunTest("data == stack->mem + stack->reserve_start_index", &pass,
             ExpectEqual, (uint64)data, (uint64)(stack.mem + stack.reserve_start_index));
-    RunTest("data_size == stack.size / sizeof(uint32)", &pass, ExpectEqual, data_size, stack.size / SizeOf32<uint32>());
+    RunTest("data_size == STACK_SIZE / sizeof(uint32)", &pass, ExpectEqual, data_size, STACK_SIZE / SizeOf32<uint32>());
 
     data_size /= 2;
     Commit(&stack, sizeof(uint32), data_size);
 
-    RunTest("data_size /= 2; Commit(&stack, sizeof(uint32), data_size); stack fields", &pass,
-            TestStackFields, "stack", &stack, stack.size, data_size * SizeOf32<uint32>());
+    RunTest("data_size /= 2; Commit(&stack, sizeof(uint32), data_size);", &pass,
+            ExpectStackFields, "stack", &stack, STACK_SIZE, data_size * SizeOf32<uint32>(), UINT32_MAX);
 
     DestroyStack(&stack);
 
@@ -259,7 +291,8 @@ bool DoubleReserveTest()
 {
     bool pass = true;
 
-    Stack stack = CreateStack(&g_std_allocator, 512u);
+    static constexpr uint32 STACK_SIZE = 512u;
+    Stack stack = CreateStack(&g_std_allocator, STACK_SIZE);
 
     uint32* data      = NULL;
     uint32  data_size = 0;
@@ -276,11 +309,12 @@ bool ReserveAlignmentTest()
 {
     bool pass = true;
 
-    Stack stack = CreateStack(&g_std_allocator, 8u);
+    static constexpr uint32 STACK_SIZE = 8u;
+    Stack stack = CreateStack(&g_std_allocator, STACK_SIZE);
 
     Allocate(&stack, 2, alignof(uint8));
     RunTest("Allocate(&stack, 2, alignof(uint8));", &pass,
-            TestStackFields, "stack", &stack, stack.size, 2u);
+            ExpectStackFields, "stack", &stack, STACK_SIZE, 2u, UINT32_MAX);
 
     uint64* uint64_data = NULL;
     uint32* uint32_data = NULL;
@@ -291,13 +325,13 @@ bool ReserveAlignmentTest()
 
     Reserve(&stack, &uint32_data, &data_size);
     RunTest("Reserve(&stack, &uint32_data, &data_size); 4-byte aligned data works fine", &pass,
-            TestStackFields, "stack", &stack, stack.size, stack.size);
+            ExpectStackFields, "stack", &stack, STACK_SIZE, STACK_SIZE, 4u);
     RunTest("uint32_data == stack.mem + 4", &pass,
             ExpectEqual, (uint64)uint32_data, (uint64)(stack.mem + 4u));
 
     Commit(&stack, sizeof(uint32), 1);
     RunTest("data_size += 1; Commit(&stack, data_size);", &pass,
-            TestStackFields, "stack", &stack, stack.size, stack.size);
+            ExpectStackFields, "stack", &stack, STACK_SIZE, STACK_SIZE, UINT32_MAX);
 
     DestroyStack(&stack);
 

@@ -1,8 +1,6 @@
 #include "ctk/ctk.h"
 using namespace CTK;
 
-#include "ctk/tests/utils.h"
-
 // Core
 #include "ctk/tests/f_array.h"
 #include "ctk/tests/f_string.h"
