@@ -1,22 +1,18 @@
 #pragma once
 
-namespace FStringTest
-{
+namespace FStringTest {
 
 /// Utils
 ////////////////////////////////////////////////////////////
 template<uint32 size>
-bool TestStringFields(FString<size>* string, uint32 expected_size, uint32 expected_count)
-{
+bool TestStringFields(FString<size>* string, uint32 expected_size, uint32 expected_count) {
     bool pass = true;
 
-    if (!ExpectEqual("FString size", expected_size, size))
-    {
+    if (!ExpectEqual("FString size", expected_size, size)) {
         pass = false;
     }
 
-    if (!ExpectEqual("string->count", expected_count, string->count))
-    {
+    if (!ExpectEqual("string->count", expected_count, string->count)) {
         pass = false;
     }
 
@@ -25,33 +21,28 @@ bool TestStringFields(FString<size>* string, uint32 expected_size, uint32 expect
 
 /// Tests
 ////////////////////////////////////////////////////////////
-bool CanPushTest()
-{
+bool CanPushTest() {
     bool pass = true;
 
     FString<2> string = {};
 
-    if (!ExpectEqual("string(size=2,count=0); CanPush(string, 2)", true, CanPush(&string, 2)))
-    {
+    if (!ExpectEqual("string(size=2,count=0); CanPush(string, 2)", true, CanPush(&string, 2))) {
         pass = false;
     }
 
-    if (!ExpectEqual("string(size=2,count=0); CanPush(string, 3)", false, CanPush(&string, 3)))
-    {
+    if (!ExpectEqual("string(size=2,count=0); CanPush(string, 3)", false, CanPush(&string, 3))) {
         pass = false;
     }
 
     Push(&string, 'a');
-    if (!ExpectEqual("string(size=2,count=1); CanPush(string, 2)", false, CanPush(&string, 2)))
-    {
+    if (!ExpectEqual("string(size=2,count=1); CanPush(string, 2)", false, CanPush(&string, 2))) {
         pass = false;
     }
 
     return pass;
 }
 
-bool RemoveTest()
-{
+bool RemoveTest() {
     bool pass = true;
 
     FString<4> string = {};
@@ -74,8 +65,7 @@ bool RemoveTest()
     return pass;
 }
 
-bool RemoveRangeTest()
-{
+bool RemoveRangeTest() {
     bool pass = true;
 
     FString<8> string = {};
@@ -98,11 +88,8 @@ bool RemoveRangeTest()
     return pass;
 }
 
-bool WriteTest()
-{
-    bool pass = true;
-
-    {
+bool WriteTest() {
+    bool pass = true; {
         constexpr uint32 STRING_SIZE = 5;
         FString<STRING_SIZE> string = {}; // Must have room for null-terminator, unlike String.
         Write(&string, "test");
@@ -111,8 +98,7 @@ bool WriteTest()
                 ExpectEqual, expected, &string);
         RunTest("Write(&string, \"test\") (equal up to string.count)", &pass,
                 TestStringFields, &string, STRING_SIZE, 4u);
-    }
-    {
+    } {
         constexpr uint32 STRING_SIZE = 8;
         FString<STRING_SIZE> string = {};
         char expected[STRING_SIZE] = {};
@@ -127,11 +113,8 @@ bool WriteTest()
     return pass;
 }
 
-bool AppendTest()
-{
-    bool pass = true;
-
-    {
+bool AppendTest() {
+    bool pass = true; {
         constexpr uint32 STRING_SIZE = 18;
         char expected[4][STRING_SIZE] = {};
         Write(expected[0], STRING_SIZE, "test1");
@@ -161,34 +144,29 @@ bool AppendTest()
     return pass;
 }
 
-bool ContainsTest()
-{
+bool ContainsTest() {
     bool pass = true;
 
     FString<4> string = {};
     PushRange(&string, "1234");
     RunTest("Init string: \"1234\"", &pass, TestStringFields, &string, 4u, 4u);
 
-    if (!ExpectEqual("Contains(string, '2')", true, Contains(&string, '2')))
-    {
+    if (!ExpectEqual("Contains(string, '2')", true, Contains(&string, '2'))) {
         pass = false;
     }
 
-    if (!ExpectEqual("Contains(string, '4')", true, Contains(&string, '4')))
-    {
+    if (!ExpectEqual("Contains(string, '4')", true, Contains(&string, '4'))) {
         pass = false;
     }
 
-    if (!ExpectEqual("Contains(string, '5')", false, Contains(&string, '5')))
-    {
+    if (!ExpectEqual("Contains(string, '5')", false, Contains(&string, '5'))) {
         pass = false;
     }
 
     return pass;
 }
 
-bool ReverseTest()
-{
+bool ReverseTest() {
     bool pass = true;
 
     FString<16> string = {};
@@ -218,8 +196,7 @@ bool ReverseTest()
     return pass;
 }
 
-bool Run()
-{
+bool Run() {
     bool pass = true;
 
     RunTest("CanPushTest()",     &pass, CanPushTest);

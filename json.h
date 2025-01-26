@@ -1,14 +1,12 @@
 /// Data
 ////////////////////////////////////////////////////////////
-struct JSONTokenParseState
-{
+struct JSONTokenParseState {
     uint32 char_index;
     uint32 line;
     uint32 column;
 };
 
-enum struct JSONTokenType
-{
+enum struct JSONTokenType {
     // Symbols
     OPEN_SQUARE_BRACKET,
     CLOSE_SQUARE_BRACKET,
@@ -30,29 +28,25 @@ enum struct JSONTokenType
     NONE,
 };
 
-struct JSONToken
-{
+struct JSONToken {
     JSONTokenType type;
     uint32        index;
     uint32        size;
 };
 
-struct JSONListState
-{
+struct JSONListState {
     uint32 node_index;
     uint32 token_index;
 };
 
-struct JSONNodeParseState
-{
+struct JSONNodeParseState {
     Array<JSONListState> list_states;
     uint32               key_index;
     uint32               key_offset;
     uint32               value_offset;
 };
 
-enum struct JSONNodeType
-{
+enum struct JSONNodeType {
     ARRAY,
     OBJECT,
     UINT32,
@@ -63,20 +57,17 @@ enum struct JSONNodeType
     NULL_,
 };
 
-struct JSONNodeList
-{
+struct JSONNodeList {
     uint32 node_index;
     uint32 key_index;
     uint32 size;
 };
 
-struct JSONNode
-{
+struct JSONNode {
     uint32       key_index;
     String       key;
     JSONNodeType type;
-    union
-    {
+    union {
         uint32       num_uint32;
         sint32       num_sint32;
         float32      num_float32;
@@ -86,8 +77,7 @@ struct JSONNode
     };
 };
 
-struct JSON
-{
+struct JSON {
     Allocator*      allocator;
     JSONNode        root_node;
     Array<JSONNode> nodes;
@@ -99,14 +89,12 @@ struct JSON
 };
 
 using PrintChildFunc = Func<void, JSONNode*, uint32, uint32, uint32>;
-struct PrintChildFuncs
-{
+struct PrintChildFuncs {
     PrintChildFunc array;
     PrintChildFunc object;
 };
 
-constexpr bool JSON_SYMBOL[128] =
-{
+constexpr bool JSON_SYMBOL[128] = {
     /*0*/   false, false, false,     false,     false,     false,     false, false,
     /*8*/   false, false, false,     false,     false,     false,     false, false,
     /*16*/  false, false, false,     false,     false,     false,     false, false,
@@ -125,8 +113,7 @@ constexpr bool JSON_SYMBOL[128] =
     /*120*/ false, false, false,     true/*{*/, false,     true/*}*/, false, false,
 };
 
-constexpr bool JSON_SKIPPABLE[128] =
-{
+constexpr bool JSON_SKIPPABLE[128] = {
     /*0*/   true/*\0*/, false,      false,      false, false, false,      false, false,
     /*8*/   false,      true/*\t*/, true/*\n*/, false, false, true/*\r*/, false, false,
     /*16*/  false,      false,      false,      false, false, false,      false, false,
@@ -145,8 +132,7 @@ constexpr bool JSON_SKIPPABLE[128] =
     /*120*/ false,      false,      false,      false, false, false,      false, false,
 };
 
-constexpr JSONTokenType JSON_TOKEN_TYPE_SYMBOL[128] =
-{
+constexpr JSONTokenType JSON_TOKEN_TYPE_SYMBOL[128] = {
     /*0*/   JSONTokenType::NONE, JSONTokenType::NONE, JSONTokenType::NONE,  JSONTokenType::NONE,                JSONTokenType::NONE,  JSONTokenType::NONE,                 JSONTokenType::NONE, JSONTokenType::NONE,
     /*8*/   JSONTokenType::NONE, JSONTokenType::NONE, JSONTokenType::NONE,  JSONTokenType::NONE,                JSONTokenType::NONE,  JSONTokenType::NONE,                 JSONTokenType::NONE, JSONTokenType::NONE,
     /*16*/  JSONTokenType::NONE, JSONTokenType::NONE, JSONTokenType::NONE,  JSONTokenType::NONE,                JSONTokenType::NONE,  JSONTokenType::NONE,                 JSONTokenType::NONE, JSONTokenType::NONE,
@@ -167,10 +153,8 @@ constexpr JSONTokenType JSON_TOKEN_TYPE_SYMBOL[128] =
 
 /// Utils
 ////////////////////////////////////////////////////////////
-const char* TokenTypeName(JSONTokenType type)
-{
-    constexpr const char* TOKEN_TYPE_NAMES[] =
-    {
+const char* TokenTypeName(JSONTokenType type) {
+    constexpr const char* TOKEN_TYPE_NAMES[] = {
         // Symbols
         "OPEN_SQUARE_BRACKET",
         "CLOSE_SQUARE_BRACKET",
@@ -195,10 +179,8 @@ const char* TokenTypeName(JSONTokenType type)
     return TOKEN_TYPE_NAMES[(uint32)type];
 }
 
-const char* NodeTypeName(JSONNodeType type)
-{
-    constexpr const char* NODE_TYPE_NAMES[] =
-    {
+const char* NodeTypeName(JSONNodeType type) {
+    constexpr const char* NODE_TYPE_NAMES[] = {
         "ARRAY",
         "OBJECT",
         "UINT32",
@@ -212,16 +194,13 @@ const char* NodeTypeName(JSONNodeType type)
     return NODE_TYPE_NAMES[(uint32)type];
 }
 
-void ParseLiteralToken(JSONTokenParseState* parse_state, String* json_file, const char* value, uint32 size)
-{
-    if (parse_state->char_index + size >= json_file->count)
-    {
+void ParseLiteralToken(JSONTokenParseState* parse_state, String* json_file, const char* value, uint32 size) {
+    if (parse_state->char_index + size >= json_file->count) {
         CTK_FATAL("reached end of JSON file parsing literal %s on line %u column %u", value,
                   parse_state->line,
                   parse_state->column);
     }
-    if (!StringsMatch(&json_file->data[parse_state->char_index], value, size))
-    {
+    if (!StringsMatch(&json_file->data[parse_state->char_index], value, size)) {
         CTK_FATAL("invalid literal %s on line %u column %u", value,
                   parse_state->line,
                   parse_state->column);
@@ -230,13 +209,11 @@ void ParseLiteralToken(JSONTokenParseState* parse_state, String* json_file, cons
     parse_state->column     += size;
 }
 
-Array<JSONToken> ParseTokens(JSON* json, String* json_file)
-{
+Array<JSONToken> ParseTokens(JSON* json, String* json_file) {
     auto tokens = CreateArray<JSONToken>(json->allocator);
 
     // Parse File
-    JSONTokenParseState parse_state =
-    {
+    JSONTokenParseState parse_state = {
         .char_index = 0,
         .line       = 1,
         .column     = 1,
@@ -246,11 +223,9 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
     uint32 max_tokens = 0;
     uint32 depth      = 0;
     uint32 max_depth  = 0;
-    while (parse_state.char_index < json_file->count)
-    {
+    while (parse_state.char_index < json_file->count) {
         char c = json_file->data[parse_state.char_index];
-        if (c == '\"')
-        {
+        if (c == '\"') {
             uint32 start_line = parse_state.line;
             uint32 start_column = parse_state.column;
             max_tokens += 1;
@@ -259,30 +234,24 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
 
             // Find end of string token.
             bool escape_next = false;
-            while (true)
-            {
-                if (parse_state.char_index >= json_file->count)
-                {
+            while (true) {
+                if (parse_state.char_index >= json_file->count) {
                     CTK_FATAL("reached EOF while parsing string starting on line %u column %u",
                               start_line,
                               start_column);
                 }
                 char string_char = json_file->data[parse_state.char_index];
-                if (escape_next)
-                {
+                if (escape_next) {
                     escape_next = false;
                 }
-                else if (string_char == '\\')
-                {
+                else if (string_char == '\\') {
                     escape_next = true;
                 }
-                else if (string_char == '\n')
-                {
+                else if (string_char == '\n') {
                     parse_state.line += 1;
                     parse_state.column = 0; // Reset to 0 so column increment after char_index increment will be 1.
                 }
-                else if (string_char == '\"')
-                {
+                else if (string_char == '\"') {
                     parse_state.char_index += 1; // Skips close quotation mark.
                     parse_state.column += 1;
                     break;
@@ -292,29 +261,25 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
                 json->string_buffer_size += 1;
             }
         }
-        else if (c == 'n')
-        {
+        else if (c == 'n') {
             max_tokens += 1;
             ParseLiteralToken(&parse_state, json_file, "null", 4);
 
             // Parsing ends after last char of value; no need to increment parse_state.char_index.
         }
-        else if (c == 't')
-        {
+        else if (c == 't') {
             max_tokens += 1;
             ParseLiteralToken(&parse_state, json_file, "true", 4);
 
             // Parsing ends after last char of value; no need to increment parse_state.char_index.
         }
-        else if (c == 'f')
-        {
+        else if (c == 'f') {
             max_tokens += 1;
             ParseLiteralToken(&parse_state, json_file, "false", 5);
 
             // Parsing ends after last char of value; no need to increment parse_state.char_index.
         }
-        else if (ASCII_NUMERIC[c] || c == '-')
-        {
+        else if (ASCII_NUMERIC[c] || c == '-') {
             max_tokens += 1;
             parse_state.char_index += 1;
             parse_state.column += 1;
@@ -322,16 +287,13 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
             JSONTokenType token_type = JSONTokenType::UINT32;
 
             // Parse char after negative sign.
-            if (c == '-')
-            {
-                if (parse_state.char_index >= json_file->count)
-                {
+            if (c == '-') {
+                if (parse_state.char_index >= json_file->count) {
                     CTK_FATAL("reached EOF while parsing number after negative sign on line %u column %u",
                               parse_state.line,
                               parse_state.column);
                 }
-                if (!ASCII_NUMERIC[json_file->data[parse_state.char_index]])
-                {
+                if (!ASCII_NUMERIC[json_file->data[parse_state.char_index]]) {
                     CTK_FATAL("non-numeric character following negative sign on line %u column %u: '%c'",
                               parse_state.line,
                               parse_state.column,
@@ -343,44 +305,35 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
             }
 
             // Parse rest of numeric value.
-            while (parse_state.char_index < json_file->count)
-            {
+            while (parse_state.char_index < json_file->count) {
                 char num_char = json_file->data[parse_state.char_index];
-                if (num_char == '.')
-                {
-                    if (token_type == JSONTokenType::FLOAT32)
-                    {
+                if (num_char == '.') {
+                    if (token_type == JSONTokenType::FLOAT32) {
                         CTK_FATAL("multiple decimals in numeric value on line %u column %u",
                                   parse_state.line,
                                   parse_state.column);
                     }
-                    else
-                    {
+                    else {
                         token_type = JSONTokenType::FLOAT32;
                     }
                 }
-                else if (num_char == 'e')
-                {
+                else if (num_char == 'e') {
                     parse_state.char_index += 1;
                     parse_state.column += 1;
                     num_char = json_file->data[parse_state.char_index];
-                    if (num_char != '-' && num_char != '+' && !ASCII_NUMERIC[num_char])
-                    {
+                    if (num_char != '-' && num_char != '+' && !ASCII_NUMERIC[num_char]) {
                         CTK_FATAL("character following e on line %u column %u must be '-', '+' or a numeric value for "
                                   "the exponent",
                                   parse_state.line,
                                   parse_state.column)
                     }
-                    if (num_char == '-' || num_char == '+')
-                    {
+                    if (num_char == '-' || num_char == '+') {
                         parse_state.char_index += 1;
                         parse_state.column += 1;
                     }
-                    while (parse_state.char_index < json_file->count)
-                    {
+                    while (parse_state.char_index < json_file->count) {
                         num_char = json_file->data[parse_state.char_index];
-                        if (!ASCII_NUMERIC[num_char])
-                        {
+                        if (!ASCII_NUMERIC[num_char]) {
                             break;
                         }
                         parse_state.char_index += 1;
@@ -388,8 +341,7 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
                     }
                     break;
                 }
-                else if (!ASCII_NUMERIC[num_char])
-                {
+                else if (!ASCII_NUMERIC[num_char]) {
                     break;
                 }
                 parse_state.char_index += 1;
@@ -398,24 +350,20 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
 
             // Parsing ends after last char of value; no need to increment parse_state.char_index.
         }
-        else if (JSON_SKIPPABLE[c])
-        {
+        else if (JSON_SKIPPABLE[c]) {
             // Skip
-            if (c == '\n')
-            {
+            if (c == '\n') {
                 parse_state.line += 1;
                 parse_state.column = 0; // Reset to 0 so column increment after char_index increment will be 1.
             }
             parse_state.char_index += 1;
             parse_state.column += 1;
         }
-        else if (JSON_SYMBOL[c])
-        {
+        else if (JSON_SYMBOL[c]) {
             max_tokens += 1;
 
             JSONTokenType token_type = JSON_TOKEN_TYPE_SYMBOL[c];
-            if (token_type == JSONTokenType::NONE)
-            {
+            if (token_type == JSONTokenType::NONE) {
                 CTK_FATAL("failed to find symbol token type for symbol character on line %u column %u: \'%c\'",
                           parse_state.line,
                           parse_state.column,
@@ -423,19 +371,15 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
             }
 
             if (token_type == JSONTokenType::OPEN_SQUARE_BRACKET ||
-                token_type == JSONTokenType::OPEN_CURLY_BRACKET)
-            {
+                token_type == JSONTokenType::OPEN_CURLY_BRACKET) {
                 depth += 1;
-                if (depth > max_depth)
-                {
+                if (depth > max_depth) {
                     max_depth = depth;
                 }
             }
             else if (token_type == JSONTokenType::CLOSE_SQUARE_BRACKET ||
-                     token_type == JSONTokenType::CLOSE_CURLY_BRACKET)
-            {
-                if (depth == 0)
-                {
+                     token_type == JSONTokenType::CLOSE_CURLY_BRACKET) {
+                if (depth == 0) {
                     CTK_FATAL("found extraneous close bracket on line %u column %u: \'%c\'",
                               parse_state.line,
                               parse_state.column,
@@ -445,8 +389,7 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
             }
 
             // Every key has a colon following it.
-            if (token_type == JSONTokenType::COLON)
-            {
+            if (token_type == JSONTokenType::COLON) {
                 json->max_keys += 1;
             }
 
@@ -454,16 +397,14 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
             parse_state.char_index += 1;
             parse_state.column += 1;
         }
-        else
-        {
+        else {
             CTK_FATAL("invalid character on line %u column %u: \'%c\'",
                       parse_state.line,
                       parse_state.column,
                       c);
         }
     }
-    if (max_tokens == 0)
-    {
+    if (max_tokens == 0) {
         return tokens;
     }
 
@@ -478,14 +419,11 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
     bool is_array = false;
     Push(&is_array_stack, false);
 
-    while (parse_state.char_index < json_file->count)
-    {
+    while (parse_state.char_index < json_file->count) {
         char c = json_file->data[parse_state.char_index];
-        if (c == '\"')
-        {
+        if (c == '\"') {
             // Every string token will have its own node.
-            if (is_array)
-            {
+            if (is_array) {
                 json->nodes.size += 1;
             }
 
@@ -498,19 +436,15 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
 
             // Find end of string token.
             bool escape_next = false;
-            while (true)
-            {
+            while (true) {
                 char string_char = json_file->data[parse_state.char_index];
-                if (escape_next)
-                {
+                if (escape_next) {
                     escape_next = false;
                 }
-                else if (string_char == '\\')
-                {
+                else if (string_char == '\\') {
                     escape_next = true;
                 }
-                else if (string_char == '\"')
-                {
+                else if (string_char == '\"') {
                     parse_state.char_index += 1; // Skips close quotation mark.
                     break;
                 }
@@ -518,11 +452,9 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
                 token->size += 1;
             }
         }
-        else if (c == 'n')
-        {
+        else if (c == 'n') {
             // Every literal token will have its own node.
-            if (is_array)
-            {
+            if (is_array) {
                 json->nodes.size += 1;
             }
 
@@ -535,11 +467,9 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
 
             // Parsing ends on char after value; no need to increment parse_state.char_index.
         }
-        else if (c == 't')
-        {
+        else if (c == 't') {
             // Every literal token will have its own node.
-            if (is_array)
-            {
+            if (is_array) {
                 json->nodes.size += 1;
             }
 
@@ -552,11 +482,9 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
 
             // Parsing ends on char after value; no need to increment parse_state.char_index.
         }
-        else if (c == 'f')
-        {
+        else if (c == 'f') {
             // Every literal token will have its own node.
-            if (is_array)
-            {
+            if (is_array) {
                 json->nodes.size += 1;
             }
 
@@ -569,11 +497,9 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
 
             // Parsing ends on char after value; no need to increment parse_state.char_index.
         }
-        else if (ASCII_NUMERIC[c] || c == '-')
-        {
+        else if (ASCII_NUMERIC[c] || c == '-') {
             // Every numeric token will have its own node.
-            if (is_array)
-            {
+            if (is_array) {
                 json->nodes.size += 1;
             }
 
@@ -585,36 +511,29 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
             parse_state.char_index += 1;
 
             // Parse char after negative sign.
-            if (c == '-')
-            {
+            if (c == '-') {
                 token->type = JSONTokenType::SINT32;
                 parse_state.char_index += 1;
                 token->size += 1;
             }
 
             // Parse rest of numeric value.
-            while (parse_state.char_index < json_file->count)
-            {
+            while (parse_state.char_index < json_file->count) {
                 char num_char = json_file->data[parse_state.char_index];
-                if (num_char == '.')
-                {
+                if (num_char == '.') {
                     token->type = JSONTokenType::FLOAT32;
                 }
-                else if (num_char == 'e')
-                {
+                else if (num_char == 'e') {
                     parse_state.char_index += 1;
                     parse_state.column += 1;
                     num_char = json_file->data[parse_state.char_index];
-                    if (num_char == '-' || num_char == '+')
-                    {
+                    if (num_char == '-' || num_char == '+') {
                         parse_state.char_index += 1;
                         parse_state.column += 1;
                     }
-                    while (parse_state.char_index < json_file->count)
-                    {
+                    while (parse_state.char_index < json_file->count) {
                         num_char = json_file->data[parse_state.char_index];
-                        if (!ASCII_NUMERIC[num_char])
-                        {
+                        if (!ASCII_NUMERIC[num_char]) {
                             break;
                         }
                         parse_state.char_index += 1;
@@ -622,8 +541,7 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
                     }
                     break;
                 }
-                else if (!ASCII_NUMERIC[num_char])
-                {
+                else if (!ASCII_NUMERIC[num_char]) {
                     break;
                 }
                 parse_state.char_index += 1;
@@ -632,33 +550,27 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
 
             // Parsing ends on char after value; no need to increment parse_state.char_index.
         }
-        else if (JSON_SKIPPABLE[c])
-        {
+        else if (JSON_SKIPPABLE[c]) {
             // Skip
             parse_state.char_index += 1;
         }
-        else if (JSON_SYMBOL[c])
-        {
+        else if (JSON_SYMBOL[c]) {
             JSONToken* token = Push(&tokens);
             token->type  = JSON_TOKEN_TYPE_SYMBOL[c];
             token->index = parse_state.char_index;
             token->size  = 1; // Symbols are always 1 character.
 
             // Track if token is in array or object for calculating node count.
-            if (token->type == JSONTokenType::OPEN_SQUARE_BRACKET)
-            {
-                if (is_array)
-                {
+            if (token->type == JSONTokenType::OPEN_SQUARE_BRACKET) {
+                if (is_array) {
                     json->nodes.size += 1;
                 }
 
                 Push(&is_array_stack, true);
                 is_array = true;
             }
-            else if (token->type == JSONTokenType::OPEN_CURLY_BRACKET)
-            {
-                if (is_array)
-                {
+            else if (token->type == JSONTokenType::OPEN_CURLY_BRACKET) {
+                if (is_array) {
                     json->nodes.size += 1;
                 }
 
@@ -666,13 +578,11 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
                 is_array = false;
             }
             else if (token->type == JSONTokenType::CLOSE_SQUARE_BRACKET ||
-                     token->type == JSONTokenType::CLOSE_CURLY_BRACKET)
-            {
+                     token->type == JSONTokenType::CLOSE_CURLY_BRACKET) {
                 is_array_stack.count -= 1;
                 is_array = is_array_stack.data[is_array_stack.count - 1];
             }
-            else if (!is_array && token->type == JSONTokenType::COLON)
-            {
+            else if (!is_array && token->type == JSONTokenType::COLON) {
                 // All nodes within an object will have a colon to separate key & value.
                 json->nodes.size += 1;
                 json->max_keys += 1;
@@ -686,21 +596,16 @@ Array<JSONToken> ParseTokens(JSON* json, String* json_file)
     return tokens;
 }
 
-void FindCloseBracket(JSONTokenType open_bracket_type, Array<JSONToken>* tokens, uint32* token_index)
-{
+void FindCloseBracket(JSONTokenType open_bracket_type, Array<JSONToken>* tokens, uint32* token_index) {
     JSONTokenType close_bracket_type = (JSONTokenType)((uint32)open_bracket_type + 1);
     uint32 nesting_level = 0;
-    while (*token_index <= tokens->count)
-    {
+    while (*token_index <= tokens->count) {
         JSONToken* token = &tokens->data[*token_index];
-        if (token->type == open_bracket_type)
-        {
+        if (token->type == open_bracket_type) {
             nesting_level += 1;
         }
-        else if (token->type == close_bracket_type)
-        {
-            if (nesting_level == 0)
-            {
+        else if (token->type == close_bracket_type) {
+            if (nesting_level == 0) {
                 *token_index += 1;
                 return;
             }
@@ -719,12 +624,10 @@ void ParseValue(JSON*               json,
                 JSONNodeParseState* parse_state,
                 uint32*             token_index,
                 JSONNode*           node,
-                uint32              node_index)
-{
+                uint32              node_index) {
     JSONToken* value_token = &tokens->data[*token_index];
     *token_index += 1;
-    if (value_token->type == JSONTokenType::OPEN_SQUARE_BRACKET)
-    {
+    if (value_token->type == JSONTokenType::OPEN_SQUARE_BRACKET) {
         // Store nodex index and token index for parsing container later.
         JSONListState* list_state = Push(&parse_state->list_states);
         list_state->token_index = *token_index;
@@ -733,8 +636,7 @@ void ParseValue(JSON*               json,
         node->type = JSONNodeType::ARRAY;
         FindCloseBracket(JSONTokenType::OPEN_SQUARE_BRACKET, tokens, token_index);
     }
-    else if (value_token->type == JSONTokenType::OPEN_CURLY_BRACKET)
-    {
+    else if (value_token->type == JSONTokenType::OPEN_CURLY_BRACKET) {
         // Store nodex index and token index for parsing container later.
         JSONListState* list_state = Push(&parse_state->list_states);
         list_state->token_index = *token_index;
@@ -743,25 +645,21 @@ void ParseValue(JSON*               json,
         node->type = JSONNodeType::OBJECT;
         FindCloseBracket(JSONTokenType::OPEN_CURLY_BRACKET, tokens, token_index);
     }
-    else if (value_token->type == JSONTokenType::UINT32)
-    {
+    else if (value_token->type == JSONTokenType::UINT32) {
         node->type       = JSONNodeType::UINT32;
         node->num_uint32 = ToUInt32(&json_file->data[value_token->index], value_token->size);
     }
-    else if (value_token->type == JSONTokenType::SINT32)
-    {
+    else if (value_token->type == JSONTokenType::SINT32) {
         node->type       = JSONNodeType::SINT32;
         node->num_sint32 = ToSInt32(&json_file->data[value_token->index], value_token->size);
 
     }
-    else if (value_token->type == JSONTokenType::FLOAT32)
-    {
+    else if (value_token->type == JSONTokenType::FLOAT32) {
         node->type        = JSONNodeType::FLOAT32;
         node->num_float32 = ToFloat32(&json_file->data[value_token->index], value_token->size);
 
     }
-    else if (value_token->type == JSONTokenType::STRING)
-    {
+    else if (value_token->type == JSONTokenType::STRING) {
         parse_state->value_offset -= value_token->size;
 
         node->type         = JSONNodeType::STRING;
@@ -774,48 +672,38 @@ void ParseValue(JSON*               json,
         uint32 token_string_size  = 0;
         uint32 value_token_end    = value_token->index + value_token->size;
         char token_char           = 0;
-        while (true)
-        {
-            if (token_string_index >= value_token_end)
-            {
+        while (true) {
+            if (token_string_index >= value_token_end) {
                 memcpy(&node_string->data[node_string->size], &json_file->data[token_string_start], token_string_size);
                 node_string->size += token_string_size;
                 break; // Parsing reached end of string.
             }
 
             token_char = json_file->data[token_string_index];
-            if (token_char == '\\')
-            {
+            if (token_char == '\\') {
                 memcpy(&node_string->data[node_string->size], &json_file->data[token_string_start], token_string_size);
                 node_string->size += token_string_size;
                 token_string_index += 1;
                 token_char = json_file->data[token_string_index];
-                if (token_char == 'n')
-                {
+                if (token_char == 'n') {
                     node_string->data[node_string->size] = '\n';
                 }
-                else if (token_char == 'r')
-                {
+                else if (token_char == 'r') {
                     node_string->data[node_string->size] = '\r';
                 }
-                else if (token_char == 't')
-                {
+                else if (token_char == 't') {
                     node_string->data[node_string->size] = '\t';
                 }
-                else if (token_char == '\\')
-                {
+                else if (token_char == '\\') {
                     node_string->data[node_string->size] = '\\';
                 }
-                else if (token_char == '\"')
-                {
+                else if (token_char == '\"') {
                     node_string->data[node_string->size] = '\"';
                 }
-                else if (token_char == '\0')
-                {
+                else if (token_char == '\0') {
                     node_string->data[node_string->size] = '\0';
                 }
-                else
-                {
+                else {
                     CTK_FATAL("invalid escape char: '%c' (%u)", token_char, token_char);
                 }
 
@@ -825,26 +713,22 @@ void ParseValue(JSON*               json,
                 token_string_start = token_string_index;
                 token_string_size  = 0;
             }
-            else
-            {
+            else {
                 token_string_index += 1;
                 token_string_size += 1;
             }
         }
         node_string->count = node_string->size;
     }
-    else if (value_token->type == JSONTokenType::BOOLEAN)
-    {
+    else if (value_token->type == JSONTokenType::BOOLEAN) {
         node->type    = JSONNodeType::BOOLEAN;
         node->boolean = ToBool(&json_file->data[value_token->index], value_token->size);
     }
-    else if (value_token->type == JSONTokenType::NULL_)
-    {
+    else if (value_token->type == JSONTokenType::NULL_) {
         node->type = JSONNodeType::NULL_;
         // Leave node value zero-initialized.
     }
-    else
-    {
+    else {
         CTK_FATAL("invalid value token: '%.*s'", value_token->size, &json_file->data[value_token->index]);
     }
 }
@@ -853,24 +737,19 @@ uint32 ParseArrayChildren(JSON*               json,
                           String*             json_file,
                           Array<JSONToken>*   tokens,
                           JSONNodeParseState* parse_state,
-                          uint32              token_index)
-{
+                          uint32              token_index) {
     uint32 child_count = 0;
-    while (true)
-    {
-        if (token_index >= tokens->count)
-        {
+    while (true) {
+        if (token_index >= tokens->count) {
             CTK_FATAL("reached end of tokens without finding close bracket for array");
         }
 
-        if (tokens->data[token_index].type == JSONTokenType::COMMA)
-        {
+        if (tokens->data[token_index].type == JSONTokenType::COMMA) {
             // Skip comma after value.
             token_index += 1;
         }
 
-        if (tokens->data[token_index].type == JSONTokenType::CLOSE_SQUARE_BRACKET)
-        {
+        if (tokens->data[token_index].type == JSONTokenType::CLOSE_SQUARE_BRACKET) {
             // Found close bracket for array, end parsing.
             break;
         }
@@ -890,54 +769,44 @@ uint32 ParseObjectChildren(JSON*               json,
                            String*             json_file,
                            Array<JSONToken>*   tokens,
                            JSONNodeParseState* parse_state,
-                           uint32              token_index)
-{
+                           uint32              token_index) {
     uint32 original_token_index = token_index;
     uint32 child_count = 0;
-    while (true)
-    {
-        if (token_index >= tokens->count)
-        {
+    while (true) {
+        if (token_index >= tokens->count) {
             CTK_FATAL("reached end of tokens without finding close bracket for object");
         }
 
-        if (tokens->data[token_index].type == JSONTokenType::COMMA)
-        {
+        if (tokens->data[token_index].type == JSONTokenType::COMMA) {
             // Skip comma after value.
             token_index += 1;
         }
 
-        if (tokens->data[token_index].type == JSONTokenType::CLOSE_CURLY_BRACKET)
-        {
+        if (tokens->data[token_index].type == JSONTokenType::CLOSE_CURLY_BRACKET) {
             // Found close bracket for object, end parsing.
             break;
         }
 
         // Parse key token.
-        if (token_index >= tokens->count)
-        {
+        if (token_index >= tokens->count) {
             CTK_FATAL("expected key token: no tokens remain");
         }
         JSONToken* key_token = &tokens->data[token_index];
         token_index += 1;
-        if (key_token->type != JSONTokenType::STRING)
-        {
+        if (key_token->type != JSONTokenType::STRING) {
             CTK_FATAL("expected token for key to be STRING type: was %s", TokenTypeName(key_token->type));
         }
-        if (parse_state->key_index >= json->max_keys)
-        {
+        if (parse_state->key_index >= json->max_keys) {
             CTK_FATAL("can't parse object child: already at max of %u keys", json->max_keys);
         }
 
         // Parse colon token.
-        if (token_index >= tokens->count)
-        {
+        if (token_index >= tokens->count) {
             CTK_FATAL("expected colon token: no tokens remain");
         }
         JSONToken* colon_token = &tokens->data[token_index];
         token_index += 1;
-        if (colon_token->type != JSONTokenType::COLON)
-        {
+        if (colon_token->type != JSONTokenType::COLON) {
             CTK_FATAL("expected token for colon to be COLON type: was %s", TokenTypeName(colon_token->type));
         }
 
@@ -965,16 +834,14 @@ uint32 ParseObjectChildren(JSON*               json,
     return child_count;
 }
 
-void ParseNodes(JSON* json, String* json_file, Array<JSONToken>* tokens)
-{
+void ParseNodes(JSON* json, String* json_file, Array<JSONToken>* tokens) {
     json->nodes         = CreateArray<JSONNode>(json->allocator, json->nodes.size);
     json->string_buffer = Allocate<char>  (json->allocator, json->string_buffer_size);
     json->key_sizes     = Allocate<uint32>(json->allocator, json->max_keys);
     json->key_offsets   = Allocate<uint32>(json->allocator, json->max_keys);
 
     // Parse nodes from tokens.
-    JSONNodeParseState parse_state =
-    {
+    JSONNodeParseState parse_state = {
         .list_states  = CreateArray<JSONListState>(json->allocator, json->nodes.size),
         .key_index    = 0,
         .key_offset   = 0,
@@ -984,40 +851,33 @@ void ParseNodes(JSON* json, String* json_file, Array<JSONToken>* tokens)
     // Parse root nodes.
     JSONToken* first_token = GetPtr(tokens, 0);
     JSONNode* root_node = &json->root_node;
-    if (first_token->type == JSONTokenType::OPEN_SQUARE_BRACKET)
-    {
+    if (first_token->type == JSONTokenType::OPEN_SQUARE_BRACKET) {
         root_node->type = JSONNodeType::ARRAY;
         root_node->list.size = ParseArrayChildren(json, json_file, tokens, &parse_state, 1);
     }
-    else if (first_token->type == JSONTokenType::OPEN_CURLY_BRACKET)
-    {
+    else if (first_token->type == JSONTokenType::OPEN_CURLY_BRACKET) {
         root_node->type = JSONNodeType::OBJECT;
         root_node->list.size = ParseObjectChildren(json, json_file, tokens, &parse_state, 1);
     }
-    else
-    {
+    else {
         CTK_FATAL("JSON file must start with { or [");
     }
 
     // Parse all child lists of root.
-    for (uint32 i = 0; i < parse_state.list_states.count; i += 1)
-    {
+    for (uint32 i = 0; i < parse_state.list_states.count; i += 1) {
         // Don't use pointers to container state or node as both arrays can be reallocated during ParseXChildren().
         uint32 node_index  = parse_state.list_states.data[i].node_index;
         uint32 token_index = parse_state.list_states.data[i].token_index;
         JSONNode* node = &json->nodes.data[node_index];
         node->list.node_index = json->nodes.count;
-        if (node->type == JSONNodeType::OBJECT)
-        {
+        if (node->type == JSONNodeType::OBJECT) {
             node->list.key_index = parse_state.key_index;
             node->list.size = ParseObjectChildren(json, json_file, tokens, &parse_state, token_index);
         }
-        else if (node->type == JSONNodeType::ARRAY)
-        {
+        else if (node->type == JSONNodeType::ARRAY) {
             node->list.size = ParseArrayChildren(json, json_file, tokens, &parse_state, token_index);
         }
-        else
-        {
+        else {
             CTK_FATAL("expected container node to be ARRAY or OBJECT type: was %s",
                       NodeTypeName(node->type));
         }
@@ -1030,16 +890,14 @@ void ParseNodes(JSON* json, String* json_file, Array<JSONToken>* tokens)
 ////////////////////////////////////////////////////////////
 void PrintValue(JSON* json, JSONNode* node, PrintChildFuncs* print_child_funcs, uint32 tabs);
 
-void PrintObjectChildDebug(JSONNode* node, uint32 node_index, uint32 key_index, uint32 child_index)
-{
+void PrintObjectChildDebug(JSONNode* node, uint32 node_index, uint32 key_index, uint32 child_index) {
     Print("(type:%7s, node_index:%4u, key_index:%4u) \"%.*s\": ",
           NodeTypeName(node->type),
           node_index,
           key_index,
           node->key.size,
           node->key.data);
-    if (node->type == JSONNodeType::OBJECT)
-    {
+    if (node->type == JSONNodeType::OBJECT) {
         Print("list:(node_index:%4u, key_index:%4u, size:%4u) ",
               node->list.node_index,
               node->list.key_index,
@@ -1047,19 +905,16 @@ void PrintObjectChildDebug(JSONNode* node, uint32 node_index, uint32 key_index, 
     }
 }
 
-void PrintObjectChild(JSONNode* node, uint32 node_index, uint32 key_index, uint32 child_index)
-{
+void PrintObjectChild(JSONNode* node, uint32 node_index, uint32 key_index, uint32 child_index) {
     Print("\"%.*s\": ", node->key.size, node->key.data);
 }
 
-void PrintArrayChildDebug(JSONNode* node, uint32 node_index, uint32 key_index, uint32 child_index)
-{
+void PrintArrayChildDebug(JSONNode* node, uint32 node_index, uint32 key_index, uint32 child_index) {
     Print("(type:%7s, node_index:%4u) [%3u]: ",
           NodeTypeName(node->type),
           node_index,
           child_index);
-    if (node->type == JSONNodeType::OBJECT)
-    {
+    if (node->type == JSONNodeType::OBJECT) {
         Print("list:(node_index:%4u, key_index:%4u, size:%4u) ",
               node->list.node_index,
               node->list.key_index,
@@ -1067,27 +922,22 @@ void PrintArrayChildDebug(JSONNode* node, uint32 node_index, uint32 key_index, u
     }
 }
 
-void PrintArrayChildIndex(JSONNode* node, uint32 node_index, uint32 key_index, uint32 child_index)
-{
+void PrintArrayChildIndex(JSONNode* node, uint32 node_index, uint32 key_index, uint32 child_index) {
     Print("[%3u]: ", child_index);
 }
 
-void PrintArrayChild(JSONNode* node, uint32 node_index, uint32 key_index, uint32 child_index)
-{
+void PrintArrayChild(JSONNode* node, uint32 node_index, uint32 key_index, uint32 child_index) {
 }
 
 void PrintList(JSON*            json,
                JSONNodeList*    list,
                PrintChildFunc   PrintChild,
                PrintChildFuncs* print_child_funcs,
-               uint32           tabs)
-{
-    if (list->size > 0)
-    {
+               uint32           tabs) {
+    if (list->size > 0) {
         PrintLine();
     }
-    for (uint32 child_index = 0; child_index < list->size; child_index += 1)
-    {
+    for (uint32 child_index = 0; child_index < list->size; child_index += 1) {
         uint32 node_index = list->node_index + child_index;
         uint32 key_index  = list->key_index  + child_index;
         JSONNode* node = &json->nodes.data[node_index];
@@ -1095,46 +945,36 @@ void PrintList(JSON*            json,
         PrintChild(node, node_index, key_index, child_index);
         PrintValue(json, node, print_child_funcs, tabs);
     }
-    if (list->size > 0)
-    {
+    if (list->size > 0) {
         PrintTabs(tabs - 1);
     }
 }
 
-void PrintValue(JSON* json, JSONNode* node, PrintChildFuncs* print_child_funcs, uint32 tabs)
-{
-    if (node->type == JSONNodeType::UINT32)
-    {
+void PrintValue(JSON* json, JSONNode* node, PrintChildFuncs* print_child_funcs, uint32 tabs) {
+    if (node->type == JSONNodeType::UINT32) {
         Print("%u", node->num_uint32);
     }
-    else if (node->type == JSONNodeType::SINT32)
-    {
+    else if (node->type == JSONNodeType::SINT32) {
         Print("%d", node->num_sint32);
     }
-    else if (node->type == JSONNodeType::FLOAT32)
-    {
+    else if (node->type == JSONNodeType::FLOAT32) {
         Print("%f", node->num_float32);
     }
-    else if (node->type == JSONNodeType::STRING)
-    {
+    else if (node->type == JSONNodeType::STRING) {
         Print("\"%.*s\"", node->string.size, node->string.data);
     }
-    else if (node->type == JSONNodeType::BOOLEAN)
-    {
+    else if (node->type == JSONNodeType::BOOLEAN) {
         Print("%s", node->boolean ? "true" : "false");
     }
-    else if (node->type == JSONNodeType::NULL_)
-    {
+    else if (node->type == JSONNodeType::NULL_) {
         Print("null");
     }
-    else if (node->type == JSONNodeType::ARRAY)
-    {
+    else if (node->type == JSONNodeType::ARRAY) {
         Print('[');
         PrintList(json, &node->list, print_child_funcs->array, print_child_funcs, tabs + 1);
         Print(']');
     }
-    else if (node->type == JSONNodeType::OBJECT)
-    {
+    else if (node->type == JSONNodeType::OBJECT) {
         Print('{');
         PrintList(json, &node->list, print_child_funcs->object, print_child_funcs, tabs + 1);
         Print('}');
@@ -1142,57 +982,45 @@ void PrintValue(JSON* json, JSONNode* node, PrintChildFuncs* print_child_funcs, 
     PrintLine(",");
 }
 
-void PrintJSON(JSON* json, PrintChildFuncs* print_child_funcs)
-{
+void PrintJSON(JSON* json, PrintChildFuncs* print_child_funcs) {
     PrintValue(json, &json->root_node, print_child_funcs, 0);
 }
 
-void PrintNode(JSON* json, JSONNode* node)
-{
+void PrintNode(JSON* json, JSONNode* node) {
     PrintLine("key:   %.*s", node->key.size, node->key.data);
     PrintLine("type:  %s", NodeTypeName(node->type));
     Print("value: ");
-    if (node->type == JSONNodeType::UINT32)
-    {
+    if (node->type == JSONNodeType::UINT32) {
         Print("%u", node->num_uint32);
     }
-    else if (node->type == JSONNodeType::SINT32)
-    {
+    else if (node->type == JSONNodeType::SINT32) {
         Print("%d", node->num_sint32);
     }
-    else if (node->type == JSONNodeType::FLOAT32)
-    {
+    else if (node->type == JSONNodeType::FLOAT32) {
         Print("%f", node->num_float32);
     }
-    else if (node->type == JSONNodeType::STRING)
-    {
+    else if (node->type == JSONNodeType::STRING) {
         Print("\"%.*s\"", node->string.size, node->string.data);
     }
-    else if (node->type == JSONNodeType::BOOLEAN)
-    {
+    else if (node->type == JSONNodeType::BOOLEAN) {
         Print("%s", node->boolean ? "true" : "false");
     }
-    else if (node->type == JSONNodeType::NULL_)
-    {
+    else if (node->type == JSONNodeType::NULL_) {
         Print("null");
     }
-    else if (node->type == JSONNodeType::ARRAY)
-    {
+    else if (node->type == JSONNodeType::ARRAY) {
         Print("[]");
     }
-    else if (node->type == JSONNodeType::OBJECT)
-    {
+    else if (node->type == JSONNodeType::OBJECT) {
         Print("{}");
     }
     Print("\n\n");
 }
 
-void PrintKeys(JSON* json, JSONNode* node)
-{
+void PrintKeys(JSON* json, JSONNode* node) {
     CTK_ASSERT(node->type == JSONNodeType::OBJECT);
     JSONNodeList* list = &node->list;
-    for (uint32 child_index = 0; child_index < list->size; child_index += 1)
-    {
+    for (uint32 child_index = 0; child_index < list->size; child_index += 1) {
         uint32 key_index = list->key_index + child_index;
         uint32 key_size = json->key_sizes[key_index];
         uint32 key_offset = json->key_offsets[key_index];
@@ -1206,8 +1034,7 @@ void PrintKeys(JSON* json, JSONNode* node)
 
 /// Interface
 ////////////////////////////////////////////////////////////
-JSON LoadJSON(Allocator* allocator, const char* path)
-{
+JSON LoadJSON(Allocator* allocator, const char* path) {
     CTK_ASSERT(allocator != NULL);
     CTK_ASSERT(allocator->Deallocate != NULL);
 
@@ -1216,14 +1043,12 @@ JSON LoadJSON(Allocator* allocator, const char* path)
 
     // Load File
     String json_file = ReadFile<char>(json.allocator, path);
-    if (json_file.count == 0)
-    {
+    if (json_file.count == 0) {
         return json;
     }
 
     Array<JSONToken> tokens = ParseTokens(&json, &json_file);
-    if (tokens.count == 0)
-    {
+    if (tokens.count == 0) {
         DestroyString(&json_file);
         return json;
     }
@@ -1250,8 +1075,7 @@ JSON LoadJSON(Allocator* allocator, const char* path)
     return json;
 }
 
-void DestroyJSON(JSON* json)
-{
+void DestroyJSON(JSON* json) {
     DestroyArray(&json->nodes);
     if (json->string_buffer != NULL) { Deallocate(json->allocator, json->string_buffer); }
     if (json->key_sizes     != NULL) { Deallocate(json->allocator, json->key_sizes);     }
@@ -1259,19 +1083,15 @@ void DestroyJSON(JSON* json)
     *json = {};
 }
 
-JSONNode* FindNode(JSON* json, JSONNode* node, const char* key, uint32 key_size)
-{
+JSONNode* FindNode(JSON* json, JSONNode* node, const char* key, uint32 key_size) {
     CTK_ASSERT(node->type == JSONNodeType::OBJECT);
 
     JSONNodeList* list = &node->list;
-    for (uint32 child_index = 0; child_index < list->size; child_index += 1)
-    {
+    for (uint32 child_index = 0; child_index < list->size; child_index += 1) {
         uint32 key_index = list->key_index + child_index;
-        if (json->key_sizes[key_index] == key_size)
-        {
+        if (json->key_sizes[key_index] == key_size) {
             uint32 key_offset = json->key_offsets[key_index];
-            if (StringsMatch(&json->string_buffer[key_offset], key, key_size))
-            {
+            if (StringsMatch(&json->string_buffer[key_offset], key, key_size)) {
                 return &json->nodes.data[list->node_index + child_index];
             }
         }
@@ -1280,16 +1100,13 @@ JSONNode* FindNode(JSON* json, JSONNode* node, const char* key, uint32 key_size)
     return NULL;
 }
 
-JSONNode* FindNode(JSON* json, JSONNode* node, const char* key)
-{
+JSONNode* FindNode(JSON* json, JSONNode* node, const char* key) {
     return FindNode(json, node, key, StringSize(key));
 }
 
-JSONNode* GetNode(JSON* json, JSONNode* node, const char* key, uint32 key_size)
-{
+JSONNode* GetNode(JSON* json, JSONNode* node, const char* key, uint32 key_size) {
     JSONNode* child_node = FindNode(json, node, key, key_size);
-    if (child_node == NULL)
-    {
+    if (child_node == NULL) {
         CTK_FATAL("can't get child node with key \"%.*s\" in object \"%.*s\"",
                   key_size,
                   key,
@@ -1299,18 +1116,15 @@ JSONNode* GetNode(JSON* json, JSONNode* node, const char* key, uint32 key_size)
     return child_node;
 }
 
-JSONNode* GetNode(JSON* json, JSONNode* node, const char* key)
-{
+JSONNode* GetNode(JSON* json, JSONNode* node, const char* key) {
     return GetNode(json, node, key, StringSize(key));
 }
 
-JSONNode* GetNode(JSON* json, JSONNode* node, uint32 index)
-{
+JSONNode* GetNode(JSON* json, JSONNode* node, uint32 index) {
     CTK_ASSERT(node->type == JSONNodeType::ARRAY || node->type == JSONNodeType::OBJECT);
 
     JSONNodeList* list = &node->list;
-    if (index >= list->size)
-    {
+    if (index >= list->size) {
         CTK_FATAL("can't get child node in \"%.*s\": index %u exceeds child count of %u",
                   node->key.size,
                   node->key.data,
@@ -1320,244 +1134,201 @@ JSONNode* GetNode(JSON* json, JSONNode* node, uint32 index)
     return &json->nodes.data[list->node_index + index];
 }
 
-JSONNode* GetObject(JSON* json, JSONNode* node, const char* key)
-{
+JSONNode* GetObject(JSON* json, JSONNode* node, const char* key) {
     node = GetNode(json, node, key);
     CTK_ASSERT(node->type == JSONNodeType::OBJECT);
     return node;
 }
 
-JSONNode* GetObject(JSON* json, const char* key)
-{
+JSONNode* GetObject(JSON* json, const char* key) {
     return GetObject(json, &json->root_node, key);
 }
 
-JSONNode* GetArray(JSON* json, JSONNode* node, const char* key)
-{
+JSONNode* GetArray(JSON* json, JSONNode* node, const char* key) {
     node = GetNode(json, node, key);
     CTK_ASSERT(node->type == JSONNodeType::ARRAY);
     return node;
 }
 
-JSONNode* GetArray(JSON* json, const char* key)
-{
+JSONNode* GetArray(JSON* json, const char* key) {
     return GetArray(json, &json->root_node, key);
 }
 
-uint32 GetUInt32(JSON* json, JSONNode* node, const char* key)
-{
+uint32 GetUInt32(JSON* json, JSONNode* node, const char* key) {
     node = GetNode(json, node, key);
     CTK_ASSERT(node->type == JSONNodeType::UINT32);
     return node->num_uint32;
 }
 
-uint32 GetUInt32(JSON* json, const char* key)
-{
+uint32 GetUInt32(JSON* json, const char* key) {
     return GetUInt32(json, &json->root_node, key);
 }
 
-sint32 GetSInt32(JSON* json, JSONNode* node, const char* key)
-{
+sint32 GetSInt32(JSON* json, JSONNode* node, const char* key) {
     node = GetNode(json, node, key);
     CTK_ASSERT(node->type == JSONNodeType::SINT32);
     return node->num_sint32;
 }
 
-sint32 GetSInt32(JSON* json, const char* key)
-{
+sint32 GetSInt32(JSON* json, const char* key) {
     return GetSInt32(json, &json->root_node, key);
 }
 
-float32 GetFloat32(JSON* json, JSONNode* node, const char* key)
-{
+float32 GetFloat32(JSON* json, JSONNode* node, const char* key) {
     node = GetNode(json, node, key);
     CTK_ASSERT(node->type == JSONNodeType::FLOAT32);
     return node->num_float32;
 }
 
-float32 GetFloat32(JSON* json, const char* key)
-{
+float32 GetFloat32(JSON* json, const char* key) {
     return GetFloat32(json, &json->root_node, key);
 }
 
-String* GetString(JSON* json, JSONNode* node, const char* key)
-{
+String* GetString(JSON* json, JSONNode* node, const char* key) {
     node = GetNode(json, node, key);
     CTK_ASSERT(node->type == JSONNodeType::STRING);
     return &node->string;
 }
 
-String* GetString(JSON* json, const char* key)
-{
+String* GetString(JSON* json, const char* key) {
     return GetString(json, &json->root_node, key);
 }
 
-bool GetBoolean(JSON* json, JSONNode* node, const char* key)
-{
+bool GetBoolean(JSON* json, JSONNode* node, const char* key) {
     node = GetNode(json, node, key);
     CTK_ASSERT(node->type == JSONNodeType::BOOLEAN);
     return node->boolean;
 }
 
-bool GetBoolean(JSON* json, const char* key)
-{
+bool GetBoolean(JSON* json, const char* key) {
     return GetBoolean(json, &json->root_node, key);
 }
 
-JSONNode* GetObject(JSON* json, JSONNode* node, uint32 index)
-{
+JSONNode* GetObject(JSON* json, JSONNode* node, uint32 index) {
     node = GetNode(json, node, index);
     CTK_ASSERT(node->type == JSONNodeType::OBJECT);
     return node;
 }
 
-JSONNode* GetObject(JSON* json, uint32 index)
-{
+JSONNode* GetObject(JSON* json, uint32 index) {
     return GetObject(json, &json->root_node, index);
 }
 
-JSONNode* GetArray(JSON* json, JSONNode* node, uint32 index)
-{
+JSONNode* GetArray(JSON* json, JSONNode* node, uint32 index) {
     node = GetNode(json, node, index);
     CTK_ASSERT(node->type == JSONNodeType::ARRAY);
     return node;
 }
 
-JSONNode* GetArray(JSON* json, uint32 index)
-{
+JSONNode* GetArray(JSON* json, uint32 index) {
     return GetArray(json, &json->root_node, index);
 }
 
-uint32 GetUInt32(JSON* json, JSONNode* node, uint32 index)
-{
+uint32 GetUInt32(JSON* json, JSONNode* node, uint32 index) {
     node = GetNode(json, node, index);
     CTK_ASSERT(node->type == JSONNodeType::UINT32);
     return node->num_uint32;
 }
 
-uint32 GetUInt32(JSON* json, uint32 index)
-{
+uint32 GetUInt32(JSON* json, uint32 index) {
     return GetUInt32(json, &json->root_node, index);
 }
 
-sint32 GetSInt32(JSON* json, JSONNode* node, uint32 index)
-{
+sint32 GetSInt32(JSON* json, JSONNode* node, uint32 index) {
     node = GetNode(json, node, index);
     CTK_ASSERT(node->type == JSONNodeType::SINT32);
     return node->num_sint32;
 }
 
-sint32 GetSInt32(JSON* json, uint32 index)
-{
+sint32 GetSInt32(JSON* json, uint32 index) {
     return GetSInt32(json, &json->root_node, index);
 }
 
-float32 GetFloat32(JSON* json, JSONNode* node, uint32 index)
-{
+float32 GetFloat32(JSON* json, JSONNode* node, uint32 index) {
     node = GetNode(json, node, index);
     CTK_ASSERT(node->type == JSONNodeType::FLOAT32);
     return node->num_float32;
 }
 
-float32 GetFloat32(JSON* json, uint32 index)
-{
+float32 GetFloat32(JSON* json, uint32 index) {
     return GetFloat32(json, &json->root_node, index);
 }
 
-String* GetString(JSON* json, JSONNode* node, uint32 index)
-{
+String* GetString(JSON* json, JSONNode* node, uint32 index) {
     node = GetNode(json, node, index);
     CTK_ASSERT(node->type == JSONNodeType::STRING);
     return &node->string;
 }
 
-String* GetString(JSON* json, uint32 index)
-{
+String* GetString(JSON* json, uint32 index) {
     return GetString(json, &json->root_node, index);
 }
 
-bool GetBoolean(JSON* json, JSONNode* node, uint32 index)
-{
+bool GetBoolean(JSON* json, JSONNode* node, uint32 index) {
     node = GetNode(json, node, index);
     CTK_ASSERT(node->type == JSONNodeType::BOOLEAN);
     return node->boolean;
 }
 
-bool GetBoolean(JSON* json, uint32 index)
-{
+bool GetBoolean(JSON* json, uint32 index) {
     return GetBoolean(json, &json->root_node, index);
 }
 
-JSONNode* SearchNode(JSON* json, JSONNode* node, const char* search)
-{
+JSONNode* SearchNode(JSON* json, JSONNode* node, const char* search) {
     uint32 search_size     = StringSize(search);
     uint32 term_offset     = 0;
     uint32 term_size       = 0;
     uint32 term_char_index = 0;
     char   term_char       = 0;
-    while (true)
-    {
+    while (true) {
         term_char_index = term_offset + term_size;
-        if (term_char_index >= search_size)
-        {
+        if (term_char_index >= search_size) {
             break;
         }
         term_char = search[term_char_index];
 
         // Both key parsing and subscript parsing can end on .
-        if (term_char == '.')
-        {
+        if (term_char == '.') {
             term_offset += 1;
         }
-        else if (term_char == '[')
-        {
+        else if (term_char == '[') {
             term_offset += 1;
-            while (true)
-            {
+            while (true) {
                 term_char_index = term_offset + term_size;
-                if (term_char_index >= search_size)
-                {
+                if (term_char_index >= search_size) {
                     CTK_FATAL("reached end of search term parsing subscript index");
                 }
                 term_char = search[term_char_index];
 
-                if (term_char == ']')
-                {
+                if (term_char == ']') {
                     break;
                 }
-                if (!ASCII_NUMERIC[term_char])
-                {
+                if (!ASCII_NUMERIC[term_char]) {
                     CTK_FATAL("non-numeric character in subscript index at search term column %u", term_offset)
                 }
                 term_size += 1;
             }
-            if (term_size == 0)
-            {
+            if (term_size == 0) {
                 CTK_FATAL("empty subscript at search term column %u", term_offset - 1)
             }
             node = GetNode(json, node, ToUInt32(&search[term_offset]));
             term_offset += term_size + 1; // +1 because subscript parsing always ends on close square bracket.
             term_size = 0;
         }
-        else
-        {
-            while (true)
-            {
-                if (term_char == '.' || term_char == '[')
-                {
+        else {
+            while (true) {
+                if (term_char == '.' || term_char == '[') {
                     break;
                 }
                 term_size += 1;
 
                 term_char_index = term_offset + term_size;
-                if (term_char_index >= search_size)
-                {
+                if (term_char_index >= search_size) {
                     break;
                 }
                 term_char = search[term_char_index];
             }
-            if (term_size == 0)
-            {
+            if (term_size == 0) {
                 CTK_FATAL("empty key in search term column %u", term_offset)
             }
             node = GetNode(json, node, &search[term_offset], term_size);
@@ -1568,91 +1339,76 @@ JSONNode* SearchNode(JSON* json, JSONNode* node, const char* search)
     return node;
 }
 
-JSONNode* SearchNode(JSON* json, const char* search)
-{
+JSONNode* SearchNode(JSON* json, const char* search) {
     return SearchNode(json, &json->root_node, search);
 }
 
-JSONNode* SearchObject(JSON* json, JSONNode* node, const char* search)
-{
+JSONNode* SearchObject(JSON* json, JSONNode* node, const char* search) {
     node = SearchNode(json, node, search);
     CTK_ASSERT(node->type == JSONNodeType::OBJECT);
     return node;
 }
 
-JSONNode* SearchObject(JSON* json, const char* search)
-{
+JSONNode* SearchObject(JSON* json, const char* search) {
     return SearchObject(json, &json->root_node, search);
 }
 
-JSONNode* SearchArray(JSON* json, JSONNode* node, const char* search)
-{
+JSONNode* SearchArray(JSON* json, JSONNode* node, const char* search) {
     node = SearchNode(json, node, search);
     CTK_ASSERT(node->type == JSONNodeType::ARRAY);
     return node;
 }
 
-JSONNode* SearchArray(JSON* json, const char* search)
-{
+JSONNode* SearchArray(JSON* json, const char* search) {
     return SearchArray(json, &json->root_node, search);
 }
 
-uint32 SearchUInt32(JSON* json, JSONNode* node, const char* search)
-{
+uint32 SearchUInt32(JSON* json, JSONNode* node, const char* search) {
     node = SearchNode(json, node, search);
     CTK_ASSERT(node->type == JSONNodeType::UINT32);
     return node->num_uint32;
 }
 
-uint32 SearchUInt32(JSON* json, const char* search)
-{
+uint32 SearchUInt32(JSON* json, const char* search) {
     return SearchUInt32(json, &json->root_node, search);
 }
 
-sint32 SearchSInt32(JSON* json, JSONNode* node, const char* search)
-{
+sint32 SearchSInt32(JSON* json, JSONNode* node, const char* search) {
     node = SearchNode(json, node, search);
     CTK_ASSERT(node->type == JSONNodeType::SINT32);
     return node->num_sint32;
 }
 
-sint32 SearchSInt32(JSON* json, const char* search)
-{
+sint32 SearchSInt32(JSON* json, const char* search) {
     return SearchSInt32(json, &json->root_node, search);
 }
 
-float32 SearchFloat32(JSON* json, JSONNode* node, const char* search)
-{
+float32 SearchFloat32(JSON* json, JSONNode* node, const char* search) {
     node = SearchNode(json, node, search);
     CTK_ASSERT(node->type == JSONNodeType::FLOAT32);
     return node->num_float32;
 }
 
-float32 SearchFloat32(JSON* json, const char* search)
-{
+float32 SearchFloat32(JSON* json, const char* search) {
     return SearchFloat32(json, &json->root_node, search);
 }
 
-String* SearchString(JSON* json, JSONNode* node, const char* search)
-{
+String* SearchString(JSON* json, JSONNode* node, const char* search) {
     node = SearchNode(json, node, search);
     CTK_ASSERT(node->type == JSONNodeType::STRING);
     return &node->string;
 }
 
-String* SearchString(JSON* json, const char* search)
-{
+String* SearchString(JSON* json, const char* search) {
     return SearchString(json, &json->root_node, search);
 }
 
-bool SearchBoolean(JSON* json, JSONNode* node, const char* search)
-{
+bool SearchBoolean(JSON* json, JSONNode* node, const char* search) {
     node = SearchNode(json, node, search);
     CTK_ASSERT(node->type == JSONNodeType::BOOLEAN);
     return node->boolean;
 }
 
-bool SearchBoolean(JSON* json, const char* search)
-{
+bool SearchBoolean(JSON* json, const char* search) {
     return SearchBoolean(json, &json->root_node, search);
 }

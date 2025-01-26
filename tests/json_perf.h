@@ -1,17 +1,14 @@
 #pragma once
 
-namespace JSONPerfTest
-{
+namespace JSONPerfTest {
 
-void Run()
-{
+void Run() {
     PrintLine("\nJSON Performance Test");
 
     float64 file_size_gb = GetFileSize("tests/data/large.json") / 1000000000.0;
     constexpr uint32 TEST_PASSES = 100;
     float64 total_ms = 0;
-    for (uint32 pass = 0; pass < TEST_PASSES; pass += 1)
-    {
+    for (uint32 pass = 0; pass < TEST_PASSES; pass += 1) {
         FString<16> prof_name = {};
         Write(&prof_name, "pass %2u", pass);
         Profile prof = BeginProfile(prof_name.data);

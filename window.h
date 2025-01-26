@@ -1,13 +1,11 @@
 /// Macros
 ////////////////////////////////////////////////////////////
 #define CTK_MOUSE_BUTTON_HANDLERS(name, num) \
-    case WM_ ## name ## DOWN: \
-    { \
+    case WM_ ## name ## DOWN: { \
         Set(&g_input.mouse_button_down, num, true); \
         return 0; \
     } \
-    case WM_ ## name ## UP: \
-    { \
+    case WM_ ## name ## UP: { \
         Set(&g_input.mouse_button_down, num, false); \
         return 0; \
     }
@@ -16,8 +14,7 @@
 ////////////////////////////////////////////////////////////
 constexpr uint32 MOUSE_BUTTON_COUNT = 8;
 
-struct WindowInfo
-{
+struct WindowInfo {
     sint32      x;
     sint32      y;
     sint32      width;
@@ -28,8 +25,7 @@ struct WindowInfo
     Func<LRESULT, HWND, UINT, WPARAM, LPARAM> callback;
 };
 
-struct Window
-{
+struct Window {
     HWND    hnd;
     HMODULE instance;
     sint32  width;
@@ -38,8 +34,7 @@ struct Window
     bool    moved;
 };
 
-struct Input
-{
+struct Input {
     FArray<bool, MOUSE_BUTTON_COUNT> mouse_button_down;
     FArray<bool, (uint32)Key::COUNT> key_down;
     FArray<Key,  (uint32)Key::COUNT> keys_pressed;
@@ -53,25 +48,19 @@ Input  g_input;
 
 /// Interface
 ////////////////////////////////////////////////////////////
-LRESULT CALLBACK DefaultWindowCallback(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
-{
-    if (g_window.is_open && g_window.hnd == hwnd)
-    {
-        switch (msg)
-        {
+LRESULT CALLBACK DefaultWindowCallback(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param) {
+    if (g_window.is_open && g_window.hnd == hwnd) {
+        switch (msg) {
             // Window events. Don't skip DefWindowProc().
-            case WM_DESTROY:
-            {
+            case WM_DESTROY: {
                 g_window.is_open = false;
                 break;
             }
-            case WM_MOVING:
-            {
+            case WM_MOVING: {
                 g_window.moved = true;
                 break;
             }
-            case WM_SIZE:
-            {
+            case WM_SIZE: {
                 // Win32 Docs:
                 //     The low-order word of l_param specifies the new width of the client area.
                 //     The high-order word of l_param specifies the new height of the client area.
@@ -81,43 +70,37 @@ LRESULT CALLBACK DefaultWindowCallback(HWND hwnd, UINT msg, WPARAM w_param, LPAR
             }
 
             // Key events. Skip DefProcWindow().
-            case WM_KEYDOWN:
-            {
+            case WM_KEYDOWN: {
                 Key key = GetKey((uint32)w_param);
                 uint32 key_index = (uint32)key;
 
                 // Prevent key repeat from triggering pressed event.
-                if (!Get(&g_input.key_down, key_index))
-                {
+                if (!Get(&g_input.key_down, key_index)) {
                     Push(&g_input.keys_pressed, key);
                 }
 
                 Set(&g_input.key_down, key_index, true);
                 return 0;
             }
-            case WM_KEYUP:
-            {
+            case WM_KEYUP: {
                 Key key = GetKey((uint32)w_param);
                 Set(&g_input.key_down, (uint32)key, false);
                 Push(&g_input.keys_released, key);
                 return 0;
             }
-            case WM_SYSKEYDOWN:
-            {
+            case WM_SYSKEYDOWN: {
                 Key key = GetKey((uint32)w_param);
                 uint32 key_index = (uint32)key;
 
                 // Prevent key repeat from triggering pressed event.
-                if (!Get(&g_input.key_down, key_index))
-                {
+                if (!Get(&g_input.key_down, key_index)) {
                     Push(&g_input.keys_pressed, key);
                 }
 
                 Set(&g_input.key_down, key_index, true);
                 return 0;
             }
-            case WM_SYSKEYUP:
-            {
+            case WM_SYSKEYUP: {
                 Key key = GetKey((uint32)w_param);
                 Set(&g_input.key_down, (uint32)key, false);
                 Push(&g_input.keys_released, key);
@@ -128,15 +111,13 @@ LRESULT CALLBACK DefaultWindowCallback(HWND hwnd, UINT msg, WPARAM w_param, LPAR
             CTK_MOUSE_BUTTON_HANDLERS(LBUTTON, 0)
             CTK_MOUSE_BUTTON_HANDLERS(RBUTTON, 1)
             CTK_MOUSE_BUTTON_HANDLERS(MBUTTON, 2)
-            case WM_XBUTTONDOWN:
-            {
+            case WM_XBUTTONDOWN: {
                 uint32 button_index = (w_param >> 16) + 2;
                 CTK_ASSERT(button_index < MOUSE_BUTTON_COUNT);
                 Set(&g_input.mouse_button_down, button_index, true);
                 return 0;
             }
-            case WM_XBUTTONUP:
-            {
+            case WM_XBUTTONUP: {
                 uint32 button_index = (w_param >> 16) + 2;
                 CTK_ASSERT(button_index < MOUSE_BUTTON_COUNT);
                 Set(&g_input.mouse_button_down, button_index, false);
@@ -148,16 +129,13 @@ LRESULT CALLBACK DefaultWindowCallback(HWND hwnd, UINT msg, WPARAM w_param, LPAR
     return DefWindowProc(hwnd, msg, w_param, l_param);
 }
 
-void OpenWindow(WindowInfo* info)
-{
-    if (g_window.is_open)
-    {
+void OpenWindow(WindowInfo* info) {
+    if (g_window.is_open) {
         CTK_FATAL("OpenWindow() called while a window is already open; can't create multiple windows");
     }
 
     // Calculate window rect based on surface rect.
-    RECT window_rect =
-    {
+    RECT window_rect = {
         .left   = info->x,
         .top    = info->y,
         .right  = info->x + info->width,
@@ -170,8 +148,7 @@ void OpenWindow(WindowInfo* info)
 
     // Register and create window.
     constexpr const char* CLASS_NAME = "Win32 Window";
-    WNDCLASS win_class =
-    {
+    WNDCLASS win_class = {
         .lpfnWndProc   = info->callback,
         .hInstance     = instance,
         .lpszClassName = CLASS_NAME,
@@ -189,8 +166,7 @@ void OpenWindow(WindowInfo* info)
                                   NULL,                                  // Menu
                                   instance,                              // Instance
                                   NULL);                                 // App Data
-    if (g_window.hnd == NULL)
-    {
+    if (g_window.hnd == NULL) {
         Win32Error e = {};
         GetWin32Error(&e);
         CTK_FATAL("CreateWindowEx() failed: %.*s", e.message_length, e.message);
@@ -209,41 +185,34 @@ void OpenWindow(WindowInfo* info)
     ShowWindow(g_window.hnd, SW_SHOW);
 }
 
-void ProcessWindowEvents()
-{
+void ProcessWindowEvents() {
     // Clear key events.
     g_input.keys_pressed.count = 0;
     g_input.keys_released.count = 0;
 
     // Handle event messages via DefaultWindowCallback().
     MSG msg = {};
-    while (PeekMessage(&msg, g_window.hnd, 0, 0, PM_REMOVE))
-    {
+    while (PeekMessage(&msg, g_window.hnd, 0, 0, PM_REMOVE)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
 
     // If window moved during processing, clear key/mb down flags as they wouldn't have been reset if the user released
     // the key while the window was moving.
-    if (g_window.moved)
-    {
+    if (g_window.moved) {
         memset(g_input.key_down.data,          0, sizeof(g_input.key_down.data));
         memset(g_input.mouse_button_down.data, 0, sizeof(g_input.mouse_button_down.data));
         g_window.moved = false;
     }
 }
 
-bool KeyDown(Key key)
-{
+bool KeyDown(Key key) {
     return Get(&g_input.key_down, (uint32)key);
 }
 
-bool KeyPressed(Key key)
-{
-    for (uint32 i = 0; i < g_input.keys_pressed.count; i += 1)
-    {
-        if (Get(&g_input.keys_pressed, i) == key)
-        {
+bool KeyPressed(Key key) {
+    for (uint32 i = 0; i < g_input.keys_pressed.count; i += 1) {
+        if (Get(&g_input.keys_pressed, i) == key) {
             return true;
         }
     }
@@ -251,12 +220,9 @@ bool KeyPressed(Key key)
     return false;
 }
 
-bool KeyReleased(Key key)
-{
-    for (uint32 i = 0; i < g_input.keys_released.count; i += 1)
-    {
-        if (Get(&g_input.keys_released, i) == key)
-        {
+bool KeyReleased(Key key) {
+    for (uint32 i = 0; i < g_input.keys_released.count; i += 1) {
+        if (Get(&g_input.keys_released, i) == key) {
             return true;
         }
     }
@@ -264,24 +230,20 @@ bool KeyReleased(Key key)
     return false;
 }
 
-bool MouseButtonDown(uint32 button)
-{
+bool MouseButtonDown(uint32 button) {
     return Get(&g_input.mouse_button_down, button);
 }
 
-Vec2<sint32> GetMousePosition()
-{
+Vec2<sint32> GetMousePosition() {
     POINT mouse_position = {};
     Win32Error e = {};
 
-    if (!GetCursorPos(&mouse_position))
-    {
+    if (!GetCursorPos(&mouse_position)) {
         GetWin32Error(&e);
         CTK_FATAL("GetCursorPos() failed: %.*s", e.message_length, e.message);
     }
 
-    if (!ScreenToClient(g_window.hnd, &mouse_position))
-    {
+    if (!ScreenToClient(g_window.hnd, &mouse_position)) {
         GetWin32Error(&e);
         CTK_FATAL("ScreenToClient() failed: %.*s", e.message_length, e.message);
     }
@@ -289,53 +251,43 @@ Vec2<sint32> GetMousePosition()
     return { mouse_position.x, mouse_position.y };
 }
 
-void SetMousePosition(Vec2<sint32> position)
-{
+void SetMousePosition(Vec2<sint32> position) {
     POINT p = { position.x, position.y };
     Win32Error e = {};
 
-    if (!ClientToScreen(g_window.hnd, &p))
-    {
+    if (!ClientToScreen(g_window.hnd, &p)) {
         GetWin32Error(&e);
         CTK_FATAL("ClientToScreen() failed: %.*s", e.message_length, e.message);
     }
 
-    if (!SetCursorPos(p.x, p.y))
-    {
+    if (!SetCursorPos(p.x, p.y)) {
         GetWin32Error(&e);
         CTK_FATAL("SetCursorPos() failed: %.*s", e.message_length, e.message);
     }
 }
 
-void SetMouseVisible(bool visible)
-{
+void SetMouseVisible(bool visible) {
     ShowCursor(visible);
 }
 
-void SetWindowTitle(const char* title)
-{
+void SetWindowTitle(const char* title) {
     SetWindowTextA(g_window.hnd, title);
 }
 
-bool WindowIsActive()
-{
+bool WindowIsActive() {
     return GetActiveWindow() == g_window.hnd;
 }
 
-bool WindowIsOpen()
-{
+bool WindowIsOpen() {
     return g_window.is_open;
 }
 
-void CloseWindow()
-{
+void CloseWindow() {
     g_window.is_open = false;
 }
 
-Window* GetWindow()
-{
-    if (!WindowIsOpen())
-    {
+Window* GetWindow() {
+    if (!WindowIsOpen()) {
         CTK_FATAL("can't get window: window has not been opened with OpenWindow()");
     }
 

@@ -1,26 +1,21 @@
 #pragma once
 
-namespace StringTest
-{
+namespace StringTest {
 
 /// Utils
 ////////////////////////////////////////////////////////////
-bool TestStringFields(String* string, uint32 expected_size, uint32 expected_count, bool null_data)
-{
+bool TestStringFields(String* string, uint32 expected_size, uint32 expected_count, bool null_data) {
     bool pass = true;
 
-    if (!ExpectEqual("string->size", expected_size, string->size))
-    {
+    if (!ExpectEqual("string->size", expected_size, string->size)) {
         pass = false;
     }
 
-    if (!ExpectEqual("string->count", expected_count, string->count))
-    {
+    if (!ExpectEqual("string->count", expected_count, string->count)) {
         pass = false;
     }
 
-    if (!ExpectEqual("string->data != NULL", !null_data, string->data != NULL))
-    {
+    if (!ExpectEqual("string->data != NULL", !null_data, string->data != NULL)) {
         pass = false;
     }
 
@@ -29,8 +24,7 @@ bool TestStringFields(String* string, uint32 expected_size, uint32 expected_coun
 
 /// Tests
 ////////////////////////////////////////////////////////////
-bool ResizeInitializedStringTest()
-{
+bool ResizeInitializedStringTest() {
     bool pass = true;
 
     String string = CreateString(&g_std_allocator, 6);
@@ -54,8 +48,7 @@ bool ResizeInitializedStringTest()
     return pass;
 }
 
-bool ResizeUninitializedStringTest()
-{
+bool ResizeUninitializedStringTest() {
     bool pass = true;
 
     String string = CreateString(&g_std_allocator);
@@ -76,25 +69,21 @@ bool ResizeUninitializedStringTest()
     return pass;
 }
 
-bool CanPushTest()
-{
+bool CanPushTest() {
     bool pass = true;
 
     String string = CreateString(&g_std_allocator, 2);
 
-    if (!ExpectEqual("string(size=2,count=0); CanPush(string, 2)", true, CanPush(&string, 2)))
-    {
+    if (!ExpectEqual("string(size=2,count=0); CanPush(string, 2)", true, CanPush(&string, 2))) {
         pass = false;
     }
 
-    if (!ExpectEqual("string(size=2,count=0); CanPush(&string, 3)", false, CanPush(&string, 3)))
-    {
+    if (!ExpectEqual("string(size=2,count=0); CanPush(&string, 3)", false, CanPush(&string, 3))) {
         pass = false;
     }
 
     Push(&string, '1');
-    if (!ExpectEqual("string(size=2,count=1); CanPush(&string, 2)", false, CanPush(&string, 2)))
-    {
+    if (!ExpectEqual("string(size=2,count=1); CanPush(&string, 2)", false, CanPush(&string, 2))) {
         pass = false;
     }
 
@@ -103,8 +92,7 @@ bool CanPushTest()
     return pass;
 }
 
-bool RemoveTest()
-{
+bool RemoveTest() {
     bool pass = true;
 
     String string = CreateString(&g_std_allocator, "1234");
@@ -126,8 +114,7 @@ bool RemoveTest()
     return pass;
 }
 
-bool RemoveRangeTest()
-{
+bool RemoveRangeTest() {
     bool pass = true;
 
     String string = CreateString(&g_std_allocator, "12345678");
@@ -149,11 +136,8 @@ bool RemoveRangeTest()
     return pass;
 }
 
-bool WriteTest()
-{
-    bool pass = true;
-
-    {
+bool WriteTest() {
+    bool pass = true; {
         constexpr uint32 STRING_SIZE = 5;
         String string = CreateString(&g_std_allocator, STRING_SIZE);
 
@@ -164,8 +148,7 @@ bool WriteTest()
                 TestStringFields, &string, STRING_SIZE, 4u, false);
 
         DestroyString(&string);
-    }
-    {
+    } {
         constexpr uint32 STRING_SIZE = 8;
         String string = CreateString(&g_std_allocator, STRING_SIZE);
 
@@ -183,11 +166,8 @@ bool WriteTest()
     return pass;
 }
 
-bool AppendTest()
-{
-    bool pass = true;
-
-    {
+bool AppendTest() {
+    bool pass = true; {
         constexpr uint32 STRING_SIZE = 18;
         char expected[4][STRING_SIZE] = {};
         Write(expected[0], STRING_SIZE, "test1");
@@ -219,25 +199,21 @@ bool AppendTest()
     return pass;
 }
 
-bool ContainsTest()
-{
+bool ContainsTest() {
     bool pass = true;
 
     String string = CreateString(&g_std_allocator, "1234");
     RunTest("Init string: \"1234\"", &pass, TestStringFields, &string, 4u, 4u, false);
 
-    if (!ExpectEqual("Contains(string, '2')", true, Contains(&string, '2')))
-    {
+    if (!ExpectEqual("Contains(string, '2')", true, Contains(&string, '2'))) {
         pass = false;
     }
 
-    if (!ExpectEqual("Contains(string, '4')", true, Contains(&string, '4')))
-    {
+    if (!ExpectEqual("Contains(string, '4')", true, Contains(&string, '4'))) {
         pass = false;
     }
 
-    if (!ExpectEqual("Contains(string, '5')", false, Contains(&string, '5')))
-    {
+    if (!ExpectEqual("Contains(string, '5')", false, Contains(&string, '5'))) {
         pass = false;
     }
 
@@ -246,8 +222,7 @@ bool ContainsTest()
     return pass;
 }
 
-bool ReverseTest()
-{
+bool ReverseTest() {
     bool pass = true;
 
     String string = CreateString(&g_std_allocator, 16);
@@ -279,8 +254,7 @@ bool ReverseTest()
     return pass;
 }
 
-bool ConversionTests()
-{
+bool ConversionTests() {
     bool pass = true;
 
 #define INT_CONVERSION_TEST(INT_TYPE, MIN, MAX, MIN_UNDERFLOW_STR, MAX_OVERFLOW_STR) \
@@ -344,8 +318,7 @@ bool ConversionTests()
     return pass;
 }
 
-bool Run()
-{
+bool Run() {
     bool pass = true;
 
     RunTest("ResizeInitializedStringTest()",   &pass, ResizeInitializedStringTest);

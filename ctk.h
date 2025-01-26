@@ -10,8 +10,7 @@
 #include <time.h>
 #include <windows.h>
 
-namespace CTK
-{
+namespace CTK {
 
 // Core
 #include "ctk/common.h"

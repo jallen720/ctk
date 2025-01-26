@@ -1,87 +1,71 @@
 #pragma once
 
-namespace FArrayTest
-{
+namespace FArrayTest {
 
 /// Utils
 ////////////////////////////////////////////////////////////
 template<typename Type, uint32 size>
-bool TestArrayFields(FArray<Type, size>* array, uint32 expected_size, uint32 expected_count)
-{
+bool TestArrayFields(FArray<Type, size>* array, uint32 expected_size, uint32 expected_count) {
     bool pass = true;
 
-    if (!ExpectEqual("array size", expected_size, size))
-    {
+    if (!ExpectEqual("array size", expected_size, size)) {
         pass = false;
     }
 
-    if (!ExpectEqual("array->count", expected_count, array->count))
-    {
+    if (!ExpectEqual("array->count", expected_count, array->count)) {
         pass = false;
     }
 
     return pass;
 }
 
-bool SortDesc(char* a, char* b)
-{
+bool SortDesc(char* a, char* b) {
     return *a >= *b;
 }
 
-bool SortAsc(char* a, char* b)
-{
+bool SortAsc(char* a, char* b) {
     return *a <= *b;
 }
 
 /// Tests
 ////////////////////////////////////////////////////////////
-bool CanPushTest()
-{
+bool CanPushTest() {
     bool pass = true;
 
     FArray<char, 2> array = {};
 
-    if (!ExpectEqual("array(size=2,count=0); CanPush(array, 2)", true, CanPush(&array, 2)))
-    {
+    if (!ExpectEqual("array(size=2,count=0); CanPush(array, 2)", true, CanPush(&array, 2))) {
         pass = false;
     }
 
-    if (!ExpectEqual("array(size=2,count=0); CanPush(array, 3)", false, CanPush(&array, 3)))
-    {
+    if (!ExpectEqual("array(size=2,count=0); CanPush(array, 3)", false, CanPush(&array, 3))) {
         pass = false;
     }
 
     Push(&array, 'a');
-    if (!ExpectEqual("array(size=2,count=1); CanPush(array, 2)", false, CanPush(&array, 2)))
-    {
+    if (!ExpectEqual("array(size=2,count=1); CanPush(array, 2)", false, CanPush(&array, 2))) {
         pass = false;
     }
 
     return pass;
 }
 
-bool RemoveTest()
-{
+bool RemoveTest() {
     bool pass = true;
 
-    FArray<char, 4> array = {};
-    {
+    FArray<char, 4> array = {}; {
         PushRange(&array, "1234", 4);
         RunTest("Init Layout \"1234\"", &pass, ExpectEqual, "1234", &array);
-    }
-    {
+    } {
         Remove(&array, 0);
         RunTest("Remove(array, 0)", &pass, ExpectEqual, "234", &array);
-    }
-    {
+    } {
         Remove(&array, 2);
         RunTest("Remove(array, 2)", &pass, ExpectEqual, "23", &array);
-    }
-    {
+    } {
         Remove(&array, 0);
         RunTest("Remove(array, 0)", &pass, ExpectEqual, "3", &array);
-    }
-    {
+    } {
         Remove(&array, 0);
         RunTest("Remove(array, 0)", &pass, ExpectEqual, "", &array);
     }
@@ -89,28 +73,22 @@ bool RemoveTest()
     return pass;
 }
 
-bool RemoveRangeTest()
-{
+bool RemoveRangeTest() {
     bool pass = true;
 
-    FArray<char, 8> array = {};
-    {
+    FArray<char, 8> array = {}; {
         PushRange(&array, "12345678", 8);
         RunTest("Init Layout \"12345678\"", &pass, ExpectEqual, "12345678", &array);
-    }
-    {
+    } {
         RemoveRange(&array, 0, 2);
         RunTest("RemoveRange(array, 0, 2)", &pass, ExpectEqual, "345678", &array);
-    }
-    {
+    } {
         RemoveRange(&array, 4, 2);
         RunTest("RemoveRange(array, 4, 2)", &pass, ExpectEqual, "3456", &array);
-    }
-    {
+    } {
         RemoveRange(&array, 0, 2);
         RunTest("RemoveRange(array, 0, 2)", &pass, ExpectEqual, "56", &array);
-    }
-    {
+    } {
         RemoveRange(&array, 0, 2);
         RunTest("RemoveRange(array, 0, 2)", &pass, ExpectEqual, "", &array);
     }
@@ -118,8 +96,7 @@ bool RemoveRangeTest()
     return pass;
 }
 
-bool ContainsTest()
-{
+bool ContainsTest() {
     bool pass = true;
 
     uint32 ints[] = { 1, 2, 3, 4 };
@@ -127,26 +104,22 @@ bool ContainsTest()
     PushRange(&array, ints, 4);
     RunTest("Init array: { 1, 2, 3, 4 }", &pass, TestArrayFields, &array, 4u, 4u);
 
-    if (!ExpectEqual("Contains(array, 2u)", true, Contains(&array, 2u)))
-    {
+    if (!ExpectEqual("Contains(array, 2u)", true, Contains(&array, 2u))) {
         pass = false;
     }
 
-    if (!ExpectEqual("Contains(array, 4u)", true, Contains(&array, 4u)))
-    {
+    if (!ExpectEqual("Contains(array, 4u)", true, Contains(&array, 4u))) {
         pass = false;
     }
 
-    if (!ExpectEqual("Contains(array, 5u)", false, Contains(&array, 5u)))
-    {
+    if (!ExpectEqual("Contains(array, 5u)", false, Contains(&array, 5u))) {
         pass = false;
     }
 
     return pass;
 }
 
-bool ReverseTest()
-{
+bool ReverseTest() {
     bool pass = true;
 
     FArray<char, 16> array = {};
@@ -185,8 +158,7 @@ bool ReverseTest()
     return pass;
 }
 
-bool InsertionSortTest()
-{
+bool InsertionSortTest() {
     bool pass = true;
 
     FArray<char, 8> array = {};
@@ -214,8 +186,7 @@ bool InsertionSortTest()
     return pass;
 }
 
-bool Run()
-{
+bool Run() {
     bool pass = true;
 
     RunTest("CanPushTest()",       &pass, CanPushTest);

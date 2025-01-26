@@ -1,13 +1,10 @@
 #pragma once
 
-namespace WindowTest
-{
+namespace WindowTest {
 
-void Run()
-{
+void Run() {
     InitWin32Info();
-    WindowInfo window_info =
-    {
+    WindowInfo window_info = {
         .x        = 0,
         .y        = 70,
         .width    = 1080,
@@ -16,15 +13,12 @@ void Run()
         .callback = DefaultWindowCallback,
     };
     OpenWindow(&window_info);
-    while (WindowIsOpen())
-    {
+    while (WindowIsOpen()) {
         ProcessWindowEvents();
-        if (KeyReleased(Key::ESCAPE))
-        {
+        if (KeyReleased(Key::ESCAPE)) {
             CloseWindow();
         }
-        else
-        {
+        else {
             Sleep(1);
         }
     }

@@ -1,18 +1,15 @@
 #pragma once
 
-namespace ProfileTest
-{
+namespace ProfileTest {
 
-void ProfileTest()
-{
+void ProfileTest() {
     Profile test_profile = BeginProfile("test profile");
     Sleep(500);
     EndProfile(&test_profile);
     PrintProfileLine(&test_profile);
 }
 
-void ProfileTreeTest()
-{
+void ProfileTreeTest() {
     ProfileTree* profile_tree = CreateProfileTree(&g_std_allocator, 16);
 
     BeginProfile(profile_tree, "layer 0");
@@ -33,8 +30,7 @@ void ProfileTreeTest()
     DestroyProfileTree(profile_tree, &g_std_allocator);
 }
 
-void Run()
-{
+void Run() {
     ProfileTest();
     ProfileTreeTest();
 }

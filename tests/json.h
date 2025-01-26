@@ -1,8 +1,6 @@
-namespace JSONTest
-{
+namespace JSONTest {
 
-bool ValidTest()
-{
+bool ValidTest() {
     bool pass = true;
 
     JSON json = LoadJSON(&g_std_allocator, "tests/data/valid.json");
@@ -11,8 +9,7 @@ bool ValidTest()
     return pass;
 }
 
-bool ScientificENotationTest()
-{
+bool ScientificENotationTest() {
     bool pass = true;
 
     JSON json = LoadJSON(&g_std_allocator, "tests/data/scientific_e_notation.json");
@@ -21,8 +18,7 @@ bool ScientificENotationTest()
     return pass;
 }
 
-bool ObjectKeyTest()
-{
+bool ObjectKeyTest() {
     bool pass = true;
 
     JSON json = LoadJSON(&g_std_allocator, "tests/data/object_key_test.json");
@@ -31,8 +27,7 @@ bool ObjectKeyTest()
     return pass;
 }
 
-bool GLTFTest()
-{
+bool GLTFTest() {
     bool pass = true;
 
     JSON json = LoadJSON(&g_std_allocator, "tests/data/gltf_test.json");
@@ -43,8 +38,7 @@ bool GLTFTest()
 
 
 
-bool EndlessStringTest()
-{
+bool EndlessStringTest() {
     bool pass = true;
 
     RunTest("LoadJSON(\"tests/data/endless_string.json\")", &pass,
@@ -53,8 +47,7 @@ bool EndlessStringTest()
     return pass;
 }
 
-bool MultiDecimalTest()
-{
+bool MultiDecimalTest() {
     bool pass = true;
 
     RunTest("LoadJSON(\"tests/data/multi_decimal.json\")", &pass,
@@ -63,8 +56,7 @@ bool MultiDecimalTest()
     return pass;
 }
 
-bool DecimalFirstTest()
-{
+bool DecimalFirstTest() {
     bool pass = true;
 
     RunTest("LoadJSON(\"tests/data/decimal_first.json\")", &pass,
@@ -73,8 +65,7 @@ bool DecimalFirstTest()
     return pass;
 }
 
-bool NegativeNoNumTest()
-{
+bool NegativeNoNumTest() {
     bool pass = true;
 
     RunTest("LoadJSON(\"tests/data/negative_no_num.json\")", &pass,
@@ -83,8 +74,7 @@ bool NegativeNoNumTest()
     return pass;
 }
 
-bool NegativeDecimalFirstTest()
-{
+bool NegativeDecimalFirstTest() {
     bool pass = true;
 
     RunTest("LoadJSON(\"tests/data/negative_decimal_first.json\")", &pass,
@@ -93,8 +83,7 @@ bool NegativeDecimalFirstTest()
     return pass;
 }
 
-bool EOFBeforeEndOfStringTest()
-{
+bool EOFBeforeEndOfStringTest() {
     bool pass = true;
 
     RunTest("LoadJSON(\"tests/data/eof_string.json\")", &pass,
@@ -103,8 +92,7 @@ bool EOFBeforeEndOfStringTest()
     return pass;
 }
 
-bool NoRootTest()
-{
+bool NoRootTest() {
     bool pass = true;
 
     RunTest("LoadJSON(\"tests/data/no_root.json\")", &pass,
@@ -113,8 +101,7 @@ bool NoRootTest()
     return pass;
 }
 
-bool LargeTest()
-{
+bool LargeTest() {
     bool pass = true;
 
     JSON json = LoadJSON(&g_std_allocator, "tests/data/large.json");
@@ -123,57 +110,19 @@ bool LargeTest()
     return pass;
 }
 
-bool ValidSearchTest()
-{
+bool ValidSearchTest() {
     bool pass = true;
 
-    struct JSONSearch
-    {
+    struct JSONSearch {
         const char*  string;
         JSONNodeType type;
     };
 
     JSON json = LoadJSON(&g_std_allocator, "tests/data/valid.json");
 
-    JSONSearch searches[] =
-    {
-        { "uint32",              JSONNodeType::UINT32  },
-        { "sint32",              JSONNodeType::SINT32  },
-        { "float32",             JSONNodeType::FLOAT32 },
-        { "string",              JSONNodeType::STRING  },
-        { "bool",                JSONNodeType::BOOLEAN },
-        { "null",                JSONNodeType::NULL_   },
-        { "empty_array",         JSONNodeType::ARRAY   },
-        { "empty_object",        JSONNodeType::OBJECT  },
-        { "array",               JSONNodeType::ARRAY   },
-        { "array[0]",            JSONNodeType::SINT32  },
-        { "array[1]",            JSONNodeType::UINT32  },
-        { "array[2]",            JSONNodeType::FLOAT32 },
-        { "array[3]",            JSONNodeType::STRING  },
-        { "array[4]",            JSONNodeType::BOOLEAN },
-        { "array[5]",            JSONNodeType::NULL_   },
-        { "array[6]",            JSONNodeType::ARRAY   },
-        { "array[7]",            JSONNodeType::OBJECT  },
-        { "array[8]",            JSONNodeType::ARRAY   },
-        { "array[8][0]",         JSONNodeType::STRING  },
-        { "array[9]",            JSONNodeType::OBJECT  },
-        { "array[9].name",       JSONNodeType::STRING  },
-        { "object",              JSONNodeType::OBJECT  },
-        { "object.uint32",       JSONNodeType::UINT32  },
-        { "object.sint32",       JSONNodeType::SINT32  },
-        { "object.float32",      JSONNodeType::FLOAT32 },
-        { "object.string",       JSONNodeType::STRING  },
-        { "object.bool",         JSONNodeType::BOOLEAN },
-        { "object.null",         JSONNodeType::NULL_   },
-        { "object.empty_array",  JSONNodeType::ARRAY   },
-        { "object.empty_object", JSONNodeType::OBJECT  },
-        { "object.array",        JSONNodeType::ARRAY   },
-        { "object.array[0]",     JSONNodeType::STRING  },
-        { "object.object",       JSONNodeType::OBJECT  },
-        { "object.object.name",  JSONNodeType::STRING  },
+    JSONSearch searches[] = { { "uint32",              JSONNodeType::UINT32  }, { "sint32",              JSONNodeType::SINT32  }, { "float32",             JSONNodeType::FLOAT32 }, { "string",              JSONNodeType::STRING  }, { "bool",                JSONNodeType::BOOLEAN }, { "null",                JSONNodeType::NULL_   }, { "empty_array",         JSONNodeType::ARRAY   }, { "empty_object",        JSONNodeType::OBJECT  }, { "array",               JSONNodeType::ARRAY   }, { "array[0]",            JSONNodeType::SINT32  }, { "array[1]",            JSONNodeType::UINT32  }, { "array[2]",            JSONNodeType::FLOAT32 }, { "array[3]",            JSONNodeType::STRING  }, { "array[4]",            JSONNodeType::BOOLEAN }, { "array[5]",            JSONNodeType::NULL_   }, { "array[6]",            JSONNodeType::ARRAY   }, { "array[7]",            JSONNodeType::OBJECT  }, { "array[8]",            JSONNodeType::ARRAY   }, { "array[8][0]",         JSONNodeType::STRING  }, { "array[9]",            JSONNodeType::OBJECT  }, { "array[9].name",       JSONNodeType::STRING  }, { "object",              JSONNodeType::OBJECT  }, { "object.uint32",       JSONNodeType::UINT32  }, { "object.sint32",       JSONNodeType::SINT32  }, { "object.float32",      JSONNodeType::FLOAT32 }, { "object.string",       JSONNodeType::STRING  }, { "object.bool",         JSONNodeType::BOOLEAN }, { "object.null",         JSONNodeType::NULL_   }, { "object.empty_array",  JSONNodeType::ARRAY   }, { "object.empty_object", JSONNodeType::OBJECT  }, { "object.array",        JSONNodeType::ARRAY   }, { "object.array[0]",     JSONNodeType::STRING  }, { "object.object",       JSONNodeType::OBJECT  }, { "object.object.name",  JSONNodeType::STRING  },
     };
-    CTK_ITER_PTR(search, searches, CTK_ARRAY_SIZE(searches))
-    {
+    CTK_ITER_PTR(search, searches, CTK_ARRAY_SIZE(searches)) {
         JSONNode* node = SearchNode(&json, search->string);
         FString<32> name = {};
         Write(&name, "%s", search->string);
@@ -209,8 +158,7 @@ bool ValidSearchTest()
     return pass;
 }
 
-bool InvalidSearchTest()
-{
+bool InvalidSearchTest() {
     bool pass = true;
 
     JSON json = LoadJSON(&g_std_allocator, "tests/data/valid.json");
@@ -221,8 +169,7 @@ bool InvalidSearchTest()
     return pass;
 }
 
-bool ValidGetTest()
-{
+bool ValidGetTest() {
     bool pass = true;
 
     JSON json = LoadJSON(&g_std_allocator, "tests/data/valid.json");
@@ -264,8 +211,7 @@ bool ValidGetTest()
     return pass;
 }
 
-bool Run()
-{
+bool Run() {
     bool pass = true;
 
     TempStack_Init(&g_std_allocator, Kilobyte32<4>());

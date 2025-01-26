@@ -1,8 +1,7 @@
 /// Data
 ////////////////////////////////////////////////////////////
 template<typename Type>
-struct Optional
-{
+struct Optional {
     Type value;
     bool exists;
 };
@@ -10,15 +9,13 @@ struct Optional
 /// Interface
 ////////////////////////////////////////////////////////////
 template<typename Type>
-void Set(Optional<Type>* opt, Type value)
-{
+void Set(Optional<Type>* opt, Type value) {
     opt->value  = value;
     opt->exists = true;
 }
 
 template<typename Type>
-void Unset(Optional<Type>* opt)
-{
+void Unset(Optional<Type>* opt) {
     opt->exists = false;
 }
 

@@ -18,8 +18,7 @@
 
 /// Data
 ////////////////////////////////////////////////////////////
-enum struct OutputColor
-{
+enum struct OutputColor {
     RED,
     GREEN,
     YELLOW,
@@ -31,10 +30,8 @@ enum struct OutputColor
 
 /// Interface
 ////////////////////////////////////////////////////////////
-void PrintColor(OutputColor output_color)
-{
-    constexpr const char* COLOR_CODES[(uint32)OutputColor::COUNT] =
-    {
+void PrintColor(OutputColor output_color) {
+    constexpr const char* COLOR_CODES[(uint32)OutputColor::COUNT] = {
         CTK_ANSI_COLOR_RED,
         CTK_ANSI_COLOR_GREEN,
         CTK_ANSI_COLOR_YELLOW,
@@ -45,59 +42,50 @@ void PrintColor(OutputColor output_color)
     printf(COLOR_CODES[(uint32)output_color]);
 }
 
-void PrintColorReset()
-{
+void PrintColorReset() {
     printf(CTK_ANSI_RESET);
 }
 
-void Print(char c)
-{
+void Print(char c) {
     putchar(c);
 }
 
-void Print(OutputColor output_color, char c)
-{
+void Print(OutputColor output_color, char c) {
     PrintColor(output_color);
     putchar(c);
     PrintColorReset();
 }
 
 template<typename ...Args>
-void Print(const char* msg, Args... args)
-{
+void Print(const char* msg, Args... args) {
     printf(msg, args...);
 }
 
 template<typename ...Args>
-void Print(OutputColor output_color, const char* msg, Args... args)
-{
+void Print(OutputColor output_color, const char* msg, Args... args) {
     PrintColor(output_color);
     printf(msg, args...);
     PrintColorReset();
 }
 
-void PrintLine()
-{
+void PrintLine() {
     Print("\n");
 }
 
 template<typename ...Args>
-void PrintLine(const char* msg, Args... args)
-{
+void PrintLine(const char* msg, Args... args) {
     Print(msg, args...);
     PrintLine();
 }
 
 template<typename ...Args>
-void PrintLine(OutputColor output_color, const char* msg, Args... args)
-{
+void PrintLine(OutputColor output_color, const char* msg, Args... args) {
     Print(output_color, msg, args...);
     PrintLine();
 }
 
 template<typename ...Args>
-void PrintInline(const char* msg, Args... args)
-{
+void PrintInline(const char* msg, Args... args) {
     constexpr sint32 BUFFER_SIZE = 128;
     char buffer[BUFFER_SIZE] = {};
     sint32 chars_written = snprintf(buffer, BUFFER_SIZE, msg, args...);
@@ -107,8 +95,7 @@ void PrintInline(const char* msg, Args... args)
 }
 
 template<typename ...Args>
-void PrintInline(OutputColor output_color, const char* msg, Args... args)
-{
+void PrintInline(OutputColor output_color, const char* msg, Args... args) {
     constexpr sint32 BUFFER_SIZE = 128;
     char buffer[BUFFER_SIZE] = {};
     sint32 chars_written = snprintf(buffer, BUFFER_SIZE, msg, args...);
@@ -117,52 +104,43 @@ void PrintInline(OutputColor output_color, const char* msg, Args... args)
     Print(output_color, "%.*s", BUFFER_SIZE, buffer);
 }
 
-void PrintLines(uint32 count)
-{
-    CTK_REPEAT(count)
-    {
+void PrintLines(uint32 count) {
+    CTK_REPEAT(count) {
         Print("\n");
     }
 }
 
-void PrintTabs(uint32 count, uint32 tab_size = 4)
-{
+void PrintTabs(uint32 count, uint32 tab_size = 4) {
     static constexpr const char* TAB_BUFFER =
         "                                                                "
         "                                                                "
         "                                                                "
         "                                                                ";
-    CTK_REPEAT(count)
-    {
+    CTK_REPEAT(count) {
         Print("%.*s", tab_size, TAB_BUFFER);
     }
 }
 
-void PrintSpaces(uint32 count)
-{
-    CTK_REPEAT(count)
-    {
+void PrintSpaces(uint32 count) {
+    CTK_REPEAT(count) {
         Print(' ');
     }
 }
 
 template<typename ...Args>
-void PrintError(const char* msg, Args... args)
-{
+void PrintError(const char* msg, Args... args) {
     Print(CTK_ERROR_TAG);
     PrintLine(msg, args...);
 }
 
 template<typename ...Args>
-void PrintInfo(const char* msg, Args... args)
-{
+void PrintInfo(const char* msg, Args... args) {
     Print(CTK_INFO_TAG);
     PrintLine(msg, args...);
 }
 
 template<typename ...Args>
-void PrintWarning(const char* msg, Args... args)
-{
+void PrintWarning(const char* msg, Args... args) {
     Print(CTK_WARNING_TAG);
     PrintLine(msg, args...);
 }

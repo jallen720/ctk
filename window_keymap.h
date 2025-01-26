@@ -1,7 +1,6 @@
 /// Data
 ////////////////////////////////////////////////////////////
-enum struct Key
-{
+enum struct Key {
     NONE,
     NUM_0,
     NUM_1,
@@ -249,8 +248,7 @@ enum struct Key
 #define VK_Z     0x5A
 #define VK_COUNT VK_ICO_00 + 1
 
-constexpr uint32 KEY_TO_VIRTUAL_KEY[(uint32)Key::COUNT] =
-{
+constexpr uint32 KEY_TO_VIRTUAL_KEY[(uint32)Key::COUNT] = {
     VK_NONE, // KEY_NONE
 
     // Alpha-numeric Keys
@@ -474,8 +472,7 @@ constexpr uint32 KEY_TO_VIRTUAL_KEY[(uint32)Key::COUNT] =
     VK_ICO_00,   // KEY_ICO_00
 };
 
-constexpr const char* KEY_NAMES[(uint32)Key::COUNT] =
-{
+constexpr const char* KEY_NAMES[(uint32)Key::COUNT] = {
     "NONE",
     "NUM_0",
     "NUM_1",
@@ -682,8 +679,7 @@ constexpr const char* KEY_NAMES[(uint32)Key::COUNT] =
     "ICO_00",
 };
 
-constexpr Key VIRTUAL_KEY_TO_KEY[VK_COUNT] =
-{
+constexpr Key VIRTUAL_KEY_TO_KEY[VK_COUNT] = {
     Key::NONE,
     Key::MOUSE_0,
     Key::MOUSE_1,
@@ -915,8 +911,7 @@ constexpr Key VIRTUAL_KEY_TO_KEY[VK_COUNT] =
     Key::ICO_00,
 };
 
-constexpr const char* VIRTUAL_KEY_NAMES[VK_COUNT] =
-{
+constexpr const char* VIRTUAL_KEY_NAMES[VK_COUNT] = {
     "VK_NONE",
     "VK_LBUTTON",
     "VK_RBUTTON",
@@ -1214,23 +1209,19 @@ constexpr const char* VIRTUAL_KEY_NAMES[VK_COUNT] =
 
 /// Interface
 ////////////////////////////////////////////////////////////
-const char* KeyName(Key key)
-{
+const char* KeyName(Key key) {
     return KEY_NAMES[(uint32)key];
 }
 
-Key GetKey(uint32 virtual_key)
-{
+Key GetKey(uint32 virtual_key) {
     return VIRTUAL_KEY_TO_KEY[virtual_key];
 }
 
-const char* VirtualKeyName(uint32 key)
-{
+const char* VirtualKeyName(uint32 key) {
     return VIRTUAL_KEY_NAMES[key];
 }
 
-uint32 GetVirtualKey(Key key)
-{
+uint32 GetVirtualKey(Key key) {
     return KEY_TO_VIRTUAL_KEY[(uint32)key];
 }
 

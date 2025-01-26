@@ -1,5 +1,5 @@
 {
-    "asset":{
+    "asset": {
         "generator":"Khronos glTF Blender I/O v3.6.28",
         "version":"2.0"
     },
@@ -23,7 +23,7 @@
             "name":"Cube",
             "primitives":[
                 {
-                    "attributes":{
+                    "attributes": {
                         "POSITION":0,
                         "TEXCOORD_0":1
                     },
@@ -62,28 +62,24 @@
             "type":"SCALAR"
         }
     ],
-    "bufferViews":[
-        {
+    "bufferViews":[ {
             "buffer":0,
             "byteLength":288,
             "byteOffset":0,
             "target":34962
-        },
-        {
+        }, {
             "buffer":0,
             "byteLength":192,
             "byteOffset":288,
             "target":34962
-        },
-        {
+        }, {
             "buffer":0,
             "byteLength":72,
             "byteOffset":480,
             "target":34963
         }
     ],
-    "buffers":[
-        {
+    "buffers":[ {
             "byteLength":552,
             "uri":"cube.bin"
         }

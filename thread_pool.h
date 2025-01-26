@@ -1,15 +1,13 @@
 /// Data
 ////////////////////////////////////////////////////////////
-struct BatchRange
-{
+struct BatchRange {
     uint32 start;
     uint32 size;
 };
 
 using TaskHnd = uint32;
 
-struct Task
-{
+struct Task {
     CRITICAL_SECTION   lock;
     CONDITION_VARIABLE done_convar;
     void*              data;
@@ -18,15 +16,13 @@ struct Task
     bool               done;
 };
 
-struct TaskList
-{
+struct TaskList {
     TaskHnd            head;
     CRITICAL_SECTION   lock;
     CONDITION_VARIABLE available;
 };
 
-struct ThreadPool
-{
+struct ThreadPool {
     Array<HANDLE> threads;
     Array<Task>   tasks;
     TaskList      idle_tasks;
@@ -40,8 +36,7 @@ constexpr TaskHnd NO_TASK = UINT32_MAX;
 
 /// Utils
 ////////////////////////////////////////////////////////////
-TaskList CreateTaskList()
-{
+TaskList CreateTaskList() {
     TaskList task_list = {};
     task_list.head = NO_TASK;
     InitializeCriticalSection(&task_list.lock);
@@ -49,19 +44,16 @@ TaskList CreateTaskList()
     return task_list;
 }
 
-void DestroyTaskList(TaskList* task_list)
-{
+void DestroyTaskList(TaskList* task_list) {
     task_list->head = 0;
     DeleteCriticalSection(&task_list->lock);
 }
 
-TaskHnd PopTask(ThreadPool* thread_pool, TaskList* task_list)
-{
+TaskHnd PopTask(ThreadPool* thread_pool, TaskList* task_list) {
     EnterCriticalSection(&task_list->lock);
 
     // Wait for task to be available.
-    while (task_list->head == NO_TASK)
-    {
+    while (task_list->head == NO_TASK) {
         SleepConditionVariableCS(&task_list->available, &task_list->lock, INFINITE);
     }
 
@@ -78,8 +70,7 @@ TaskHnd PopTask(ThreadPool* thread_pool, TaskList* task_list)
     return task_hnd;
 }
 
-void PushTask(ThreadPool* thread_pool, TaskList* task_list, TaskHnd task_hnd)
-{
+void PushTask(ThreadPool* thread_pool, TaskList* task_list, TaskHnd task_hnd) {
     Task* task = GetPtr(&thread_pool->tasks, task_hnd);
     EnterCriticalSection(&task_list->lock);
     task->next = task_list->head;
@@ -90,18 +81,15 @@ void PushTask(ThreadPool* thread_pool, TaskList* task_list, TaskHnd task_hnd)
     WakeConditionVariable(&task_list->available);
 }
 
-DWORD ThreadFunc(void* data)
-{
+DWORD ThreadFunc(void* data) {
     auto thread_pool = (ThreadPool*)data;
 
     // Initialize frame stack for thread if necessary.
-    if (thread_pool->thread_frame_allocator_size > 0)
-    {
+    if (thread_pool->thread_frame_allocator_size > 0) {
         TempStack_Init(thread_pool->allocator, thread_pool->thread_frame_allocator_size);
     }
 
-    for (;;)
-    {
+    for (;;) {
         // Pop next ready task once available.
         TaskHnd task_hnd = PopTask(thread_pool, &thread_pool->ready_tasks);
         Task* task = GetPtr(&thread_pool->tasks, task_hnd);
@@ -124,8 +112,7 @@ DWORD ThreadFunc(void* data)
 /// Interface
 ////////////////////////////////////////////////////////////
 void InitThreadPool(ThreadPool* thread_pool, Allocator* allocator, uint32 thread_count,
-                    uint32 thread_frame_allocator_size = 0)
-{
+                    uint32 thread_frame_allocator_size = 0) {
     CTK_ASSERT(thread_count > 0);
 
     thread_pool->threads                     = CreateArray<HANDLE>(allocator, thread_count);
@@ -137,16 +124,14 @@ void InitThreadPool(ThreadPool* thread_pool, Allocator* allocator, uint32 thread
     thread_pool->allocator                   = allocator;
 
     // Create threads.
-    for (uint32 i = 0; i < thread_count; i += 1)
-    {
+    for (uint32 i = 0; i < thread_count; i += 1) {
         HANDLE hnd = CreateThread(NULL,        // Thread Attributes
                                   0,           // Stack Size
                                   ThreadFunc,  // Thread Function
                                   thread_pool, // Thread Data
                                   0,           // Creation Flags
                                   NULL);       // Pointer to variable for thread ID.
-        if (hnd == NULL)
-        {
+        if (hnd == NULL) {
             Win32Error e = {};
             GetWin32Error(&e);
             CTK_FATAL("CreateThread() failed: %.*s", e.message_length, e.message);
@@ -155,8 +140,7 @@ void InitThreadPool(ThreadPool* thread_pool, Allocator* allocator, uint32 thread
     }
 
     // Initialize tasks.
-    for (uint32 i = 0; i < thread_count; i += 1)
-    {
+    for (uint32 i = 0; i < thread_count; i += 1) {
         Task* task = GetPtr(&thread_pool->tasks, i);
         task->done = false;
         task->next = NO_TASK;
@@ -165,20 +149,16 @@ void InitThreadPool(ThreadPool* thread_pool, Allocator* allocator, uint32 thread
     }
 
     // Link all tasks and set first task as idle_task.
-    for (uint32 i = 0; i < thread_count - 1; i += 1)
-    {
+    for (uint32 i = 0; i < thread_count - 1; i += 1) {
         GetPtr(&thread_pool->tasks, i)->next = i + 1;
     }
 
     thread_pool->idle_tasks.head = 0;
 }
 
-void DestroyThreadPool(ThreadPool* thread_pool)
-{
-    CTK_ITER(thread, &thread_pool->threads)
-    {
-        if (!TerminateThread(*thread, 0))
-        {
+void DestroyThreadPool(ThreadPool* thread_pool) {
+    CTK_ITER(thread, &thread_pool->threads) {
+        if (!TerminateThread(*thread, 0)) {
             Win32Error e = {};
             GetWin32Error(&e);
             CTK_FATAL("TerminateThread() failed: %.*s", e.message_length, e.message);
@@ -191,8 +171,7 @@ void DestroyThreadPool(ThreadPool* thread_pool)
     DestroyTaskList(&thread_pool->ready_tasks);
 }
 
-TaskHnd SubmitTask(ThreadPool* thread_pool, void* data, Func<void, void*> func)
-{
+TaskHnd SubmitTask(ThreadPool* thread_pool, void* data, Func<void, void*> func) {
     // Pop next idle task once available.
     TaskHnd task_hnd = PopTask(thread_pool, &thread_pool->idle_tasks);
     Task* task = GetPtr(&thread_pool->tasks, task_hnd);
@@ -208,24 +187,20 @@ TaskHnd SubmitTask(ThreadPool* thread_pool, void* data, Func<void, void*> func)
     return task_hnd;
 }
 
-void Wait(ThreadPool* thread_pool, TaskHnd task_hnd)
-{
+void Wait(ThreadPool* thread_pool, TaskHnd task_hnd) {
     Task* task = GetPtr(&thread_pool->tasks, task_hnd);
-    if (task->done)
-    {
+    if (task->done) {
         return;
     }
 
     EnterCriticalSection(&task->lock);
-    while (!task->done)
-    {
+    while (!task->done) {
         SleepConditionVariableCS(&task->done_convar, &task->lock, INFINITE);
     }
     LeaveCriticalSection(&task->lock);
 }
 
-BatchRange GetBatchRange(uint32 region_index, uint32 region_count, uint32 batch_size)
-{
+BatchRange GetBatchRange(uint32 region_index, uint32 region_count, uint32 batch_size) {
     uint32 small_part_size = batch_size / region_count;
     uint32 large_part_size = small_part_size + 1;
     uint32 large_part_count = batch_size % region_count;
@@ -236,28 +211,24 @@ BatchRange GetBatchRange(uint32 region_index, uint32 region_count, uint32 batch_
     return batch_range;
 }
 
-void GetBatchRanges(Array<BatchRange>* batch_ranges, uint32 total_batch_size)
-{
+void GetBatchRanges(Array<BatchRange>* batch_ranges, uint32 total_batch_size) {
     CTK_ASSERT(batch_ranges->count > 0);
 
     // Calculate batch range start and base size.
     uint32 base_batch_size = total_batch_size / batch_ranges->count;
-    for (uint32 i = 0; i < batch_ranges->count; i += 1)
-    {
+    for (uint32 i = 0; i < batch_ranges->count; i += 1) {
         GetPtr(batch_ranges, i)->size = base_batch_size;
     }
 
     // Add remainders to sizes where needed.
     uint32 remainders = total_batch_size % batch_ranges->count;
-    for (uint32 i = 0; i < remainders; i += 1)
-    {
+    for (uint32 i = 0; i < remainders; i += 1) {
         GetPtr(batch_ranges, i)->size += 1;
     }
 
     // Calculate batch range start indexes.
     uint32 start = 0;
-    for (uint32 i = 0; i < batch_ranges->count; i += 1)
-    {
+    for (uint32 i = 0; i < batch_ranges->count; i += 1) {
         BatchRange* batch_range = GetPtr(batch_ranges, i);
         batch_range->start = start;
         start += batch_range->size;

@@ -1,7 +1,6 @@
 #pragma once
 
-namespace FreeListTest
-{
+namespace FreeListTest {
 
 /// Data
 ////////////////////////////////////////////////////////////
@@ -18,8 +17,7 @@ constexpr uint32 RANGE_DATA_BYTE_SIZE = RANGES_BYTE_SIZE + RANGE_KEYS_BYTE_SIZE;
 constexpr uint32 RANGE_DATA_BYTE_INDEX = 0;
 constexpr uint32 FREE_SPACE_BYTE_INDEX = RANGE_DATA_BYTE_INDEX + RANGE_DATA_BYTE_SIZE;
 
-constexpr RangeInfo RANGE_DATA_RANGE_INFO =
-{
+constexpr RangeInfo RANGE_DATA_RANGE_INFO = {
     .byte_index = RANGE_DATA_BYTE_INDEX,
     .byte_size  = RANGE_DATA_BYTE_SIZE,
     .is_free    = false,
@@ -27,24 +25,20 @@ constexpr RangeInfo RANGE_DATA_RANGE_INFO =
 
 /// Utils
 ////////////////////////////////////////////////////////////
-bool ExpectLayout(FreeList* free_list, Array<RangeInfo> layout)
-{
+bool ExpectLayout(FreeList* free_list, Array<RangeInfo> layout) {
     bool pass = true;
     uint32 range_info_index = 0;
     uint32 range_index = free_list->first_range_index;
     uint32 range_count = 0;
-    while (range_index != UINT32_MAX)
-    {
+    while (range_index != UINT32_MAX) {
         range_count += 1;
         Range* range = free_list->ranges + range_index;
 
         // Only test range if there are any left in layout.
-        if (range_info_index < layout.count)
-        {
+        if (range_info_index < layout.count) {
             RangeInfo* range_info = GetPtr(&layout, range_info_index);
 
-            if (range->byte_size != range_info->byte_size)
-            {
+            if (range->byte_size != range_info->byte_size) {
                 pass = false;
                 PrintExpectedTag();
                 Print("range at index ");
@@ -53,8 +47,7 @@ bool ExpectLayout(FreeList* free_list, Array<RangeInfo> layout)
                 PrintActual(false, "was byte-size %u", range->byte_size);
             }
 
-            if (range->byte_index != range_info->byte_index)
-            {
+            if (range->byte_index != range_info->byte_index) {
                 pass = false;
                 PrintExpectedTag();
                 Print("range at index ");
@@ -63,14 +56,12 @@ bool ExpectLayout(FreeList* free_list, Array<RangeInfo> layout)
                 PrintActual(false, "was at byte-index %u", range->byte_index);
             }
 
-            if (!range_info->is_free && IsFreeRangeIndex(free_list, range_index))
-            {
+            if (!range_info->is_free && IsFreeRangeIndex(free_list, range_index)) {
                 pass = false;
                 PrintExpected("range at index %u to be used", range_index);
                 PrintActual(false, "was free");
             }
-            else if (range_info->is_free && !IsFreeRangeIndex(free_list, range_index))
-            {
+            else if (range_info->is_free && !IsFreeRangeIndex(free_list, range_index)) {
                 pass = false;
                 PrintExpected("range at index %u to be free", range_index);
                 PrintActual(false, "was used");
@@ -82,8 +73,7 @@ bool ExpectLayout(FreeList* free_list, Array<RangeInfo> layout)
         range_index = range->next_range_index;
     }
 
-    if (layout.count != range_count)
-    {
+    if (layout.count != range_count) {
         pass = false;
         PrintExpected("free_list to have %u ranges", layout.count);
         PrintActual(false, "found %u ranges", range_count);
@@ -104,30 +94,25 @@ bool ExpectLayout(FreeList* free_list, Array<RangeInfo> layout)
     return pass;
 }
 
-void FreeLayoutRange(Array<RangeInfo>* expected_layout, uint32 alloc_index)
-{
+void FreeLayoutRange(Array<RangeInfo>* expected_layout, uint32 alloc_index) {
     constexpr uint32 FREE_SPACE_RANGE_INDEX_START = 1;
     uint32 range_index = FREE_SPACE_RANGE_INDEX_START + alloc_index;
     RangeInfo* range = GetPtr(expected_layout, range_index);
     range->is_free = true;
 
     uint32 next_range_index = range_index + 1;
-    if (next_range_index < expected_layout->size)
-    {
+    if (next_range_index < expected_layout->size) {
         RangeInfo* next_range = GetPtr(expected_layout, next_range_index);
-        if (next_range->is_free)
-        {
+        if (next_range->is_free) {
             range->byte_size += next_range->byte_size;
             Remove(expected_layout, next_range_index);
         }
     }
 
     uint32 prev_range_index = range_index - 1;
-    if (prev_range_index >= FREE_SPACE_RANGE_INDEX_START)
-    {
+    if (prev_range_index >= FREE_SPACE_RANGE_INDEX_START) {
         RangeInfo* prev_range = GetPtr(expected_layout, prev_range_index);
-        if (prev_range->is_free)
-        {
+        if (prev_range->is_free) {
             prev_range->byte_size += range->byte_size;
             Remove(expected_layout, range_index);
         }
@@ -136,20 +121,15 @@ void FreeLayoutRange(Array<RangeInfo>* expected_layout, uint32 alloc_index)
 
 /// Tests
 ////////////////////////////////////////////////////////////
-bool AllocateMultiple()
-{
+bool AllocateMultiple() {
     bool pass = true;
 
     constexpr uint32 FREE_LIST_BYTE_SIZE = 16;
     static_assert(FREE_LIST_BYTE_SIZE > 14); // Must have enough room to hold test_allocs.
     FreeList free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
-    uint32 test_allocs[] = { 8, 4, 2, 1, 1 };
-
-    {
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            {
+    uint32 test_allocs[] = { 8, 4, 2, 1, 1 }; {
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, {
                 .byte_index = FREE_SPACE_BYTE_INDEX,
                 .byte_size  = FREE_LIST_BYTE_SIZE,
                 .is_free    = true
@@ -158,8 +138,7 @@ bool AllocateMultiple()
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
 
-    for (uint32 curr_alloc_index = 0; curr_alloc_index < CTK_ARRAY_SIZE(test_allocs); curr_alloc_index += 1)
-    {
+    for (uint32 curr_alloc_index = 0; curr_alloc_index < CTK_ARRAY_SIZE(test_allocs); curr_alloc_index += 1) {
         auto layout = CreateArray<RangeInfo>(&g_std_allocator, FREE_LIST_BYTE_SIZE);
         Push(&layout, RANGE_DATA_RANGE_INFO);
         uint32 byte_index = FREE_SPACE_BYTE_INDEX;
@@ -167,8 +146,7 @@ bool AllocateMultiple()
         uint32 remaining_byte_size = FREE_LIST_BYTE_SIZE;
 
         // Push previous allocations' used-ranges to layout.
-        for (uint32 prev_alloc_index = 0; prev_alloc_index < curr_alloc_index; prev_alloc_index += 1)
-        {
+        for (uint32 prev_alloc_index = 0; prev_alloc_index < curr_alloc_index; prev_alloc_index += 1) {
             byte_size = test_allocs[prev_alloc_index];
             Push(&layout, { .byte_index = byte_index, .byte_size = byte_size, .is_free = false });
             byte_index += byte_size;
@@ -182,8 +160,7 @@ bool AllocateMultiple()
         remaining_byte_size -= byte_size;
 
         // If there is space left over, push free-range to layout to cover that space.
-        if (remaining_byte_size > 0)
-        {
+        if (remaining_byte_size > 0) {
             Push(&layout, { .byte_index = byte_index, .byte_size = remaining_byte_size, .is_free = true });
         }
 
@@ -199,33 +176,24 @@ bool AllocateMultiple()
     return pass;
 }
 
-bool AllocateFullFreeList()
-{
+bool AllocateFullFreeList() {
     bool pass = true;
 
     constexpr uint32 FREE_LIST_BYTE_SIZE = 16;
     FreeList free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
-    uint8* alloc = NULL;
-
-    {
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            {
+    uint8* alloc = NULL; {
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, {
                 .byte_index = FREE_SPACE_BYTE_INDEX,
                 .byte_size  = FREE_LIST_BYTE_SIZE,
                 .is_free    = true
             },
         };
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-
-    {
+    } {
         alloc = Allocate<uint8>(&free_list.allocator, FREE_LIST_BYTE_SIZE);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            {
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, {
                 .byte_index = FREE_SPACE_BYTE_INDEX,
                 .byte_size  = FREE_LIST_BYTE_SIZE,
                 .is_free    = false
@@ -234,13 +202,10 @@ bool AllocateFullFreeList()
         FString<256> description = {};
         Write(&description, "Allocate<uint8>(&free_list, %u)", FREE_LIST_BYTE_SIZE);
         RunTest(&description, &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         Deallocate(&free_list.allocator, alloc);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            {
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, {
                 .byte_index = FREE_SPACE_BYTE_INDEX,
                 .byte_size  = FREE_LIST_BYTE_SIZE,
                 .is_free    = true
@@ -253,14 +218,12 @@ bool AllocateFullFreeList()
     return pass;
 }
 
-bool DeallocateDoubleMerge()
-{
+bool DeallocateDoubleMerge() {
     bool pass = true;
 
     constexpr uint32 FREE_LIST_BYTE_SIZE = 60;
     FreeList free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
-    uint8* allocs[] =
-    {
+    uint8* allocs[] = {
         Allocate<uint8>(&free_list.allocator, 12),
         Allocate<uint8>(&free_list.allocator, 8),
         Allocate<uint8>(&free_list.allocator, 4),
@@ -271,25 +234,14 @@ bool DeallocateDoubleMerge()
         Allocate<uint8>(&free_list.allocator, 1),
     };
 
-    RangeInfo layout[] =
-    {
-        RANGE_DATA_RANGE_INFO,
-        { .byte_index = FREE_SPACE_BYTE_INDEX + 0,  .byte_size = 12, .is_free = false },
-        { .byte_index = FREE_SPACE_BYTE_INDEX + 12, .byte_size = 8,  .is_free = false },
-        { .byte_index = FREE_SPACE_BYTE_INDEX + 20, .byte_size = 4,  .is_free = false },
-        { .byte_index = FREE_SPACE_BYTE_INDEX + 24, .byte_size = 2,  .is_free = false },
-        { .byte_index = FREE_SPACE_BYTE_INDEX + 26, .byte_size = 16, .is_free = false },
-        { .byte_index = FREE_SPACE_BYTE_INDEX + 42, .byte_size = 1,  .is_free = false },
-        { .byte_index = FREE_SPACE_BYTE_INDEX + 43, .byte_size = 6,  .is_free = false },
-        { .byte_index = FREE_SPACE_BYTE_INDEX + 49, .byte_size = 1,  .is_free = false },
-        { .byte_index = FREE_SPACE_BYTE_INDEX + 50, .byte_size = 10, .is_free = true  },
+    RangeInfo layout[] = {
+        RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0,  .byte_size = 12, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 12, .byte_size = 8,  .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 20, .byte_size = 4,  .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 24, .byte_size = 2,  .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 26, .byte_size = 16, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 42, .byte_size = 1,  .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 43, .byte_size = 6,  .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 49, .byte_size = 1,  .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 50, .byte_size = 10, .is_free = true  },
     };
     Array<RangeInfo> expected_layout = CTK_WRAP_ARRAY(layout);
     RunTest("Initial Layout", &pass, ExpectLayout, &free_list, expected_layout);
 
     // Evens
-    for (uint32 alloc_index = 0; alloc_index < CTK_ARRAY_SIZE(allocs); alloc_index += 2)
-    {
+    for (uint32 alloc_index = 0; alloc_index < CTK_ARRAY_SIZE(allocs); alloc_index += 2) {
         // Deallocate and update expected layout.
         Deallocate(&free_list.allocator, allocs[alloc_index]);
         FreeLayoutRange(&expected_layout, alloc_index);
@@ -301,8 +253,7 @@ bool DeallocateDoubleMerge()
     }
 
     // Odds
-    for (uint32 alloc_index = 1; alloc_index < CTK_ARRAY_SIZE(allocs); alloc_index += 2)
-    {
+    for (uint32 alloc_index = 1; alloc_index < CTK_ARRAY_SIZE(allocs); alloc_index += 2) {
         // Deallocate and update expected layout.
         Deallocate(&free_list.allocator, allocs[alloc_index]);
         FreeLayoutRange(&expected_layout, 1);
@@ -317,54 +268,31 @@ bool DeallocateDoubleMerge()
     return pass;
 }
 
-bool DeallocatePrevMerge()
-{
+bool DeallocatePrevMerge() {
     bool pass = true;
 
     constexpr uint32 FREE_LIST_BYTE_SIZE = 60;
     FreeList free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
-    uint8* allocs[] =
-    {
+    uint8* allocs[] = {
         Allocate<uint8>(&free_list.allocator, 24),
         Allocate<uint8>(&free_list.allocator, 16),
         Allocate<uint8>(&free_list.allocator, 8),
         Allocate<uint8>(&free_list.allocator, 4),
-    };
-
-    {
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0,  .byte_size = 24, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 24, .byte_size = 16, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 40, .byte_size = 8,  .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 48, .byte_size = 4,  .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 52, .byte_size = 8,  .is_free = true  },
+    }; {
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0,  .byte_size = 24, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 24, .byte_size = 16, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 40, .byte_size = 8,  .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 48, .byte_size = 4,  .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 52, .byte_size = 8,  .is_free = true  },
         };
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         Deallocate(&free_list.allocator, allocs[0]);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0,  .byte_size = 24, .is_free = true  },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 24, .byte_size = 16, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 40, .byte_size = 8,  .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 48, .byte_size = 4,  .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 52, .byte_size = 8,  .is_free = true  },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0,  .byte_size = 24, .is_free = true  }, { .byte_index = FREE_SPACE_BYTE_INDEX + 24, .byte_size = 16, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 40, .byte_size = 8,  .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 48, .byte_size = 4,  .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 52, .byte_size = 8,  .is_free = true  },
         };
         RunTest("Deallocate(&free_list, allocs[0])", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         Deallocate(&free_list.allocator, allocs[1]);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0,  .byte_size = 40, .is_free = true },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 40, .byte_size = 8,  .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 48, .byte_size = 4,  .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 52, .byte_size = 8,  .is_free = true  },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0,  .byte_size = 40, .is_free = true }, { .byte_index = FREE_SPACE_BYTE_INDEX + 40, .byte_size = 8,  .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 48, .byte_size = 4,  .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 52, .byte_size = 8,  .is_free = true  },
         };
         RunTest("Deallocate(&free_list, allocs[1])", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
@@ -373,54 +301,31 @@ bool DeallocatePrevMerge()
     return pass;
 }
 
-bool DeallocateNextMerge()
-{
+bool DeallocateNextMerge() {
     bool pass = true;
 
     constexpr uint32 FREE_LIST_BYTE_SIZE = 60;
     FreeList free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
-    uint8* allocs[] =
-    {
+    uint8* allocs[] = {
         Allocate<uint8>(&free_list.allocator, 24),
         Allocate<uint8>(&free_list.allocator, 16),
         Allocate<uint8>(&free_list.allocator, 8),
         Allocate<uint8>(&free_list.allocator, 4),
-    };
-
-    {
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0,  .byte_size = 24, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 24, .byte_size = 16, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 40, .byte_size = 8,  .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 48, .byte_size = 4,  .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 52, .byte_size = 8,  .is_free = true  },
+    }; {
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0,  .byte_size = 24, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 24, .byte_size = 16, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 40, .byte_size = 8,  .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 48, .byte_size = 4,  .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 52, .byte_size = 8,  .is_free = true  },
         };
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         Deallocate(&free_list.allocator, allocs[1]);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0,  .byte_size = 24, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 24, .byte_size = 16, .is_free = true  },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 40, .byte_size = 8,  .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 48, .byte_size = 4,  .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 52, .byte_size = 8,  .is_free = true  },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0,  .byte_size = 24, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 24, .byte_size = 16, .is_free = true  }, { .byte_index = FREE_SPACE_BYTE_INDEX + 40, .byte_size = 8,  .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 48, .byte_size = 4,  .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 52, .byte_size = 8,  .is_free = true  },
         };
         RunTest("Deallocate(&free_list, allocs[1])", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         Deallocate(&free_list.allocator, allocs[0]);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0,  .byte_size = 40, .is_free = true  },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 40, .byte_size = 8,  .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 48, .byte_size = 4,  .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 52, .byte_size = 8,  .is_free = true  },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0,  .byte_size = 40, .is_free = true  }, { .byte_index = FREE_SPACE_BYTE_INDEX + 40, .byte_size = 8,  .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 48, .byte_size = 4,  .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 52, .byte_size = 8,  .is_free = true  },
         };
         RunTest("Deallocate(&free_list, allocs[0])", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
@@ -429,39 +334,26 @@ bool DeallocateNextMerge()
     return pass;
 }
 
-bool ReallocateSameSize()
-{
+bool ReallocateSameSize() {
     bool pass = true;
 
     constexpr uint32 FREE_LIST_BYTE_SIZE = 4;
     FreeList free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
-    uint8* alloc = NULL;
-
-    {
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 4, .is_free = true  },
+    uint8* alloc = NULL; {
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 4, .is_free = true  },
         };
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         alloc = Allocate<uint8>(&free_list.allocator, 1);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 1, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 1, .byte_size = 3, .is_free = true  },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 1, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 1, .byte_size = 3, .is_free = true  },
         };
         RunTest("Allocate<uint8>(&free_list, 1)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         alloc = Reallocate(&free_list.allocator, alloc, 1);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 1, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 1, .byte_size = 3, .is_free = true  },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 1, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 1, .byte_size = 3, .is_free = true  },
         };
         RunTest("Reallocate(&free_list, alloc, 1)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
@@ -470,48 +362,32 @@ bool ReallocateSameSize()
     return pass;
 }
 
-bool ReallocateSmallerNoNextHeader()
-{
+bool ReallocateSmallerNoNextHeader() {
     bool pass = true;
 
     constexpr uint32 FREE_LIST_BYTE_SIZE = 5;
     FreeList free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
-    uint8* alloc = NULL;
-
-    {
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 5, .is_free = true  },
+    uint8* alloc = NULL; {
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 5, .is_free = true  },
         };
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         alloc = Allocate<uint8>(&free_list.allocator, 5);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 5, .is_free = false },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 5, .is_free = false },
         };
         RunTest("Allocate<uint8>(&free_list, 5)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         alloc = Reallocate(&free_list.allocator, alloc, 3);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 3, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 2, .is_free = true  },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 3, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 2, .is_free = true  },
         };
         RunTest("Reallocate(&free_list, alloc, 3)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         Allocate<uint8>(&free_list.allocator, 2);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 3, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 2, .is_free = false },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 3, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 2, .is_free = false },
         };
         RunTest("Allocate<uint8>(&free_list, 2)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
@@ -520,42 +396,28 @@ bool ReallocateSmallerNoNextHeader()
     return pass;
 }
 
-bool ReallocateSmallerNextHeaderIsUsed()
-{
+bool ReallocateSmallerNextHeaderIsUsed() {
     bool pass = true;
 
     constexpr uint32 FREE_LIST_BYTE_SIZE = 5;
     FreeList free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
-    uint8* alloc = NULL;
-
-    {
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 5, .is_free = true  },
+    uint8* alloc = NULL; {
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 5, .is_free = true  },
         };
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         alloc = Allocate<uint8>(&free_list.allocator, 3);
         Allocate<uint8>(&free_list.allocator, 2);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 3, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 2, .is_free = false },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 3, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 2, .is_free = false },
         };
         RunTest("Allocate<uint8>(&free_list, 3); Allocate<uint8>(&free_list, 2)", &pass,
                 ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         alloc = Reallocate(&free_list.allocator, alloc, 1);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 1, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 1, .byte_size = 2, .is_free = true  },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 2, .is_free = false },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 1, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 1, .byte_size = 2, .is_free = true  }, { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 2, .is_free = false },
         };
         RunTest("Reallocate(&free_list, alloc, 1)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
@@ -564,79 +426,50 @@ bool ReallocateSmallerNextHeaderIsUsed()
     return pass;
 }
 
-bool ReallocateSmallerNextHeaderIsFree()
-{
+bool ReallocateSmallerNextHeaderIsFree() {
     bool pass = true;
 
     constexpr uint32 FREE_LIST_BYTE_SIZE = 5;
     FreeList free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
-    uint8* alloc = NULL;
-
-    {
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 5, .is_free = true  },
+    uint8* alloc = NULL; {
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 5, .is_free = true  },
         };
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         alloc = Allocate<uint8>(&free_list.allocator, 5);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 5, .is_free = false },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 5, .is_free = false },
         };
         RunTest("Allocate<uint8>(&free_list, 5)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         alloc = Reallocate(&free_list.allocator, alloc, 4);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 4, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 4, .byte_size = 1, .is_free = true  },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 4, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 4, .byte_size = 1, .is_free = true  },
         };
         RunTest("Reallocate(&free_list, alloc, 4)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         alloc = Reallocate(&free_list.allocator, alloc, 3);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 3, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 2, .is_free = true  },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 3, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 2, .is_free = true  },
         };
         RunTest("Reallocate(&free_list, alloc, 3)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         alloc = Reallocate(&free_list.allocator, alloc, 2);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 2, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 2, .byte_size = 3, .is_free = true  },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 2, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 2, .byte_size = 3, .is_free = true  },
         };
         RunTest("Reallocate(&free_list, alloc, 2)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         alloc = Reallocate(&free_list.allocator, alloc, 1);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 1, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 1, .byte_size = 4, .is_free = true  },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 1, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 1, .byte_size = 4, .is_free = true  },
         };
         RunTest("Reallocate(&free_list, alloc, 1)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         Allocate<uint8>(&free_list.allocator, 2);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 1, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 1, .byte_size = 2, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 2, .is_free = true  },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 1, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 1, .byte_size = 2, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 2, .is_free = true  },
         };
         RunTest("Allocate<uint8>(&free_list, 2)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
@@ -645,37 +478,25 @@ bool ReallocateSmallerNextHeaderIsFree()
     return pass;
 }
 
-bool ReallocateLargerMergeEntireNextFreeRange()
-{
+bool ReallocateLargerMergeEntireNextFreeRange() {
     bool pass = true;
 
     constexpr uint32 FREE_LIST_BYTE_SIZE = 6;
     FreeList free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
-    uint8* allocs[] =
-    {
+    uint8* allocs[] = {
         Allocate<uint8>(&free_list.allocator, 3),
         Allocate<uint8>(&free_list.allocator, 2),
         Allocate<uint8>(&free_list.allocator, 1),
     };
-    Deallocate(&free_list.allocator, allocs[1]);
-
-    {
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 3, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 2, .is_free = true  },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 5, .byte_size = 1, .is_free = false },
+    Deallocate(&free_list.allocator, allocs[1]); {
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 3, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 2, .is_free = true  }, { .byte_index = FREE_SPACE_BYTE_INDEX + 5, .byte_size = 1, .is_free = false },
         };
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         allocs[0] = Reallocate(&free_list.allocator, allocs[0], 5);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 5, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 5, .byte_size = 1, .is_free = false },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 5, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 5, .byte_size = 1, .is_free = false },
         };
         RunTest("Reallocate(&free_list, alloc, 6)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
@@ -684,78 +505,50 @@ bool ReallocateLargerMergeEntireNextFreeRange()
     return pass;
 }
 
-bool ReallocateLargerMergePartialNextFreeRange()
-{
+bool ReallocateLargerMergePartialNextFreeRange() {
     bool pass = true;
 
     constexpr uint32 FREE_LIST_BYTE_SIZE = 6;
     FreeList free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
-    uint8* alloc = NULL;
-
-    {
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 6, .is_free = true  },
+    uint8* alloc = NULL; {
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 6, .is_free = true  },
         };
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         alloc = Allocate<uint8>(&free_list.allocator, 1);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 1, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 1, .byte_size = 5, .is_free = true  },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 1, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 1, .byte_size = 5, .is_free = true  },
         };
         RunTest("Allocate<uint8>(&free_list, 1)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         alloc = Reallocate(&free_list.allocator, alloc, 2);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 2, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 2, .byte_size = 4, .is_free = true  },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 2, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 2, .byte_size = 4, .is_free = true  },
         };
         RunTest("Reallocate(&free_list, alloc, 2)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         alloc = Reallocate(&free_list.allocator, alloc, 3);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 3, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 3, .is_free = true  },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 3, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 3, .is_free = true  },
         };
         RunTest("Reallocate(&free_list, alloc, 3)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         alloc = Reallocate(&free_list.allocator, alloc, 4);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 4, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 4, .byte_size = 2, .is_free = true  },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 4, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 4, .byte_size = 2, .is_free = true  },
         };
         RunTest("Reallocate(&free_list, alloc, 4)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         alloc = Reallocate(&free_list.allocator, alloc, 5);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 5, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 5, .byte_size = 1, .is_free = true  },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 5, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 5, .byte_size = 1, .is_free = true  },
         };
         RunTest("Reallocate(&free_list, alloc, 5)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         alloc = Reallocate(&free_list.allocator, alloc, 6);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 6, .is_free = false },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 6, .is_free = false },
         };
         RunTest("Reallocate(&free_list, alloc, 6)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
@@ -764,36 +557,23 @@ bool ReallocateLargerMergePartialNextFreeRange()
     return pass;
 }
 
-bool ReallocateLargerNewAllocationPostRange()
-{
+bool ReallocateLargerNewAllocationPostRange() {
     bool pass = true;
 
     constexpr uint32 FREE_LIST_BYTE_SIZE = 4;
     FreeList free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
-    uint8* allocs[] =
-    {
+    uint8* allocs[] = {
         Allocate<uint8>(&free_list.allocator, 1),
         Allocate<uint8>(&free_list.allocator, 1),
-    };
-
-    {
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 1, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 1, .byte_size = 1, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 2, .byte_size = 2, .is_free = true  },
+    }; {
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 1, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 1, .byte_size = 1, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 2, .byte_size = 2, .is_free = true  },
         };
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         allocs[0] = Reallocate(&free_list.allocator, allocs[0], 2);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 1, .is_free = true  },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 1, .byte_size = 1, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 2, .byte_size = 2, .is_free = false },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 1, .is_free = true  }, { .byte_index = FREE_SPACE_BYTE_INDEX + 1, .byte_size = 1, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 2, .byte_size = 2, .is_free = false },
         };
         RunTest("Reallocate(&free_list, allocs[0], 2)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
@@ -802,38 +582,25 @@ bool ReallocateLargerNewAllocationPostRange()
     return pass;
 }
 
-bool ReallocateLargerNewAllocationPreRange()
-{
+bool ReallocateLargerNewAllocationPreRange() {
     bool pass = true;
 
     constexpr uint32 FREE_LIST_BYTE_SIZE = 4;
     FreeList free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
-    uint8* allocs[] =
-    {
+    uint8* allocs[] = {
         Allocate<uint8>(&free_list.allocator, 2),
         Allocate<uint8>(&free_list.allocator, 1),
         Allocate<uint8>(&free_list.allocator, 1),
     };
-    Deallocate(&free_list.allocator, allocs[0]);
-
-    {
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 2, .is_free = true  },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 2, .byte_size = 1, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 1, .is_free = false },
+    Deallocate(&free_list.allocator, allocs[0]); {
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 2, .is_free = true  }, { .byte_index = FREE_SPACE_BYTE_INDEX + 2, .byte_size = 1, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 1, .is_free = false },
         };
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
-    }
-    {
+    } {
         allocs[2] = Reallocate(&free_list.allocator, allocs[2], 2);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 2, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 2, .byte_size = 1, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 1, .is_free = true  },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 2, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 2, .byte_size = 1, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 1, .is_free = true  },
         };
         RunTest("Reallocate(&free_list, allocs[2], 2)", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
@@ -842,8 +609,7 @@ bool ReallocateLargerNewAllocationPreRange()
     return pass;
 }
 
-bool ZeroAllocatedMemory()
-{
+bool ZeroAllocatedMemory() {
     bool pass = true;
 
     constexpr uint32 FREE_LIST_BYTE_SIZE = 4;
@@ -851,9 +617,7 @@ bool ZeroAllocatedMemory()
 
     // Set all free memory in free-range to non-zero values.
     uint8* free_space_mem = GetRangeMem(&free_list, free_list.ranges[GetFreeRangesFirstIndex(&free_list)].byte_index);
-    memset(free_space_mem, UINT8_MAX, FREE_LIST_BYTE_SIZE);
-
-    {
+    memset(free_space_mem, UINT8_MAX, FREE_LIST_BYTE_SIZE); {
         constexpr uint32 ALLOC_SIZE = 1;
         char test_buf[ALLOC_SIZE] = {};
         FString<256> description = {};
@@ -870,8 +634,7 @@ bool ZeroAllocatedMemory()
                 ExpectEqual,
                 (const char*)test_buf, ALLOC_SIZE,
                 (const char*)alloc,    ALLOC_SIZE);
-    }
-    {
+    } {
         constexpr uint32 ALLOC_SIZE = FREE_LIST_BYTE_SIZE;
         char test_buf[FREE_LIST_BYTE_SIZE] = {};
         FString<256> description = {};
@@ -893,8 +656,7 @@ bool ZeroAllocatedMemory()
     return pass;
 }
 
-bool ZeroReallocatedMemory()
-{
+bool ZeroReallocatedMemory() {
     bool pass = true;
 
     constexpr uint32 FREE_LIST_BYTE_SIZE = 24;
@@ -905,22 +667,16 @@ bool ZeroReallocatedMemory()
     memset(free_space_mem, UINT8_MAX, FREE_LIST_BYTE_SIZE);
 
     constexpr uint32 INIT_ALLOC_BYTE_SIZE = 8;
-    char* allocs[3] =
-    {
+    char* allocs[3] = {
         Allocate<char>(&free_list.allocator, INIT_ALLOC_BYTE_SIZE),
         Allocate<char>(&free_list.allocator, INIT_ALLOC_BYTE_SIZE),
         Allocate<char>(&free_list.allocator, INIT_ALLOC_BYTE_SIZE),
     };
     Write(allocs[1], INIT_ALLOC_BYTE_SIZE, "1234567"); // Write to second allocation that will be reallocated into.
     Deallocate(&free_list.allocator, allocs[1]); // Deallocating second allocation should leave data untouched.
-
     {
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0,  .byte_size = 8, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 8,  .byte_size = 8, .is_free = true  },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 16, .byte_size = 8, .is_free = false },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0,  .byte_size = 8, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 8,  .byte_size = 8, .is_free = true  }, { .byte_index = FREE_SPACE_BYTE_INDEX + 16, .byte_size = 8, .is_free = false },
         };
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
@@ -942,12 +698,8 @@ bool ZeroReallocatedMemory()
         Write(&description, "Reallocate(&free_list, allocs[0], %u) partial merge next", REALLOC_BYTE_SIZE);
 
         allocs[0] = Reallocate(&free_list.allocator, allocs[0], REALLOC_BYTE_SIZE);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0,  .byte_size = 12, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 12, .byte_size = 4,  .is_free = true  },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 16, .byte_size = 8,  .is_free = false },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0,  .byte_size = 12, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 12, .byte_size = 4,  .is_free = true  }, { .byte_index = FREE_SPACE_BYTE_INDEX + 16, .byte_size = 8,  .is_free = false },
         };
         RunTest(&description, &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
 
@@ -958,18 +710,14 @@ bool ZeroReallocatedMemory()
                 (const char*)test_buf,  REALLOC_BYTE_SIZE,
                 (const char*)allocs[0], REALLOC_BYTE_SIZE);
     }
-
     {
         constexpr uint32 REALLOC_BYTE_SIZE = 16;
         FString<256> description = {};
         Write(&description, "Reallocate(&free_list, allocs[0], %u) full merge next", REALLOC_BYTE_SIZE);
 
         allocs[0] = Reallocate(&free_list.allocator, allocs[0], REALLOC_BYTE_SIZE);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0,  .byte_size = 16, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 16, .byte_size = 8,  .is_free = false },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0,  .byte_size = 16, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 16, .byte_size = 8,  .is_free = false },
         };
         RunTest(&description, &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
 
@@ -985,8 +733,7 @@ bool ZeroReallocatedMemory()
     return pass;
 }
 
-bool NonZeroAllocatedMemory()
-{
+bool NonZeroAllocatedMemory() {
     bool pass = true;
 
     constexpr uint32 FREE_LIST_BYTE_SIZE = 4;
@@ -995,7 +742,6 @@ bool NonZeroAllocatedMemory()
     // Set all free memory in free-range to non-zero values.
     uint8* free_space_mem = GetRangeMem(&free_list, free_list.ranges[GetFreeRangesFirstIndex(&free_list)].byte_index);
     memset(free_space_mem, '#', FREE_LIST_BYTE_SIZE);
-
     {
         constexpr uint32 ALLOC_SIZE = 1;
         FString<256> description = {};
@@ -1042,8 +788,7 @@ bool NonZeroAllocatedMemory()
     return pass;
 }
 
-bool NonZeroReallocatedMemory()
-{
+bool NonZeroReallocatedMemory() {
     bool pass = true;
 
     constexpr uint32 FREE_LIST_BYTE_SIZE = 6;
@@ -1054,21 +799,15 @@ bool NonZeroReallocatedMemory()
     memset(free_space_mem, '#', FREE_LIST_BYTE_SIZE);
 
     constexpr uint32 INIT_ALLOC_BYTE_SIZE = 2;
-    char* allocs[3] =
-    {
+    char* allocs[3] = {
         AllocateNZ<char>(&free_list.allocator, INIT_ALLOC_BYTE_SIZE),
         AllocateNZ<char>(&free_list.allocator, INIT_ALLOC_BYTE_SIZE),
         AllocateNZ<char>(&free_list.allocator, INIT_ALLOC_BYTE_SIZE),
     };
     Deallocate(&free_list.allocator, allocs[1]); // Deallocating second allocation should leave data untouched.
-
     {
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 2, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 2, .byte_size = 2, .is_free = true  },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 4, .byte_size = 2, .is_free = false },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 2, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 2, .byte_size = 2, .is_free = true  }, { .byte_index = FREE_SPACE_BYTE_INDEX + 4, .byte_size = 2, .is_free = false },
         };
         RunTest("Initial Layout", &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
     }
@@ -1090,12 +829,8 @@ bool NonZeroReallocatedMemory()
         Write(&description, "ReallocateNZ(&free_list, allocs[0], %u) partial merge next", REALLOC_BYTE_SIZE);
 
         allocs[0] = ReallocateNZ(&free_list.allocator, allocs[0], REALLOC_BYTE_SIZE);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 3, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 1, .is_free = true  },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 4, .byte_size = 2, .is_free = false },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 3, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 3, .byte_size = 1, .is_free = true  }, { .byte_index = FREE_SPACE_BYTE_INDEX + 4, .byte_size = 2, .is_free = false },
         };
         RunTest(&description, &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
 
@@ -1108,18 +843,14 @@ bool NonZeroReallocatedMemory()
                 (const char*)test_buf,  REALLOC_BYTE_SIZE,
                 (const char*)allocs[0], REALLOC_BYTE_SIZE);
     }
-
     {
         constexpr uint32 REALLOC_BYTE_SIZE = 4;
         FString<256> description = {};
         Write(&description, "ReallocateNZ(&free_list, allocs[0], %u) full merge next", REALLOC_BYTE_SIZE);
 
         allocs[0] = ReallocateNZ(&free_list.allocator, allocs[0], REALLOC_BYTE_SIZE);
-        RangeInfo layout[] =
-        {
-            RANGE_DATA_RANGE_INFO,
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 4, .is_free = false },
-            { .byte_index = FREE_SPACE_BYTE_INDEX + 4, .byte_size = 2, .is_free = false },
+        RangeInfo layout[] = {
+            RANGE_DATA_RANGE_INFO, { .byte_index = FREE_SPACE_BYTE_INDEX + 0, .byte_size = 4, .is_free = false }, { .byte_index = FREE_SPACE_BYTE_INDEX + 4, .byte_size = 2, .is_free = false },
         };
         RunTest(&description, &pass, ExpectLayout, &free_list, CTK_WRAP_ARRAY(layout));
 
@@ -1137,19 +868,16 @@ bool NonZeroReallocatedMemory()
     return pass;
 }
 
-bool AllocateAlignmentTest()
-{
+bool AllocateAlignmentTest() {
     bool pass = true;
 
     constexpr uint32 FREE_LIST_BYTE_SIZE = 1024;
     constexpr uint32 FREE_LIST_COUNT     = 16;
     FreeList free_lists[FREE_LIST_COUNT] = {};
 
-    CTK_ITER_PTR(free_list, free_lists, FREE_LIST_COUNT)
-    {
+    CTK_ITER_PTR(free_list, free_lists, FREE_LIST_COUNT) {
         *free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
-        for (uint32 alignment = 1; alignment <= 32; alignment *= 2)
-        {
+        for (uint32 alignment = 1; alignment <= 32; alignment *= 2) {
             FString<256> description = {};
             Write(&description, "Allocate(free_list, size: 1, alignment: %u) is aligned to %u", alignment, alignment);
             uint32 allocation_alignment = GetAlignment(Allocate(&free_list->allocator, 1, alignment));
@@ -1158,28 +886,24 @@ bool AllocateAlignmentTest()
     }
 
     // Cleanup.
-    CTK_ITER_PTR(free_list, free_lists, FREE_LIST_COUNT)
-    {
+    CTK_ITER_PTR(free_list, free_lists, FREE_LIST_COUNT) {
         DestroyFreeList(free_list);
     }
 
     return pass;
 }
 
-bool ReallocateAlignmentTest()
-{
+bool ReallocateAlignmentTest() {
     bool pass = true;
 
     constexpr uint32 FREE_LIST_BYTE_SIZE = 1024;
     constexpr uint32 FREE_LIST_COUNT     = 16;
     FreeList free_lists[FREE_LIST_COUNT] = {};
 
-    CTK_ITER_PTR(free_list, free_lists, FREE_LIST_COUNT)
-    {
+    CTK_ITER_PTR(free_list, free_lists, FREE_LIST_COUNT) {
         *free_list = CreateFreeList(&g_std_allocator, FREE_LIST_BYTE_SIZE, { MAX_RANGE_COUNT });
         uint8* allocation = Allocate(&free_list->allocator, 1, 1);
-        for (uint32 alignment = 1; alignment <= 32; alignment *= 2)
-        {
+        for (uint32 alignment = 1; alignment <= 32; alignment *= 2) {
             FString<256> description = {};
             Write(&description, "allocation = Reallocate(free_list, allocation, 1, alignment: %u) is aligned to %u",
                   alignment, alignment);
@@ -1189,18 +913,15 @@ bool ReallocateAlignmentTest()
     }
 
     // Cleanup.
-    CTK_ITER_PTR(free_list, free_lists, FREE_LIST_COUNT)
-    {
+    CTK_ITER_PTR(free_list, free_lists, FREE_LIST_COUNT) {
         DestroyFreeList(free_list);
     }
 
     return pass;
 }
 
-void AlignmentExample()
-{
-    CTK_REPEAT(1)
-    {
+void AlignmentExample() {
+    CTK_REPEAT(1) {
         uint8* mem           = Allocate(&g_std_allocator, 256, 16);
         uint32 mem_alignment = GetAlignment(mem);
         uint32 range_index   = 8;
@@ -1214,8 +935,7 @@ void AlignmentExample()
         PrintLine("range_index:     %4u", range_index);
         PrintLine();
 
-        for (uint32 alignment = 1; alignment <= 512; alignment *= 2)
-        {
+        for (uint32 alignment = 1; alignment <= 512; alignment *= 2) {
             uint8* aligned_range       = Align(range, alignment);
             uint32 alignment_offset    = (uint32)(aligned_range - range);
             uint32 aligned_range_index = range_index + alignment_offset;
@@ -1230,8 +950,7 @@ void AlignmentExample()
     }
 }
 
-bool Run()
-{
+bool Run() {
     bool pass = true;
 
     RunTest("AllocateMultiple()",                          &pass, AllocateMultiple);

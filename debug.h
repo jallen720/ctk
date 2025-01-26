@@ -1,14 +1,12 @@
 /// Macros
 ////////////////////////////////////////////////////////////
-#define CTK_FATAL(MSG, ...) \
-{ \
+#define CTK_FATAL(MSG, ...) { \
     CTK::Print(CTK_ERROR_TAG); \
     CTK::PrintLine(MSG, __VA_ARGS__); \
     throw 0; \
 }
 
-#define CTK_TODO(MSG, ...) \
-{ \
+#define CTK_TODO(MSG, ...) { \
     CTK::PrintLine(CTK_ANSI_HIGHLIGHT(MAGENTA, "TODO") ": " MSG, __VA_ARGS__); \
     CTK::PrintLine("    " CTK_ANSI_HIGHLIGHT(SKY, "file") ": %s", __FILE__); \
     CTK::PrintLine("    " CTK_ANSI_HIGHLIGHT(SKY, "line") ": %i", __LINE__); \
@@ -18,52 +16,40 @@
 
 /// Utils
 ////////////////////////////////////////////////////////////
-uint32 GetASCIICharWidth(char c)
-{
-    if (c == '\n')
-    {
+uint32 GetASCIICharWidth(char c) {
+    if (c == '\n') {
         return 2;
     }
-    else if (c == '\r')
-    {
+    else if (c == '\r') {
         return 2;
     }
-    else if (c == '\t')
-    {
+    else if (c == '\t') {
         return 2;
     }
-    else if (c == '\0')
-    {
+    else if (c == '\0') {
         return 2;
     }
-    else if (c >= 32 && c < 127)
-    {
+    else if (c >= 32 && c < 127) {
         return 1;
     }
-    else
-    {
+    else {
         return 1;
     }
 }
 
-void PrintASCIICharSingle(char c, char non_single_char)
-{
+void PrintASCIICharSingle(char c, char non_single_char) {
     Print(c >= 32 && c < 127 ? c : non_single_char);
 }
 
 /// Interface
 ////////////////////////////////////////////////////////////
-void PrintBits(void* bytes, uint32 size)
-{
-    if (size == 0)
-    {
+void PrintBits(void* bytes, uint32 size) {
+    if (size == 0) {
         return;
     }
 
-    for (uint32 byte_index = 0; byte_index <= size - 1; byte_index += 1)
-    {
-        for (uint32 bit_index = 0; bit_index < 8; bit_index += 1)
-        {
+    for (uint32 byte_index = 0; byte_index <= size - 1; byte_index += 1) {
+        for (uint32 bit_index = 0; bit_index < 8; bit_index += 1) {
             Print("%u", (((uint8*)bytes)[byte_index] >> (7 - bit_index)) & 1);
         }
         Print(" ");
@@ -71,147 +57,115 @@ void PrintBits(void* bytes, uint32 size)
 }
 
 template<typename Type>
-void PrintBits(Type data)
-{
+void PrintBits(Type data) {
     PrintBits(&data, sizeof(Type));
 }
 
 template<typename ...Args>
-void PrintBitsLine(void* bytes, uint32 size)
-{
+void PrintBitsLine(void* bytes, uint32 size) {
     PrintBits(bytes, size);
     PrintLine();
 }
 
 template<typename ...Args>
-void PrintBitsLine(void* bytes, uint32 size, const char* fmt, Args... args)
-{
+void PrintBitsLine(void* bytes, uint32 size, const char* fmt, Args... args) {
     Print(fmt, args...);
     PrintBitsLine(bytes, size);
 }
 
 template<typename Type, typename ...Args>
-void PrintBitsLine(Type data)
-{
+void PrintBitsLine(Type data) {
     PrintBits(&data, sizeof(Type));
     PrintLine();
 }
 
 template<typename Type, typename ...Args>
-void PrintBitsLine(Type data, const char* fmt, Args... args)
-{
+void PrintBitsLine(Type data, const char* fmt, Args... args) {
     Print(fmt, args...);
     PrintBitsLine(data);
 }
 
-void PrintBytes(uint8* bytes, uint32 size, uint32 width = 32)
-{
+void PrintBytes(uint8* bytes, uint32 size, uint32 width = 32) {
     uint32 col = 0;
-    for (uint32 i = 0; i < size; i += 1)
-    {
+    for (uint32 i = 0; i < size; i += 1) {
         PrintASCIICharSingle((char)bytes[i], '.');
-        if ((i + 1) % 4 == 0)
-        {
+        if ((i + 1) % 4 == 0) {
             col += 1;
-            if (col >= width)
-            {
+            if (col >= width) {
                 PrintLine();
                 col = 0;
             }
-            else
-            {
+            else {
                 Print(' ');
             }
         }
     }
 }
 
-void PrintByteValues(uint8* bytes, uint32 size, uint32 width = 8)
-{
+void PrintByteValues(uint8* bytes, uint32 size, uint32 width = 8) {
     uint32 col = 0;
-    for (uint32 i = 0; i < size; i += 1)
-    {
+    for (uint32 i = 0; i < size; i += 1) {
         Print("\\%03u", bytes[i]);
-        if ((i + 1) % 4 == 0)
-        {
+        if ((i + 1) % 4 == 0) {
             col += 1;
-            if (col >= width)
-            {
+            if (col >= width) {
                 PrintLine();
                 col = 0;
             }
-            else
-            {
+            else {
                 Print(' ');
             }
         }
     }
 }
 
-void PrintASCIIChar(char c)
-{
-    if (c == '\n')
-    {
+void PrintASCIIChar(char c) {
+    if (c == '\n') {
         Print("\\n");
     }
-    else if (c == '\r')
-    {
+    else if (c == '\r') {
         Print("\\r");
     }
-    else if (c == '\t')
-    {
+    else if (c == '\t') {
         Print("\\t");
     }
-    else if (c == '\0')
-    {
+    else if (c == '\0') {
         Print("\\0");
     }
-    else if (c >= 32 && c < 127)
-    {
+    else if (c >= 32 && c < 127) {
         Print(c);
     }
-    else
-    {
+    else {
         Print(' ');
     }
 }
 
-void PrintASCIICharUniform(char c)
-{
-    if (c >= 32 && c < 127)
-    {
+void PrintASCIICharUniform(char c) {
+    if (c >= 32 && c < 127) {
         Print("%c ", c);
     }
-    else if (c == '\n')
-    {
+    else if (c == '\n') {
         Print("\\n");
     }
-    else if (c == '\r')
-    {
+    else if (c == '\r') {
         Print("\\r");
     }
-    else if (c == '\t')
-    {
+    else if (c == '\t') {
         Print("\\t");
     }
-    else if (c == '\0')
-    {
+    else if (c == '\0') {
         Print("\\0");
     }
-    else
-    {
+    else {
         Print("  ");
     }
 }
 
-void PrintASCIIString(const char* ascii_string, uint32 size, uint32 max_width)
-{
+void PrintASCIIString(const char* ascii_string, uint32 size, uint32 max_width) {
     uint32 width = 0;
-    for (uint32 i = 0; i < size; i += 1)
-    {
+    for (uint32 i = 0; i < size; i += 1) {
         uint32 ascii_char_width = GetASCIICharWidth(ascii_string[i]);
-        if (width + ascii_char_width >= max_width)
-        {
+        if (width + ascii_char_width >= max_width) {
             PrintLine();
             width = 0;
         }
@@ -220,53 +174,44 @@ void PrintASCIIString(const char* ascii_string, uint32 size, uint32 max_width)
     }
 }
 
-void PrintASCIIStringUniform(const char* ascii_string, uint32 size, uint32 max_width)
-{
+void PrintASCIIStringUniform(const char* ascii_string, uint32 size, uint32 max_width) {
     uint32 width = 0;
-    for (uint32 i = 0; i < size; i += 1)
-    {
+    for (uint32 i = 0; i < size; i += 1) {
         PrintASCIICharUniform(ascii_string[i]);
         width += 2;
-        if (width >= max_width)
-        {
+        if (width >= max_width) {
             PrintLine();
             width = 0;
         }
     }
 }
 
-void PrintASCIIStringSingle(const char* ascii_string, uint32 size, uint32 max_width, char non_single_char)
-{
+void PrintASCIIStringSingle(const char* ascii_string, uint32 size, uint32 max_width, char non_single_char) {
     uint32 width = 0;
-    for (uint32 i = 0; i < size; i += 1)
-    {
+    for (uint32 i = 0; i < size; i += 1) {
         PrintASCIICharSingle(ascii_string[i], non_single_char);
         width += 1;
-        if (width >= max_width)
-        {
+        if (width >= max_width) {
             PrintLine();
             width = 0;
         }
     }
 }
 
-void PrintASCIIString(OutputColor output_color, const char* ascii_string, uint32 size, uint32 max_width)
-{
+void PrintASCIIString(OutputColor output_color, const char* ascii_string, uint32 size, uint32 max_width) {
     PrintColor(output_color);
     PrintASCIIString(ascii_string, size, max_width);
     PrintColorReset();
 }
 
-void PrintASCIIStringUniform(OutputColor output_color, const char* ascii_string, uint32 size, uint32 max_width)
-{
+void PrintASCIIStringUniform(OutputColor output_color, const char* ascii_string, uint32 size, uint32 max_width) {
     PrintColor(output_color);
     PrintASCIIStringUniform(ascii_string, size, max_width);
     PrintColorReset();
 }
 
 void PrintASCIIStringSingle(OutputColor output_color, const char* ascii_string, uint32 size, uint32 max_width,
-                            char non_single_char)
-{
+                            char non_single_char) {
     PrintColor(output_color);
     PrintASCIIStringSingle(ascii_string, size, max_width, non_single_char);
     PrintColorReset();

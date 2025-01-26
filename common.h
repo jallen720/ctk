@@ -73,29 +73,25 @@ constexpr sint64 SINT64_MAX = LLONG_MAX;
 // constexpr uint64 UINT64_MAX = ULLONG_MAX;
 
 template<uint32 num>
-constexpr uint32 Kilobyte32()
-{
+constexpr uint32 Kilobyte32() {
     static_assert(num <= 4000000);
     return num * 1000;
 }
 
 template<uint32 num>
-constexpr uint32 Megabyte32()
-{
+constexpr uint32 Megabyte32() {
     static_assert(num <= 4000);
     return num * Kilobyte32<1000>();
 }
 
 template<uint32 num>
-constexpr uint32 Gigabyte32()
-{
+constexpr uint32 Gigabyte32() {
     static_assert(num <= 4);
     return num * Megabyte32<1000>();
 }
 
 template<typename Type>
-constexpr uint32 SizeOf32()
-{
+constexpr uint32 SizeOf32() {
     static_assert(sizeof(Type) <= UINT32_MAX);
     return (uint32)sizeof(Type);
 }

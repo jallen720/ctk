@@ -27,8 +27,7 @@ using namespace CTK;
 #include "ctk/tests/free_list_perf.h"
 #include "ctk/tests/iterator_perf.h"
 
-sint32 main()
-{
+sint32 main() {
     SetShowPassedTests(true);
 
     // Core

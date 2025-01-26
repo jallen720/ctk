@@ -1,22 +1,17 @@
 #pragma once
 
-namespace FrameTest
-{
+namespace FrameTest {
 
-uint32 ExpectedFrameSize(Frame* frame)
-{
+uint32 ExpectedFrameSize(Frame* frame) {
     // Parent stack size, minus any allocated space, minus the stack allocated for this frame.
     return frame->parent->size - Align(frame->parent_base_count, 8u) - Align(SizeOf32<Stack>(), 8u);
 }
 
-bool AllocateTest()
-{
+bool AllocateTest() {
     bool pass = true;
 
     const uint32 FRAME_ALLOCATOR_SIZE = 512u;
-    InitFrameAllocator(&g_std_allocator, FRAME_ALLOCATOR_SIZE);
-
-    {
+    InitFrameAllocator(&g_std_allocator, FRAME_ALLOCATOR_SIZE); {
         Frame frame1 = CreateFrame();
         uint32 frame1_expected_size = ExpectedFrameSize(&frame1);
         RunTest("CreateFrame()", &pass,
@@ -28,8 +23,7 @@ bool AllocateTest()
 
         Write(buf1, 6, "test1");
         RunTest("Write(buf1, 6, \"test1\");", &pass,
-                ExpectEqual, "test1\0", frame1.stack->mem, 6u);
-        {
+                ExpectEqual, "test1\0", frame1.stack->mem, 6u); {
             Frame frame2 = CreateFrame();
             uint32 frame2_expected_size = ExpectedFrameSize(&frame2);
             RunTest("CreateFrame()", &pass,
@@ -47,9 +41,7 @@ bool AllocateTest()
         RunTest("frame2 ended", &pass,
                 TestStackFields, "frame1.stack", frame1.stack, frame1_expected_size, 6u);
         RunTest("frame2 ended", &pass,
-                ExpectEqual, "test1\0", frame1.stack->mem, 6u);
-
-        {
+                ExpectEqual, "test1\0", frame1.stack->mem, 6u); {
             Frame frame3 = CreateFrame();
             uint32 frame3_expected_size = ExpectedFrameSize(&frame3);
             RunTest("CreateFrame()", &pass,
@@ -75,8 +67,7 @@ bool AllocateTest()
     return pass;
 }
 
-bool AllocateOverwriteTest()
-{
+bool AllocateOverwriteTest() {
     bool pass = true;
 
     constexpr uint32 FRAME_ALLOCATOR_SIZE = 512u;
@@ -85,9 +76,7 @@ bool AllocateOverwriteTest()
     Frame frame1 = CreateFrame();
     auto buf1 = Allocate<char>(&frame1.allocator, 8u);
     Write(buf1, 6u, "test1");
-    RunTest("Write(buf1, 6u, \"test1\")", &pass, ExpectEqual, "test1\0", frame1.stack->mem, 6u);
-
-    {
+    RunTest("Write(buf1, 6u, \"test1\")", &pass, ExpectEqual, "test1\0", frame1.stack->mem, 6u); {
         Frame frame2 = CreateFrame();
         auto buf2 = Allocate<char>(&frame2.allocator, 6u);
         Write(buf2, 6u, "test2");
@@ -103,8 +92,7 @@ bool AllocateOverwriteTest()
     return pass;
 }
 
-bool Run()
-{
+bool Run() {
     bool pass = true;
 
     RunTest("AllocateTest",          &pass, AllocateTest);
