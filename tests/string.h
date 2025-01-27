@@ -137,7 +137,8 @@ bool RemoveRangeTest() {
 }
 
 bool WriteTest() {
-    bool pass = true; {
+    bool pass = true;
+    {
         constexpr uint32 STRING_SIZE = 5;
         String string = CreateString(&g_std_allocator, STRING_SIZE);
 
@@ -148,7 +149,8 @@ bool WriteTest() {
                 TestStringFields, &string, STRING_SIZE, 4u, false);
 
         DestroyString(&string);
-    } {
+    }
+    {
         constexpr uint32 STRING_SIZE = 8;
         String string = CreateString(&g_std_allocator, STRING_SIZE);
 
@@ -167,7 +169,8 @@ bool WriteTest() {
 }
 
 bool AppendTest() {
-    bool pass = true; {
+    bool pass = true;
+    {
         constexpr uint32 STRING_SIZE = 18;
         char expected[4][STRING_SIZE] = {};
         Write(expected[0], STRING_SIZE, "test1");
@@ -318,6 +321,15 @@ bool ConversionTests() {
     return pass;
 }
 
+bool WrapStringTests() {
+    bool pass = true;
+
+    String test = WRAP_STRING("my test string");
+    PrintLine("test: \"%.*s\"", test.count, test.data);
+
+    return pass;
+}
+
 bool Run() {
     bool pass = true;
 
@@ -331,6 +343,7 @@ bool Run() {
     RunTest("ContainsTest()",                  &pass, ContainsTest);
     RunTest("ReverseTest()",                   &pass, ReverseTest);
     RunTest("ConversionTests()",               &pass, ConversionTests);
+    RunTest("WrapStringTests()",               &pass, WrapStringTests);
 
     return pass;
 }

@@ -1,6 +1,6 @@
 /// Macros
 ////////////////////////////////////////////////////////////
-#define CTK_WRAP_STRING(STRING) WrapString(STRING, CTK_ARRAY_SIZE(STRING))
+#define CTK_WRAP_STRING(STRING) WrapString((char*)STRING, CTK_ARRAY_SIZE(STRING))
 #define CTK_WRAP_STRING_1(PTR)  WrapString(PTR, 1)
 
 /// Data
