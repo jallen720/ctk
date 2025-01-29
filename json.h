@@ -200,7 +200,7 @@ void ParseLiteralToken(JSONTokenParseState* parse_state, String* json_file, cons
                   parse_state->line,
                   parse_state->column);
     }
-    if (!StringsMatch(&json_file->data[parse_state->char_index], value, size)) {
+    if (!StringsMatch(&json_file->data[parse_state->char_index], size, value)) {
         CTK_FATAL("invalid literal %s on line %u column %u", value,
                   parse_state->line,
                   parse_state->column);

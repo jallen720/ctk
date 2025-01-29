@@ -58,20 +58,28 @@ void Append(String* string, const char* fmt_string, Args... args) {
     string->count += chars_to_append <= remaining_space ? chars_to_append : remaining_space;
 }
 
-bool StringsMatch(String* str_a, const char* nt_string) {
-    return StringsMatch(str_a->data, str_a->count, nt_string, StringSize(nt_string));
+bool StringsMatch(String* string_a, const char* string_b, uint32 string_b_size) {
+    return StringsMatch(string_a->data, string_a->count, string_b, string_b_size);
 }
 
-bool StringsMatch(String* str_a, String* str_b) {
-    return StringsMatch(str_a->data, str_a->count, str_b->data, str_b->count);
+bool StringsMatch(String* string_a, const char* nt_string_b) {
+    return StringsMatch(string_a->data, string_a->count, nt_string_b, StringSize(nt_string_b));
 }
 
-bool StringsMatch(String* str_a, const char* str_b, uint32 match_size, uint32 match_start = 0) {
-    return StringsMatch(str_a->data, str_b, match_size, match_start);
+bool StringsMatch(String* string_a, String* string_b) {
+    return StringsMatch(string_a->data, string_a->count, string_b->data, string_b->count);
 }
 
-bool StringsMatch(String* str_a, String* str_b, uint32 match_size, uint32 match_start = 0) {
-    return StringsMatch(str_a->data, str_b->data, match_size, match_start);
+bool IsSubstring(String* string, const char* substring, uint32 substring_size) {
+    return IsSubstring(string->data, string->count, substring, substring_size);
+}
+
+bool IsSubstring(String* string, const char* nt_substring) {
+    return IsSubstring(string->data, string->count, nt_substring, StringSize(nt_substring));
+}
+
+bool IsSubstring(String* string, String* substring) {
+    return IsSubstring(string->data, string->count, substring->data, substring->count);
 }
 
 template<typename FloatType>

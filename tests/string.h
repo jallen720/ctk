@@ -324,7 +324,7 @@ bool ConversionTests() {
 bool WrapStringTests() {
     bool pass = true;
 
-    String test = WRAP_STRING("my test string");
+    String test = CTK_WRAP_STRING("my test string");
     PrintLine("test: \"%.*s\"", test.count, test.data);
 
     return pass;

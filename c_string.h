@@ -12,9 +12,9 @@ uint32 StringSize(const char* nt_string) {
     return size;
 }
 
-bool StringsMatch(const char* a, const char* b, uint32 match_size, uint32 match_start = 0) {
-    for (uint32 i = match_start; i < match_size; i += 1) {
-        if (a[i] != b[i]) {
+bool StringsMatch(const char* string_a, const char* string_b, uint32 match_size) {
+    for (uint32 i = 0; i < match_size; i += 1) {
+        if (string_a[i] != string_b[i]) {
             return false;
         }
     }
@@ -22,16 +22,40 @@ bool StringsMatch(const char* a, const char* b, uint32 match_size, uint32 match_
     return true;
 }
 
-bool StringsMatch(const char* a, uint32 a_size, const char* b, uint32 b_size) {
-    return a_size == b_size && StringsMatch(a, b, a_size);
+bool StringsMatch(const char* string_a, uint32 string_a_size,
+                  const char* string_b, uint32 string_b_size)
+{
+    if (string_a_size != string_b_size) {
+        return false;
+    }
+
+    return StringsMatch(string_a, string_b, string_a_size);
 }
 
-bool StringsMatch(const char* a, const char* b) {
-    return StringsMatch(a, StringSize(a), b, StringSize(b));
+bool StringsMatch(const char* nt_string_a, const char* nt_string_b) {
+    return StringsMatch(nt_string_a, StringSize(nt_string_a), nt_string_b, StringSize(nt_string_b));
 }
 
-bool StringsMatch(const char* a, uint32 a_size, const char* b) {
-    return StringsMatch(a, a_size, b, StringSize(b));
+bool StringsMatch(const char* string_a, uint32 string_a_size, const char* nt_string_b) {
+    return StringsMatch(string_a, string_a_size, nt_string_b, StringSize(nt_string_b));
+}
+
+bool IsSubstring(const char* string,    uint32 string_size,
+                 const char* substring, uint32 substring_size)
+{
+    if (string_size < substring_size) {
+        return false;
+    }
+
+    return StringsMatch(string, substring, substring_size);
+}
+
+bool IsSubstring(const char* string, const char* substring) {
+    return IsSubstring(string, StringSize(string), substring, StringSize(substring));
+}
+
+bool IsSubstring(const char* string, uint32 string_size, const char* substring) {
+    return IsSubstring(string, string_size, substring, StringSize(substring));
 }
 
 bool Contains(const char* string, uint32 string_size, char c) {
@@ -42,10 +66,6 @@ bool Contains(const char* string, uint32 string_size, char c) {
     }
 
     return false;
-}
-
-bool Contains(const char* nt_string, char c) {
-    return Contains(nt_string, StringSize(nt_string), c);
 }
 
 template<typename FloatType>
@@ -166,10 +186,14 @@ CSTRING_TO_INT_FUNC(u, U, 64)
 
 bool ToBool(const char* string, uint32 size) {
     if (size == 4) {
-        if (StringsMatch(string, "true",  4)) { return true;  }
+        if (StringsMatch(string, size, "true")) {
+            return true; 
+        }
     }
     else if (size == 5) {
-        if (StringsMatch(string, "false", 5)) { return false; }
+        if (StringsMatch(string, size, "false")) {
+            return false;
+        }
     }
 
     CTK_FATAL("string '%.*s' can't be converted to a boolean value: must be 'true' or 'false'", size, string);
