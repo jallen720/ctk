@@ -38,6 +38,11 @@ uint8* Allocate(Stack* stack, uint32 size, uint32 alignment) {
     return allocated_mem;
 }
 
+template<typename Type>
+Type* Allocate(Stack* stack, uint32 count) {
+    return (Type*)Allocate(stack, count * sizeof(Type), alignof(Type));
+}
+
 uint8* Stack_AllocateNZ(Allocator* allocator, uint32 size, uint32 alignment) {
     return AllocateNZ((Stack*)allocator, size, alignment);
 }
