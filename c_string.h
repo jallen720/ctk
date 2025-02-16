@@ -50,12 +50,12 @@ bool IsSubstring(const char* string,    uint32 string_size,
     return StringsMatch(string, substring, substring_size);
 }
 
-bool IsSubstring(const char* string, const char* substring) {
-    return IsSubstring(string, StringSize(string), substring, StringSize(substring));
+bool IsSubstring(const char* nt_string, const char* nt_substring) {
+    return IsSubstring(nt_string, StringSize(nt_string), nt_substring, StringSize(nt_substring));
 }
 
-bool IsSubstring(const char* string, uint32 string_size, const char* substring) {
-    return IsSubstring(string, string_size, substring, StringSize(substring));
+bool IsSubstring(const char* string, uint32 string_size, const char* nt_substring) {
+    return IsSubstring(string, string_size, nt_substring, StringSize(nt_substring));
 }
 
 bool Contains(const char* string, uint32 string_size, char c) {
